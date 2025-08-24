@@ -10,14 +10,33 @@ import rateLimit from 'express-rate-limit';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Log environment info
+console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔌 Port: ${PORT}`);
+
 // 🛡️ MIDDLEWARE & SECURITY
 app.use(cors({
-    origin: ['https://freightpro.netlify.app', 'http://localhost:3000', 'http://localhost:8000'],
-    credentials: true
+    origin: [
+        'https://freightpro.netlify.app',  // Your Netlify frontend
+        'http://localhost:3000',           // Local development
+        'http://localhost:8000',           // Local development
+        'http://localhost:4000'            // Local backend
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+});
 
 // 🚦 RATE LIMITING (Professional API protection)
 const limiter = rateLimit({
@@ -32,6 +51,9 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
+
+// Handle preflight OPTIONS requests
+app.options('*', cors());
 
 // 🗄️ SIMPLE IN-MEMORY CACHE (Replace with Redis/DB in production)
 const fmcsaCache = new Map();
@@ -79,6 +101,11 @@ async function getFMCSAData(type, number) {
         
         if (!json.CompanySnapshot) {
             throw new Error('Invalid response from FMCSA - no CompanySnapshot found');
+        }
+        
+        // Check if FMCSA returned "RECORD NOT FOUND"
+        if (json.CompanySnapshot.ErrorMessage && json.CompanySnapshot.ErrorMessage.includes('RECORD NOT FOUND')) {
+            throw new Error('Company not found in FMCSA database');
         }
         
         const company = json.CompanySnapshot;
@@ -185,7 +212,11 @@ async function getLIData(mcNumber) {
 app.get('/api/fmcsa/:type/:number', async (req, res) => {
     const { type, number } = req.params;
     
-    // 🛡️ INPUT VALIDATION
+    // Log incoming request
+    console.log(`📥 Request: ${req.method} ${req.path} from ${req.ip}`);
+    console.log(`🔍 Parameters: type=${type}, number=${number}`);
+    
+    // 🛡️ INPUT VALIDATION & SANITIZATION
     if (!['USDOT', 'MC'].includes(type.toUpperCase())) {
         return res.status(400).json({ 
             error: 'Invalid type parameter',
@@ -198,6 +229,15 @@ app.get('/api/fmcsa/:type/:number', async (req, res) => {
         return res.status(400).json({ 
             error: 'Missing number parameter',
             message: 'Please provide a valid USDOT or MC number'
+        });
+    }
+    
+    // Sanitize input - only allow alphanumeric characters
+    const sanitizedNumber = number.trim().replace(/[^a-zA-Z0-9]/g, '');
+    if (sanitizedNumber.length === 0) {
+        return res.status(400).json({ 
+            error: 'Invalid number format',
+            message: 'Number contains only special characters'
         });
     }
     
@@ -289,7 +329,8 @@ app.get('/api/fmcsa/li/:mcNumber', async (req, res) => {
 // 🏥 HEALTH CHECK ENDPOINT
 app.get('/api/health', (req, res) => {
     res.json({
-        status: 'healthy',
+        status: 'ok',
+        message: 'FreightPro FMCSA API is running',
         service: 'FreightPro FMCSA API',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
