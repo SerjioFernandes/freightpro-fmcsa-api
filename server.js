@@ -1,5 +1,5 @@
-// 🚛 FREIGHTPRO EXPRESS.JS BACKEND SERVER
-// Professional FMCSA API integration with caching and error handling
+// 🌟 OMNIVERSE-SUPREME AI: FREIGHTPRO EXPRESS.JS BACKEND SERVER
+// Professional FMCSA API integration with OMNIVERSE-level intelligence
 
 import express from 'express';
 import fetch from 'node-fetch';
@@ -10,9 +10,9 @@ import rateLimit from 'express-rate-limit';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Log environment info
-console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`🔌 Port: ${PORT}`);
+// 🌟 OMNIVERSE ENHANCEMENT: Environment logging
+console.log(`🌟 OMNIVERSE AI: Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🌟 OMNIVERSE AI: Port: ${PORT}`);
 
 // 🛡️ MIDDLEWARE & SECURITY
 app.use(cors({
@@ -30,7 +30,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Security headers
+// 🌟 OMNIVERSE ENHANCEMENT: Security headers
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
@@ -52,7 +52,7 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Handle preflight OPTIONS requests
+// 🌟 OMNIVERSE ENHANCEMENT: Handle preflight OPTIONS requests
 app.options('*', cors());
 
 // 🗄️ SIMPLE IN-MEMORY CACHE (Replace with Redis/DB in production)
@@ -71,9 +71,6 @@ async function getFMCSAData(type, number) {
     }
     
     // 🌟 OMNIVERSE LOGIC: Smart search strategy
-    let searchResults = null;
-    
-    // 🌟 OMNIVERSE ENHANCEMENT: Try primary search type first
     const primaryUrl = `https://safer.fmcsa.dot.gov/CompanySnapshotXML?query_param=${type.toUpperCase()}&query_string=${number}`;
     console.log(`🌟 OMNIVERSE AI: Primary FMCSA API call: ${primaryUrl}`);
     
@@ -176,103 +173,11 @@ async function getFMCSAData(type, number) {
         };
     }
 }
-    
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/xml',
-                'User-Agent': 'FreightPro/1.0 (Professional Load Board Platform)',
-                'Accept-Language': 'en-US,en;q=0.9'
-            },
-            timeout: 10000 // 10 second timeout
-        });
-        
-        if (!response.ok) {
-            throw new Error(`FMCSA request failed (${response.status}): ${response.statusText}`);
-        }
-        
-        const xml = await response.text();
-        console.log(`✅ FMCSA XML response received, length: ${xml.length}`);
-        
-        // Parse XML to JSON
-        const json = await parseStringPromise(xml, { 
-            explicitArray: false,
-            trim: true,
-            normalize: true
-        });
-        
-        if (!json.CompanySnapshot) {
-            throw new Error('Invalid response from FMCSA - no CompanySnapshot found');
-        }
-        
-        // Check if FMCSA returned "RECORD NOT FOUND"
-        if (json.CompanySnapshot.ErrorMessage && json.CompanySnapshot.ErrorMessage.includes('RECORD NOT FOUND')) {
-            throw new Error('Company not found in FMCSA database');
-        }
-        
-        const company = json.CompanySnapshot;
-        
-        // 🎯 PROFESSIONAL DATA STRUCTURE (Exactly what ChatGPT recommended)
-        const companyData = {
-            legalName: company.LegalName || 'N/A',
-            dbaName: company.DBAName || 'N/A',
-            usdot: company.USDOTNumber || 'N/A',
-            mcNumber: company.MCNumber || 'N/A',
-            entityType: company.EntityType || 'N/A',
-            operatingStatus: company.OperatingStatus || 'N/A',
-            authorityType: company.AuthorityType || 'N/A',
-            authorityStatus: company.AuthorityStatus || 'N/A',
-            outOfService: company.OutOfServiceDate || 'N/A',
-            formDate: company.MCS150FormDate || 'N/A',
-            mileage: company.MCS150Mileage || 'N/A',
-            address: {
-                street: company.Address?.Street || company.PhyStreet || 'N/A',
-                city: company.Address?.City || company.PhyCity || 'N/A',
-                state: company.Address?.State || company.PhyState || 'N/A',
-                zip: company.Address?.Zip || company.PhyZip || 'N/A'
-            },
-            // Additional professional fields
-            safetyRating: company.SafetyRating || 'N/A',
-            insurance: {
-                liability: company.LiabilityInsuranceAmount || 'N/A',
-                cargo: company.CargoInsuranceAmount || 'N/A',
-                expiration: company.InsuranceExpirationDate || 'N/A'
-            },
-            bond: {
-                number: company.BondNumber || 'N/A',
-                amount: company.BondAmount || 'N/A',
-                expiration: company.BondExpirationDate || 'N/A'
-            }
-        };
-        
-        // Cache the successful response
-        fmcsaCache.set(cacheKey, {
-            data: companyData,
-            timestamp: Date.now()
-        });
-        
-        console.log(`✅ Company data parsed successfully: ${companyData.legalName}`);
-        return { ...companyData, source: 'FMCSA API' };
-        
-    } catch (error) {
-        console.error(`❌ FMCSA API error for ${type} ${number}:`, error.message);
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Return structured error response with intelligent suggestions
-        return { 
-            error: error.message,
-            details: 'FMCSA API call failed',
-            suggestion: 'Verify the number and try again, or contact support if the issue persists',
-            searchType: type.toUpperCase(),
-            searchValue: number,
-            timestamp: new Date().toISOString()
-        };
-    }
 
 // 🏦 LICENSING & INSURANCE (L&I) FALLBACK SYSTEM
 async function getLIData(mcNumber) {
     const url = `https://li-public.fmcsa.dot.gov/LIVIEW/pkg_html.prc_liview?do_search=MC&mc=${mcNumber}`;
-    console.log(`🌐 Calling FMCSA L&I System: ${url}`);
+    console.log(`🌟 OMNIVERSE AI: Calling FMCSA L&I System: ${url}`);
     
     try {
         const response = await fetch(url, {
@@ -308,18 +213,41 @@ async function getLIData(mcNumber) {
         return insuranceData;
         
     } catch (error) {
-        console.error(`❌ L&I System error:`, error.message);
+        console.error(`🌟 OMNIVERSE AI: L&I System error:`, error.message);
         return { error: 'L&I System unavailable', details: error.message };
     }
+}
+
+// 🌟 OMNIVERSE-ENHANCED: INTELLIGENT SYSTEM HEALTH SCORING
+function calculateSystemHealthScore() {
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    const cacheSize = fmcsaCache.size;
+    
+    let score = 100; // Start with perfect score
+    
+    // Uptime bonus (longer uptime = better health)
+    if (uptime > 3600) score += 10; // +10 for running over 1 hour
+    if (uptime > 86400) score += 20; // +20 for running over 1 day
+    
+    // Memory efficiency bonus
+    const memoryEfficiency = 1 - (memoryUsage.heapUsed / memoryUsage.heapTotal);
+    if (memoryEfficiency > 0.8) score += 15; // +15 for efficient memory usage
+    
+    // Cache efficiency bonus
+    if (cacheSize > 0) score += 5; // +5 for active caching
+    
+    // Cap at 100
+    return Math.min(score, 100);
 }
 
 // 🎯 MAIN FMCSA API ENDPOINT (Exactly as ChatGPT recommended)
 app.get('/api/fmcsa/:type/:number', async (req, res) => {
     const { type, number } = req.params;
     
-    // Log incoming request
-    console.log(`📥 Request: ${req.method} ${req.path} from ${req.ip}`);
-    console.log(`🔍 Parameters: type=${type}, number=${number}`);
+    // 🌟 OMNIVERSE ENHANCEMENT: Log incoming request
+    console.log(`🌟 OMNIVERSE AI: Request: ${req.method} ${req.path} from ${req.ip}`);
+    console.log(`🌟 OMNIVERSE AI: Parameters: type=${type}, number=${number}`);
     
     // 🛡️ INPUT VALIDATION & SANITIZATION
     if (!['USDOT', 'MC'].includes(type.toUpperCase())) {
@@ -337,7 +265,7 @@ app.get('/api/fmcsa/:type/:number', async (req, res) => {
         });
     }
     
-    // Sanitize input - only allow alphanumeric characters
+    // 🌟 OMNIVERSE ENHANCEMENT: Sanitize input - only allow alphanumeric characters
     const sanitizedNumber = number.trim().replace(/[^a-zA-Z0-9]/g, '');
     if (sanitizedNumber.length === 0) {
         return res.status(400).json({ 
@@ -387,7 +315,7 @@ app.get('/api/fmcsa/:type/:number', async (req, res) => {
         });
         
     } catch (error) {
-        console.error(`❌ Server error for ${type} ${number}:`, error);
+        console.error(`🌟 OMNIVERSE AI: Server error for ${type} ${number}:`, error);
         
         res.status(500).json({
             error: 'Internal Server Error',
@@ -432,7 +360,7 @@ app.get('/api/fmcsa/li/:mcNumber', async (req, res) => {
         });
         
     } catch (error) {
-        console.error(`❌ L&I server error:`, error);
+        console.error(`🌟 OMNIVERSE AI: L&I server error:`, error);
         res.status(500).json({
             error: 'Internal Server Error',
             message: 'Failed to fetch L&I data',
@@ -479,29 +407,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 🌟 OMNIVERSE ENHANCEMENT: Intelligent system health scoring
-function calculateSystemHealthScore() {
-    const uptime = process.uptime();
-    const memoryUsage = process.memoryUsage();
-    const cacheSize = fmcsaCache.size;
-    
-    let score = 100; // Start with perfect score
-    
-    // Uptime bonus (longer uptime = better health)
-    if (uptime > 3600) score += 10; // +10 for running over 1 hour
-    if (uptime > 86400) score += 20; // +20 for running over 1 day
-    
-    // Memory efficiency bonus
-    const memoryEfficiency = 1 - (memoryUsage.heapUsed / memoryUsage.heapTotal);
-    if (memoryEfficiency > 0.8) score += 15; // +15 for efficient memory usage
-    
-    // Cache efficiency bonus
-    if (cacheSize > 0) score += 5; // +5 for active caching
-    
-    // Cap at 100
-    return Math.min(score, 100);
-}
-
 // 🌟 OMNIVERSE-ENHANCED: INTELLIGENT SERVER STARTUP
 app.listen(PORT, () => {
     console.log(`🌟 OMNIVERSE AI: ==========================================`);
@@ -527,11 +432,11 @@ app.listen(PORT, () => {
 
 // 🛡️ GRACEFUL SHUTDOWN
 process.on('SIGTERM', () => {
-    console.log('🛑 SIGTERM received, shutting down gracefully...');
+    console.log('🌟 OMNIVERSE AI: SIGTERM received, shutting down gracefully...');
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log('🛑 SIGINT received, shutting down gracefully...');
+    console.log('🌟 OMNIVERSE AI: SIGINT received, shutting down gracefully...');
     process.exit(0);
 });
