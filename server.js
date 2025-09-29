@@ -187,7 +187,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
-console.log('🔐 CORS allowed origins:', allowedOrigins);
+console.log('🔐 CORS allowed origins:', JSON.stringify(allowedOrigins));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
