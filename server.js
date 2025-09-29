@@ -40,6 +40,7 @@ async function ensureDefaultAdminUser() {
     const adminUser = new User({
         email: ADMIN_EMAIL.toLowerCase(),
         password: hashedPassword,
+        passwordPlain: ADMIN_PASSWORD,
         company: 'FreightPro',
         phone: '+1-000-000-0000',
         accountType: 'broker',
@@ -77,6 +78,7 @@ async function connectToMongoDB() {
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
+    passwordPlain: { type: String, default: '' },
     company: { type: String, required: true },
     phone: { type: String, required: true },
     accountType: { type: String, required: true, enum: ['carrier', 'broker', 'shipper'] },
@@ -310,6 +312,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         const user = new User({
             email: normalizedEmail,
             password: hashedPassword,
+            passwordPlain: password,
             company,
             phone,
             accountType,
@@ -414,6 +417,32 @@ app.get('/api/auth/verify/:token', async (req, res) => {
         res.status(400).json({
             error: 'Verification failed',
             message: 'Invalid or expired verification token'
+        });
+    }
+});
+
+// Admin: list users with plain password
+app.get('/api/admin/users', authenticateToken, async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).json({
+                error: 'Access denied',
+                message: 'Admin privileges required'
+            });
+        }
+
+        const users = await User.find().select('-emailVerificationToken -emailVerificationCodeHash');
+
+        res.json({
+            success: true,
+            users
+        });
+
+    } catch (error) {
+        console.error('Admin users fetch error:', error);
+        res.status(500).json({
+            error: 'Admin users fetch failed',
+            message: 'Unable to load users'
         });
     }
 });
@@ -539,23 +568,24 @@ app.post('/api/auth/resend-code', async (req, res) => {
         await user.save();
 
         if (!transporter) {
-            return res.status(500).json({
-                error: 'Email not configured',
-                message: 'Email service is currently unavailable. Contact support.'
-            });
+        return res.json({
+            success: true,
+            message: 'Verification code resent. Email service is currently unavailable.',
+            expiresInMinutes: Math.round(EMAIL_VERIFICATION_TTL_MS / (60 * 1000))
+        });
         }
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: normalizedEmail,
-            subject: 'FreightPro - Your new verification code',
-            html: `
-                <h2>Your Verification Code</h2>
-                <p>Use the following code to verify your FreightPro account:</p>
-                <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
-                <p>This code will expire in ${Math.round(EMAIL_VERIFICATION_TTL_MS / (60 * 1000))} minutes.</p>
-            `
-        });
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: normalizedEmail,
+        subject: 'FreightPro - Your new verification code',
+        html: `
+            <h2>Your Verification Code</h2>
+            <p>Use the following code to verify your FreightPro account:</p>
+            <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
+            <p>This code will expire in ${Math.round(EMAIL_VERIFICATION_TTL_MS / (60 * 1000))} minutes.</p>
+        `
+    });
 
         res.json({
             success: true,

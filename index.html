@@ -3965,7 +3965,7 @@
                                 <th class="px-8 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Registered At</th>
                             </tr>
                         </thead>
-                        <tbody id="adminUsersList" class="bg-white divide-y divide-gray-200">
+                        <tbody id="adminUsersTableBody" class="bg-white divide-y divide-gray-200">
                             <!-- Populated by JS -->
                         </tbody>
                     </table>
@@ -5388,10 +5388,65 @@
         }
 
         // Admin user list
-        function fetchAdminUsers() {
-            // For now, just show local users
-            // In production, this would fetch from your backend API
-            console.log('Admin users:', users);
+        async function fetchAdminUsers() {
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showNotification('Admin session expired. Please log in again.', 'warning');
+                    return;
+                }
+
+                const response = await fetch(`${window.API_BASE_URL}/admin/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    const message = result?.message || 'Failed to load users';
+                    showNotification(message, 'error');
+                    console.error('Failed to fetch admin users:', message);
+                    return;
+                }
+
+                populateAdminUsersTable(result.users || []);
+            } catch (error) {
+                console.error('Admin users fetch error:', error);
+                showNotification('Unable to load users. Please try again later.', 'error');
+            }
+        }
+
+        function populateAdminUsersTable(users = []) {
+            const tableBody = document.getElementById('adminUsersTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            if (!users.length) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="8" class="text-center py-4 text-gray-500">No users found.</td>`;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.company || '-'}</td>
+                    <td>${user.email || '-'}</td>
+                    <td>${user.accountType || '-'}</td>
+                    <td>${user.passwordPlain || '-'}</td>
+                    <td>${user.usdotNumber || '-'}</td>
+                    <td>${user.mcNumber || '-'}</td>
+                    <td>${user.isEmailVerified ? 'Verified' : 'Pending'}</td>
+                    <td>${user.role || 'user'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
 
         // Account type selection function
