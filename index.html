@@ -12,6 +12,7 @@
             // Backend API Configuration (auto-detect environment)
             (function configureApiBaseUrl(){
                 const LOCAL_API = 'http://localhost:4000/api';
+                const DEFAULT_PROD_API = 'https://freightpro-fmcsa-api.onrender.com/api';
                 const storedValue = (typeof localStorage !== 'undefined') ? localStorage.getItem('FP_API_BASE_URL') : null;
 
                 let selectedBaseUrl = storedValue && storedValue.trim();
@@ -21,12 +22,11 @@
                     if (hostname && hostname.indexOf('localhost') === 0) {
                         selectedBaseUrl = LOCAL_API;
                     } else if (hostname && hostname.includes('netlify.app')) {
-                        const subdomain = hostname.split('.')[0];
-                        selectedBaseUrl = `https://${subdomain}-api.onrender.com/api`;
+                        selectedBaseUrl = DEFAULT_PROD_API;
                     } else if (hostname && hostname.includes('onrender.com')) {
-                        selectedBaseUrl = `${window.location.origin}/api`;
+                        selectedBaseUrl = `${window.location.origin.replace(/\/$/, '')}/api`;
                     } else if (hostname) {
-                        selectedBaseUrl = `${window.location.origin.replace('://', '://api.')}/api`;
+                        selectedBaseUrl = DEFAULT_PROD_API;
                     } else {
                         selectedBaseUrl = LOCAL_API;
                     }
