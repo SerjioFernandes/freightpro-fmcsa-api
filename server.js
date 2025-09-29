@@ -1,47 +1,152 @@
-// 🌟 OMNIVERSE-SUPREME AI: FREIGHTPRO EXPRESS.JS BACKEND SERVER
-// Professional FMCSA API integration with OMNIVERSE-level intelligence
-
+// FreightPro Load Board Backend Server
 import express from 'express';
-import fetch from 'node-fetch';
-import { parseStringPromise } from 'xml2js';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import bcryptjs from 'bcryptjs';
+import jsonwebtoken from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import { body, validationResult } from 'express-validator';
+import helmet from 'helmet';
+import compression from 'compression';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-// 🌟 OMNIVERSE ENHANCEMENT: Environment logging
-console.log(`🌟 OMNIVERSE AI: Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`🌟 OMNIVERSE AI: Port: ${PORT}`);
+// MongoDB Connection
+async function connectToMongoDB() {
+    try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI environment variable is required');
+        }
+        
+        await mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        
+        console.log('✅ Connected to MongoDB successfully');
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error.message);
+        process.exit(1);
+    }
+}
 
-// 🛡️ MIDDLEWARE & SECURITY
+// MongoDB Schemas
+const userSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    company: { type: String, required: true },
+    phone: { type: String, required: true },
+    accountType: { type: String, required: true, enum: ['carrier', 'broker', 'shipper'] },
+    
+    // Authority Information (for carriers/brokers)
+    usdotNumber: { type: String, default: '' },
+    mcNumber: { type: String, default: '' },
+    hasUSDOT: { type: Boolean, default: false },
+    
+    // Company Information
+    companyLegalName: { type: String, default: '' },
+    dbaName: { type: String, default: '' },
+    
+    // Address Information
+    address: {
+        street: { type: String, default: '' },
+        city: { type: String, default: '' },
+        state: { type: String, default: '' },
+        zip: { type: String, default: '' }
+    },
+    
+    // Account Status
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String, default: '' },
+    isActive: { type: Boolean, default: true },
+    role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    
+    // Timestamps
+    createdAt: { type: Date, default: Date.now },
+    lastLogin: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Load Board Schemas
+const loadSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    origin: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    destination: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    pickupDate: { type: Date, required: true },
+    deliveryDate: { type: Date, required: true },
+    equipmentType: { type: String, required: true },
+    weight: { type: Number, required: true },
+    rate: { type: Number, required: true },
+    rateType: { type: String, enum: ['per_mile', 'flat_rate'], default: 'per_mile' },
+    distance: { type: Number },
+    
+    // Load Status
+    status: { type: String, enum: ['available', 'booked', 'in_transit', 'delivered', 'cancelled'], default: 'available' },
+    
+    // Relationships
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    bookedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    
+    // Timestamps
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+const Load = mongoose.model('Load', loadSchema);
+
+// Message Schema
+const messageSchema = new mongoose.Schema({
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    load: { type: mongoose.Schema.Types.ObjectId, ref: 'Load' },
+    subject: { type: String, required: true },
+    message: { type: String, required: true },
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Message = mongoose.model('Message', messageSchema);
+
+// Middleware & Security
+app.use(helmet());
+app.use(compression());
 app.use(cors({
     origin: [
-        'https://freightpro.netlify.app',  // Your Netlify frontend
-        'http://localhost:3000',           // Local development
-        'http://localhost:8000',           // Local development
-        'http://localhost:4000'            // Local backend
+        'https://freightpro.netlify.app',
+        'http://localhost:3000',
+        'http://localhost:8000',
+        'http://localhost:4000',
+        'null'  // Allow file:// protocol (when opening HTML directly)
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 🌟 OMNIVERSE ENHANCEMENT: Security headers
-app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    next();
-});
-
-// 🚦 RATE LIMITING (Professional API protection)
+// Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 100,
     message: {
         error: 'Too many requests from this IP, please try again later.',
         retryAfter: '15 minutes'
@@ -51,392 +156,438 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
-
-// 🌟 OMNIVERSE ENHANCEMENT: Handle preflight OPTIONS requests
 app.options('*', cors());
 
-// 🗄️ SIMPLE IN-MEMORY CACHE (Replace with Redis/DB in production)
-const fmcsaCache = new Map();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-
-// 🌟 OMNIVERSE-ENHANCED: INTELLIGENT FMCSA DATA FETCHING WITH SMART SEARCH LOGIC
-async function getFMCSAData(type, number) {
-    const cacheKey = `${type.toUpperCase()}_${number}`;
-    
-    // 🌟 OMNIVERSE ENHANCEMENT: Check cache first with intelligent cache key
-    const cached = fmcsaCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-        console.log(`🌟 OMNIVERSE AI: Cache hit for ${cacheKey}`);
-        return { ...cached.data, source: 'cache' };
-    }
-    
-    // 🌟 OMNIVERSE LOGIC: Smart search strategy
-    const primaryUrl = `https://safer.fmcsa.dot.gov/CompanySnapshotXML?query_param=${type.toUpperCase()}&query_string=${number}`;
-    console.log(`🌟 OMNIVERSE AI: Primary FMCSA API call: ${primaryUrl}`);
-    
-    try {
-        const response = await fetch(primaryUrl, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/xml',
-                'User-Agent': 'FreightPro/1.0 (Professional Load Board Platform)',
-                'Accept-Language': 'en-US,en;q=0.9'
-            },
-            timeout: 10000 // 10 second timeout
-        });
-        
-        if (!response.ok) {
-            throw new Error(`FMCSA request failed (${response.status}): ${response.statusText}`);
-        }
-        
-        const xml = await response.text();
-        console.log(`🌟 OMNIVERSE AI: FMCSA XML response received, length: ${xml.length}`);
-        
-        // Parse XML to JSON
-        const json = await parseStringPromise(xml, { 
-            explicitArray: false,
-            trim: true,
-            normalize: true
-        });
-        
-        if (!json.CompanySnapshot) {
-            throw new Error('Invalid response from FMCSA - no CompanySnapshot found');
-        }
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Check if FMCSA returned "RECORD NOT FOUND"
-        if (json.CompanySnapshot.ErrorMessage && json.CompanySnapshot.ErrorMessage.includes('RECORD NOT FOUND')) {
-            throw new Error('Company not found in FMCSA database');
-        }
-        
-        const company = json.CompanySnapshot;
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Enhanced data structure with intelligent field mapping
-        const companyData = {
-            legalName: company.LegalName || 'N/A',
-            dbaName: company.DBAName || 'N/A',
-            usdot: company.USDOTNumber || 'N/A',
-            mcNumber: company.MCNumber || 'N/A',
-            entityType: company.EntityType || 'N/A',
-            operatingStatus: company.OperatingStatus || 'N/A',
-            authorityType: company.AuthorityType || 'N/A',
-            authorityStatus: company.AuthorityStatus || 'N/A',
-            outOfService: company.OutOfServiceDate || 'N/A',
-            formDate: company.MCS150FormDate || 'N/A',
-            mileage: company.MCS150Mileage || 'N/A',
-            address: {
-                street: company.Address?.Street || company.PhyStreet || 'N/A',
-                city: company.Address?.City || company.PhyCity || 'N/A',
-                state: company.Address?.State || company.PhyState || 'N/A',
-                zip: company.Address?.Zip || company.PhyZip || 'N/A'
-            },
-            // 🌟 OMNIVERSE ENHANCEMENT: Additional professional fields with intelligent defaults
-            safetyRating: company.SafetyRating || 'N/A',
-            insurance: {
-                liability: company.LiabilityInsuranceAmount || 'N/A',
-                cargo: company.CargoInsuranceAmount || 'N/A',
-                expiration: company.InsuranceExpirationDate || 'N/A'
-            },
-            bond: {
-                number: company.BondNumber || 'N/A',
-                amount: company.BondAmount || 'N/A',
-                expiration: company.BondExpirationDate || 'N/A'
-            }
-        };
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Intelligent cache with enhanced metadata
-        fmcsaCache.set(cacheKey, {
-            data: companyData,
-            timestamp: Date.now(),
-            searchType: type.toUpperCase(),
-            searchValue: number,
-            entityType: companyData.entityType,
-            hasUSDOT: companyData.usdot !== 'N/A',
-            hasMC: companyData.mcNumber !== 'N/A'
-        });
-        
-        console.log(`🌟 OMNIVERSE AI: Company data parsed successfully: ${companyData.legalName}`);
-        console.log(`🌟 OMNIVERSE AI: Entity type: ${companyData.entityType}, USDOT: ${companyData.usdot}, MC: ${companyData.mcNumber}`);
-        
-        return { ...companyData, source: 'FMCSA API' };
-        
-    } catch (error) {
-        console.error(`🌟 OMNIVERSE AI: FMCSA API error for ${type} ${number}:`, error.message);
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Return structured error response with intelligent suggestions
-        return { 
-            error: error.message,
-            details: 'FMCSA API call failed',
-            suggestion: 'Verify the number and try again, or contact support if the issue persists',
-            searchType: type.toUpperCase(),
-            searchValue: number,
-            timestamp: new Date().toISOString()
-        };
-    }
-}
-
-// 🏦 LICENSING & INSURANCE (L&I) FALLBACK SYSTEM
-async function getLIData(mcNumber) {
-    const url = `https://li-public.fmcsa.dot.gov/LIVIEW/pkg_html.prc_liview?do_search=MC&mc=${mcNumber}`;
-    console.log(`🌟 OMNIVERSE AI: Calling FMCSA L&I System: ${url}`);
-    
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'FreightPro/1.0 (Professional Load Board Platform)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-            },
-            timeout: 15000 // 15 second timeout for L&I
-        });
-        
-        if (!response.ok) {
-            throw new Error(`L&I request failed (${response.status})`);
-        }
-        
-        const html = await response.text();
-        
-        // Basic insurance data extraction (enhance this based on actual L&I page structure)
-        const insuranceData = {
-            source: 'FMCSA L&I System',
-            insurance: {
-                liability: 'Available in L&I System',
-                cargo: 'Available in L&I System',
-                expiration: 'Check L&I System for details'
-            },
-            bond: {
-                number: 'Available in L&I System',
-                amount: 'Available in L&I System',
-                expiration: 'Check L&I System for details'
-            }
-        };
-        
-        return insuranceData;
-        
-    } catch (error) {
-        console.error(`🌟 OMNIVERSE AI: L&I System error:`, error.message);
-        return { error: 'L&I System unavailable', details: error.message };
-    }
-}
-
-// 🌟 OMNIVERSE-ENHANCED: INTELLIGENT SYSTEM HEALTH SCORING
-function calculateSystemHealthScore() {
-    const uptime = process.uptime();
-    const memoryUsage = process.memoryUsage();
-    const cacheSize = fmcsaCache.size;
-    
-    let score = 100; // Start with perfect score
-    
-    // Uptime bonus (longer uptime = better health)
-    if (uptime > 3600) score += 10; // +10 for running over 1 hour
-    if (uptime > 86400) score += 20; // +20 for running over 1 day
-    
-    // Memory efficiency bonus
-    const memoryEfficiency = 1 - (memoryUsage.heapUsed / memoryUsage.heapTotal);
-    if (memoryEfficiency > 0.8) score += 15; // +15 for efficient memory usage
-    
-    // Cache efficiency bonus
-    if (cacheSize > 0) score += 5; // +5 for active caching
-    
-    // Cap at 100
-    return Math.min(score, 100);
-}
-
-// 🎯 MAIN FMCSA API ENDPOINT (Exactly as ChatGPT recommended)
-app.get('/api/fmcsa/:type/:number', async (req, res) => {
-    const { type, number } = req.params;
-    
-    // 🌟 OMNIVERSE ENHANCEMENT: Log incoming request
-    console.log(`🌟 OMNIVERSE AI: Request: ${req.method} ${req.path} from ${req.ip}`);
-    console.log(`🌟 OMNIVERSE AI: Parameters: type=${type}, number=${number}`);
-    
-    // 🛡️ INPUT VALIDATION & SANITIZATION
-    if (!['USDOT', 'MC'].includes(type.toUpperCase())) {
-        return res.status(400).json({ 
-            error: 'Invalid type parameter',
-            message: 'Type must be USDOT or MC',
-            validTypes: ['USDOT', 'MC']
-        });
-    }
-    
-    if (!number || number.trim().length === 0) {
-        return res.status(400).json({ 
-            error: 'Missing number parameter',
-            message: 'Please provide a valid USDOT or MC number'
-        });
-    }
-    
-    // 🌟 OMNIVERSE ENHANCEMENT: Sanitize input - only allow alphanumeric characters
-    const sanitizedNumber = number.trim().replace(/[^a-zA-Z0-9]/g, '');
-    if (sanitizedNumber.length === 0) {
-        return res.status(400).json({ 
-            error: 'Invalid number format',
-            message: 'Number contains only special characters'
-        });
-    }
-    
-    // 🌟 OMNIVERSE AI: INTELLIGENT FMCSA DATA FETCHING
-    console.log(`🌟 OMNIVERSE AI: Fetching FMCSA data for ${type.toUpperCase()}: ${number}`);
-    
-    try {
-        const data = await getFMCSAData(type.toUpperCase(), number.trim());
-        
-        if (data.error) {
-            // 🌟 OMNIVERSE ENHANCEMENT: Enhanced error response with intelligent suggestions
-            return res.status(500).json({
-                error: 'FMCSA API Error',
-                message: data.error,
-                details: data.details,
-                suggestion: data.suggestion,
-                timestamp: new Date().toISOString(),
-                requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                searchType: type.toUpperCase(),
-                searchValue: number,
-                entityType: data.entityType || 'unknown'
-            });
-        }
-        
-        // 🌟 OMNIVERSE ENHANCEMENT: Enhanced success response with intelligent metadata
-        res.json({
-            success: true,
-            data: data,
-            metadata: {
-                timestamp: new Date().toISOString(),
-                source: data.source,
-                cacheStatus: data.source === 'cache' ? 'cached' : 'fresh',
-                requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                searchType: type.toUpperCase(),
-                searchValue: number,
-                entityType: data.entityType || 'unknown',
-                hasUSDOT: data.usdot !== 'N/A',
-                hasMC: data.mcNumber !== 'N/A',
-                userTypeRecommendation: data.entityType === 'CARRIER' ? 'carrier' : 
-                                      data.entityType === 'BROKER' ? 'broker' : 'unknown'
-            }
-        });
-        
-    } catch (error) {
-        console.error(`🌟 OMNIVERSE AI: Server error for ${type} ${number}:`, error);
-        
-        res.status(500).json({
-            error: 'Internal Server Error',
-            message: 'An unexpected error occurred while fetching FMCSA data',
-            details: process.env.NODE_ENV === 'development' ? error.message : 'Contact support for assistance',
-            timestamp: new Date().toISOString(),
-            requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        });
+// Email Configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password'
     }
 });
 
-// 🏦 L&I SYSTEM ENDPOINT
-app.get('/api/fmcsa/li/:mcNumber', async (req, res) => {
-    const { mcNumber } = req.params;
-    
-    if (!mcNumber || mcNumber.trim().length === 0) {
-        return res.status(400).json({ 
-            error: 'Missing MC number parameter',
-            message: 'Please provide a valid MC number'
-        });
-    }
-    
-    try {
-        const data = await getLIData(mcNumber.trim());
-        
-        if (data.error) {
-            return res.status(500).json({
-                error: 'L&I System Error',
-                message: data.error,
-                details: data.details,
-                timestamp: new Date().toISOString()
-            });
-        }
-        
-        res.json({
-            success: true,
-            data: data,
-            metadata: {
-                timestamp: new Date().toISOString(),
-                source: 'FMCSA L&I System'
-            }
-        });
-        
-    } catch (error) {
-        console.error(`🌟 OMNIVERSE AI: L&I server error:`, error);
-        res.status(500).json({
-            error: 'Internal Server Error',
-            message: 'Failed to fetch L&I data',
-            timestamp: new Date().toISOString()
-        });
-    }
-});
+// JWT Authentication Middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-// 🌟 OMNIVERSE-ENHANCED: INTELLIGENT HEALTH CHECK ENDPOINT
+    if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+
+    jsonwebtoken.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Invalid or expired token' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// Validation Middleware
+const validateRegistration = [
+    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('company').notEmpty().withMessage('Company name required'),
+    body('phone').isMobilePhone().withMessage('Valid phone number required'),
+    body('accountType').isIn(['carrier', 'broker', 'shipper']).withMessage('Valid account type required')
+];
+
+// API Routes
+
+// Health Check
 app.get('/api/health', (req, res) => {
-    // 🌟 OMNIVERSE ENHANCEMENT: Intelligent system analysis
-    const cacheStats = {
-        size: fmcsaCache.size,
-        maxAge: '24 hours',
-        efficiency: fmcsaCache.size > 0 ? 'active' : 'idle',
-        memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
-    };
-    
-    // 🌟 OMNIVERSE ENHANCEMENT: System health scoring
-    const healthScore = calculateSystemHealthScore();
-    
     res.json({
         status: 'ok',
-        message: '🌟 OMNIVERSE AI: FreightPro FMCSA API is running at peak performance!',
-        service: 'FreightPro FMCSA API',
-        version: '1.0.0',
+        message: 'FreightPro Load Board API is running',
+        service: 'FreightPro Load Board API',
+        version: '2.0.0',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        cache: cacheStats,
-        system: {
-            health: healthScore,
-            environment: process.env.NODE_ENV || 'development',
-            nodeVersion: process.version,
-            platform: process.platform,
-            architecture: process.arch
-        },
-        omniVerse: {
-            ai: 'activated',
-            intelligence: 'peak',
-            performance: 'optimal',
-            scalability: 'infinite'
+        database: {
+            status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
         }
     });
 });
 
-// 🌟 OMNIVERSE-ENHANCED: INTELLIGENT SERVER STARTUP
-app.listen(PORT, () => {
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
-    console.log(`🌟 OMNIVERSE AI: 🚛 FREIGHTPRO FMCSA API SERVER ACTIVATED`);
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
-    console.log(`🌟 OMNIVERSE AI: Server running on port ${PORT}`);
-    console.log(`🌟 OMNIVERSE AI: Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
-    console.log(`🌟 OMNIVERSE AI: 🌐 FMCSA Endpoint: http://localhost:${PORT}/api/fmcsa/:type/:number`);
-    console.log(`🌟 OMNIVERSE AI: 🏦 L&I Endpoint: http://localhost:${PORT}/api/fmcsa/li/:mcNumber`);
-    console.log(`🌟 OMNIVERSE AI: 🏥 Health Check: http://localhost:${PORT}/api/health`);
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
-    console.log(`🌟 OMNIVERSE AI: ✅ OMNIVERSE INTELLIGENCE: ACTIVATED`);
-    console.log(`🌟 OMNIVERSE AI: ✅ USER TYPE DETECTION: ENABLED`);
-    console.log(`🌟 OMNIVERSE AI: ✅ USDOT LOGIC: IMPLEMENTED`);
-    console.log(`🌟 OMNIVERSE AI: ✅ SMART CACHING: ACTIVE`);
-    console.log(`🌟 OMNIVERSE AI: ✅ SECURITY: MAXIMUM`);
-    console.log(`🌟 OMNIVERSE AI: ✅ SCALABILITY: INFINITE`);
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
-    console.log(`🌟 OMNIVERSE AI: Ready to serve OMNIVERSE-LEVEL FMCSA data!`);
-    console.log(`🌟 OMNIVERSE AI: ==========================================`);
+// User Registration
+app.post('/api/auth/register', validateRegistration, async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: errors.array()
+            });
+        }
+
+        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName, address } = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                error: 'User already exists',
+                message: 'An account with this email already exists'
+            });
+        }
+
+        // Hash password
+        const saltRounds = 12;
+        const hashedPassword = await bcryptjs.hash(password, saltRounds);
+
+        // Generate email verification token
+        const emailVerificationToken = jsonwebtoken.sign(
+            { email },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // Create user
+        const user = new User({
+            email,
+            password: hashedPassword,
+            company,
+            phone,
+            accountType,
+            usdotNumber: usdotNumber || '',
+            mcNumber: mcNumber || '',
+            hasUSDOT: hasUSDOT || false,
+            companyLegalName: companyLegalName || '',
+            dbaName: dbaName || '',
+            address: address || {},
+            emailVerificationToken
+        });
+
+        await user.save();
+
+        // Send verification email
+        try {
+            const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify/${emailVerificationToken}`;
+            
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'FreightPro - Verify Your Email',
+                html: `
+                    <h2>Welcome to FreightPro!</h2>
+                    <p>Thank you for registering with FreightPro Load Board.</p>
+                    <p>Please click the link below to verify your email address:</p>
+                    <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
+                    <p>This link will expire in 24 hours.</p>
+                    <p>If you didn't create this account, please ignore this email.</p>
+                `
+            });
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+            // Don't fail registration if email fails
+        }
+
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully. Please check your email to verify your account.',
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                accountType: user.accountType,
+                isEmailVerified: user.isEmailVerified
+            }
+        });
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({
+            error: 'Registration failed',
+            message: 'An error occurred during registration',
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Contact support for assistance'
+        });
+    }
 });
 
-// 🛡️ GRACEFUL SHUTDOWN
-process.on('SIGTERM', () => {
-    console.log('🌟 OMNIVERSE AI: SIGTERM received, shutting down gracefully...');
+// Email Verification
+app.get('/api/auth/verify/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        const decoded = jsonwebtoken.verify(token, JWT_SECRET);
+        const user = await User.findOne({ email: decoded.email });
+
+        if (!user) {
+            return res.status(400).json({
+                error: 'Invalid verification token',
+                message: 'User not found'
+            });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({
+                error: 'Email already verified',
+                message: 'This email has already been verified'
+            });
+        }
+
+        user.isEmailVerified = true;
+        user.emailVerificationToken = '';
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully! You can now log in to your account.'
+        });
+
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(400).json({
+            error: 'Verification failed',
+            message: 'Invalid or expired verification token'
+        });
+    }
+});
+
+// User Login
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                error: 'Missing credentials',
+                message: 'Email and password are required'
+            });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                message: 'Email or password is incorrect'
+            });
+        }
+
+        const isPasswordValid = await bcryptjs.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                message: 'Email or password is incorrect'
+            });
+        }
+
+        if (!user.isActive) {
+            return res.status(401).json({
+                error: 'Account disabled',
+                message: 'Your account has been disabled. Contact support for assistance.'
+            });
+        }
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Generate JWT token
+        const token = jsonwebtoken.sign(
+            { 
+                userId: user._id, 
+                email: user.email, 
+                accountType: user.accountType,
+                role: user.role 
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                accountType: user.accountType,
+                isEmailVerified: user.isEmailVerified,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            error: 'Login failed',
+            message: 'An error occurred during login'
+        });
+    }
+});
+
+// Get User Profile
+app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).select('-password -emailVerificationToken');
+        
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'User account not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            user
+        });
+
+    } catch (error) {
+        console.error('Profile fetch error:', error);
+        res.status(500).json({
+            error: 'Profile fetch failed',
+            message: 'An error occurred while fetching profile'
+        });
+    }
+});
+
+// Load Board Routes
+
+// Post a Load
+app.post('/api/loads', authenticateToken, async (req, res) => {
+    try {
+        const loadData = {
+            ...req.body,
+            postedBy: req.user.userId
+        };
+
+        const load = new Load(loadData);
+        await load.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Load posted successfully',
+            load
+        });
+
+    } catch (error) {
+        console.error('Load posting error:', error);
+        res.status(500).json({
+            error: 'Load posting failed',
+            message: 'An error occurred while posting the load'
+        });
+    }
+});
+
+// Get Loads
+app.get('/api/loads', async (req, res) => {
+    try {
+        const { page = 1, limit = 20, status = 'available', accountType } = req.query;
+        const skip = (page - 1) * limit;
+
+        let query = { status };
+        
+        // Filter by account type if specified
+        if (accountType) {
+            query.accountType = accountType;
+        }
+
+        const loads = await Load.find(query)
+            .populate('postedBy', 'company email accountType')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Load.countDocuments(query);
+
+        res.json({
+            success: true,
+            loads,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Loads fetch error:', error);
+        res.status(500).json({
+            error: 'Loads fetch failed',
+            message: 'An error occurred while fetching loads'
+        });
+    }
+});
+
+// Book a Load
+app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
+    try {
+        const load = await Load.findById(req.params.id);
+        
+        if (!load) {
+            return res.status(404).json({
+                error: 'Load not found',
+                message: 'The requested load does not exist'
+            });
+        }
+
+        if (load.status !== 'available') {
+            return res.status(400).json({
+                error: 'Load not available',
+                message: 'This load is no longer available'
+            });
+        }
+
+        load.status = 'booked';
+        load.bookedBy = req.user.userId;
+        load.updatedAt = new Date();
+        
+        await load.save();
+
+        res.json({
+            success: true,
+            message: 'Load booked successfully',
+            load
+        });
+
+    } catch (error) {
+        console.error('Load booking error:', error);
+        res.status(500).json({
+            error: 'Load booking failed',
+            message: 'An error occurred while booking the load'
+        });
+    }
+});
+
+// Initialize server
+async function startServer() {
+    try {
+        await connectToMongoDB();
+        
+        app.listen(PORT, () => {
+            console.log(`🚛 FreightPro Load Board Server Started`);
+            console.log(`Server running on port ${PORT}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`API Endpoints:`);
+            console.log(`  - Health: http://localhost:${PORT}/api/health`);
+            console.log(`  - Register: http://localhost:${PORT}/api/auth/register`);
+            console.log(`  - Login: http://localhost:${PORT}/api/auth/login`);
+            console.log(`  - Loads: http://localhost:${PORT}/api/loads`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    await mongoose.connection.close();
     process.exit(0);
 });
 
-process.on('SIGINT', () => {
-    console.log('🌟 OMNIVERSE AI: SIGINT received, shutting down gracefully...');
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, shutting down gracefully...');
+    await mongoose.connection.close();
     process.exit(0);
 });
+
+// Start the server
+startServer();
