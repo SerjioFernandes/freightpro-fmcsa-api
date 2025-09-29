@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import bcryptjs from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -20,6 +21,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freightpro.netlify.app').trim();
+const EMAIL_VERIFICATION_TTL_MS = Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000;
 
 async function ensureDefaultAdminUser() {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
@@ -41,7 +44,10 @@ async function ensureDefaultAdminUser() {
         phone: '+1-000-000-0000',
         accountType: 'broker',
         role: 'admin',
-        isEmailVerified: true
+        isEmailVerified: true,
+        emailVerificationToken: '',
+        emailVerificationCodeHash: '',
+        emailVerificationExpires: null
     });
 
     await adminUser.save();
@@ -95,6 +101,8 @@ const userSchema = new mongoose.Schema({
     // Account Status
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String, default: '' },
+    emailVerificationCodeHash: { type: String, default: '' },
+    emailVerificationExpires: { type: Date },
     isActive: { type: Boolean, default: true },
     role: { type: String, default: 'user', enum: ['user', 'admin'] },
     
@@ -157,14 +165,20 @@ const Message = mongoose.model('Message', messageSchema);
 // Middleware & Security
 app.use(helmet());
 app.use(compression());
+const allowedOrigins = [
+    'https://freightpro.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://localhost:4000',
+    'null'
+];
+
+if (FRONTEND_URL && !allowedOrigins.includes(FRONTEND_URL)) {
+    allowedOrigins.push(FRONTEND_URL);
+}
+
 app.use(cors({
-    origin: [
-        'https://freightpro.netlify.app',
-        'http://localhost:3000',
-        'http://localhost:8000',
-        'http://localhost:4000',
-        'null'  // Allow file:// protocol (when opening HTML directly)
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -189,13 +203,25 @@ app.use('/api/', limiter);
 app.options('*', cors());
 
 // Email Configuration
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password'
+function createEmailTransporter() {
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASS;
+
+    if (!user || !pass) {
+        console.warn('⚠️ EMAIL_USER or EMAIL_PASS environment variables are missing. Email notifications are disabled.');
+        return null;
     }
-});
+
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user,
+            pass
+        }
+    });
+}
+
+const transporter = createEmailTransporter();
 
 // JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
@@ -254,8 +280,10 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
 
         const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName, address } = req.body;
 
+        const normalizedEmail = (email || '').trim().toLowerCase();
+
         // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({
                 error: 'User already exists',
@@ -268,15 +296,18 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         const hashedPassword = await bcryptjs.hash(password, saltRounds);
 
         // Generate email verification token
+        const emailVerificationCode = crypto.randomInt(100000, 999999).toString();
+        const emailVerificationCodeHash = await bcryptjs.hash(emailVerificationCode, 10);
         const emailVerificationToken = jsonwebtoken.sign(
-            { email },
+            { email: normalizedEmail },
             JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: `${Math.ceil(EMAIL_VERIFICATION_TTL_MS / 1000)}s` }
         );
+        const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 
         // Create user
         const user = new User({
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             company,
             phone,
@@ -287,36 +318,44 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
             companyLegalName: companyLegalName || '',
             dbaName: dbaName || '',
             address: address || {},
-            emailVerificationToken
+            emailVerificationToken,
+            emailVerificationCodeHash,
+            emailVerificationExpires
         });
 
         await user.save();
 
         // Send verification email
-        try {
-            const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify/${emailVerificationToken}`;
-            
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: email,
-                subject: 'FreightPro - Verify Your Email',
-                html: `
-                    <h2>Welcome to FreightPro!</h2>
-                    <p>Thank you for registering with FreightPro Load Board.</p>
-                    <p>Please click the link below to verify your email address:</p>
-                    <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-                    <p>This link will expire in 24 hours.</p>
-                    <p>If you didn't create this account, please ignore this email.</p>
-                `
-            });
-        } catch (emailError) {
-            console.error('Email sending failed:', emailError);
-            // Don't fail registration if email fails
+        let emailSent = false;
+
+        if (transporter) {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: normalizedEmail,
+                    subject: 'FreightPro - Verify Your Email',
+                    html: `
+                        <h2>Welcome to FreightPro!</h2>
+                        <p>Thank you for registering with FreightPro Load Board.</p>
+                        <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
+                        <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
+                        <p style="margin-top: 12px;">This code will expire in 24 hours.</p>
+                        <p>If you didn't create this account, please ignore this email.</p>
+                    `
+                });
+                emailSent = true;
+            } catch (emailError) {
+                console.error('Email sending failed:', emailError);
+                // Don't fail registration if email fails
+            }
         }
 
         res.status(201).json({
             success: true,
             message: 'User registered successfully. Please check your email to verify your account.',
+            emailVerificationRequired: true,
+            emailSent,
+            verification: emailSent ? { code: emailVerificationCode } : undefined,
             user: {
                 id: user._id,
                 email: user.email,
@@ -360,6 +399,8 @@ app.get('/api/auth/verify/:token', async (req, res) => {
 
         user.isEmailVerified = true;
         user.emailVerificationToken = '';
+        user.emailVerificationCodeHash = '';
+        user.emailVerificationExpires = null;
         await user.save();
 
         res.json({
@@ -376,6 +417,160 @@ app.get('/api/auth/verify/:token', async (req, res) => {
     }
 });
 
+// Email Verification via code
+app.post('/api/auth/verify-code', async (req, res) => {
+    try {
+        const { email, code, token } = req.body;
+
+        if (!email || !code) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                message: 'Email and verification code are required'
+            });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'No account found for this email'
+            });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({
+                error: 'Email already verified',
+                message: 'This email has already been verified'
+            });
+        }
+
+        if (user.emailVerificationExpires && user.emailVerificationExpires.getTime() < Date.now()) {
+            return res.status(400).json({
+                error: 'Verification code expired',
+                message: 'Your verification code has expired. Please request a new one.'
+            });
+        }
+
+        const codeMatches = await bcryptjs.compare(code.toString().trim(), user.emailVerificationCodeHash || '');
+        if (!codeMatches) {
+            return res.status(400).json({
+                error: 'Invalid code',
+                message: 'The verification code you entered is invalid.'
+            });
+        }
+
+        if (token) {
+            try {
+                const decoded = jsonwebtoken.verify(token, JWT_SECRET);
+                if (decoded.email !== normalizedEmail) {
+                    return res.status(400).json({
+                        error: 'Invalid token',
+                        message: 'Verification token does not match this email.'
+                    });
+                }
+            } catch (err) {
+                return res.status(400).json({
+                    error: 'Invalid token',
+                    message: 'Verification token is invalid or expired.'
+                });
+            }
+        }
+
+        user.isEmailVerified = true;
+        user.emailVerificationToken = '';
+        user.emailVerificationCodeHash = '';
+        user.emailVerificationExpires = null;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully! You can now log in to your account.'
+        });
+
+    } catch (error) {
+        console.error('Email verification code error:', error);
+        res.status(500).json({
+            error: 'Verification failed',
+            message: 'An error occurred while verifying your email'
+        });
+    }
+});
+
+// Resend verification code
+app.post('/api/auth/resend-code', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                message: 'Email is required'
+            });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'No account found for this email'
+            });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({
+                error: 'Email already verified',
+                message: 'This email has already been verified'
+            });
+        }
+
+        const emailVerificationCode = crypto.randomInt(100000, 999999).toString();
+        user.emailVerificationCodeHash = await bcryptjs.hash(emailVerificationCode, 10);
+    user.emailVerificationToken = jsonwebtoken.sign(
+        { email: normalizedEmail },
+        JWT_SECRET,
+        { expiresIn: `${Math.ceil(EMAIL_VERIFICATION_TTL_MS / 1000)}s` }
+    );
+        user.emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
+        await user.save();
+
+        if (!transporter) {
+            return res.status(500).json({
+                error: 'Email not configured',
+                message: 'Email service is currently unavailable. Contact support.'
+            });
+        }
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: normalizedEmail,
+            subject: 'FreightPro - Your new verification code',
+            html: `
+                <h2>Your Verification Code</h2>
+                <p>Use the following code to verify your FreightPro account:</p>
+                <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
+                <p>This code will expire in ${Math.round(EMAIL_VERIFICATION_TTL_MS / (60 * 1000))} minutes.</p>
+            `
+        });
+
+        res.json({
+            success: true,
+            message: 'A new verification code has been sent to your email.',
+            expiresInMinutes: Math.round(EMAIL_VERIFICATION_TTL_MS / (60 * 1000))
+        });
+
+    } catch (error) {
+        console.error('Resend verification code error:', error);
+        res.status(500).json({
+            error: 'Resend failed',
+            message: 'Failed to resend verification code.'
+        });
+    }
+});
+
 // User Login
 app.post('/api/auth/login', async (req, res) => {
     try {
@@ -388,11 +583,18 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
 
-        const user = await User.findOne({ email: email.toLowerCase() });
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
         if (!user) {
             return res.status(401).json({
                 error: 'Invalid credentials',
                 message: 'Email or password is incorrect'
+            });
+        }
+
+        if (!user.isEmailVerified) {
+            return res.status(401).json({
+                error: 'Email not verified',
+                message: 'Please verify your email address before logging in'
             });
         }
 

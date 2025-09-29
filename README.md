@@ -1,3 +1,31 @@
+# Environment Variables
+
+Create a `.env` file (and configure the same keys in Render) with:
+
+```
+MONGODB_URI=your-mongodb-connection
+JWT_SECRET=super-secret-string
+EMAIL_USER=your-gmail-address
+EMAIL_PASS=your-gmail-app-password
+FRONTEND_URL=https://your-netlify-site.netlify.app
+EMAIL_VERIFICATION_TTL_MS=86400000  # 24h in ms (optional)
+ADMIN_EMAIL=admin@freightpro.com    # optional
+ADMIN_PASSWORD=your-admin-password  # optional
+```
+# Environment Variables
+
+Create a `.env` file (or configure these in Render) with:
+
+```
+MONGODB_URI=your-mongodb-connection
+JWT_SECRET=super-secret-string
+EMAIL_USER=your-gmail-address
+EMAIL_PASS=your-gmail-app-password
+FRONTEND_URL=https://your-netlify-site.netlify.app
+EMAIL_VERIFICATION_TTL_MS=86400000
+ADMIN_EMAIL=admin@freightpro.com # optional
+ADMIN_PASSWORD=your-admin-password # optional
+```
 # 🚛 FreightPro FMCSA API Backend
 
 **Professional FMCSA data integration for your load board platform**

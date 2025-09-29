@@ -2374,6 +2374,21 @@
                                     placeholder="Enter your company work email">
                                 <p class="text-xs text-gray-500 mt-1">Please use your company email address, not personal email</p>
                         </div>
+
+                        <!-- Phone Number Field -->
+                        <div class="group">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600">
+                                <i class="fas fa-phone mr-2 text-blue-500"></i>Phone Number *
+                            </label>
+                            <input type="tel" name="phone" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
+                                placeholder="Enter your contact phone (e.g., 555-123-4567)"
+                                autocomplete="tel"
+                                pattern="^[0-9\\-+()\\s]{7,20}$">
+                            <p class="text-xs text-gray-500 mt-1">Include country/area code. Numbers only; no extensions.</p>
+                        </div>
                         
                         <!-- Username Field -->
                         <!-- Password Field -->
@@ -2463,13 +2478,20 @@
                         </button>
                         
                         <!-- Sign in link -->
-                        <div class="text-center mt-6">
+                        <div class="text-center mt-6 space-y-4">
                             <p class="text-gray-600">
                                 Already have an account? 
                                 <button type="button" onclick="showPage('login')" class="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200">
                                     Sign in here
                                 </button>
                             </p>
+
+                            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                <p class="text-sm text-blue-700 font-semibold mb-2">Have a verification code already?</p>
+                                <button type="button" onclick="showVerificationModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    Enter Verification Code
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Terms and Privacy Links -->
@@ -4067,61 +4089,50 @@
     </div>
     <!-- Notification Container -->
     <div id="notifications"></div>
+
+    <!-- Email Verification Modal -->
+    <div id="verificationModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 relative">
+            <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onclick="hideVerificationModal()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="mx-auto mb-4 w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-envelope-open-text text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Enter Verification Code</h3>
+                <p class="text-sm text-gray-500 mt-1">We emailed a 6-digit code to <span id="verificationEmailDisplay" class="font-semibold"></span></p>
+            </div>
+
+            <form id="verificationForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Email Address</label>
+                    <input type="email" id="verificationEmail" required placeholder="your.email@company.com"
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition" />
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Verification Code</label>
+                    <input type="text" id="verificationCode" required maxlength="6" pattern="[0-9]{6}"
+                        placeholder="Enter 6-digit code"
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl tracking-widest text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition" />
+                    <p class="text-xs text-gray-500" id="verificationCodeHint">Code is valid for 24 hours.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+                        Verify Email
+                    </button>
+                    <button type="button" class="w-full py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition" onclick="resendVerificationCode()">
+                        Resend Code
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         // Global variables
         let currentUser = null;
-        const normalizedSampleLoads = Array.isArray(sampleLoads)
-            ? sampleLoads.map(normalizeLoad).filter(Boolean)
-            : [];
-        let loads = [...normalizedSampleLoads];
-        let filteredLoads = [...normalizedSampleLoads];
-        let bookedLoads = [];
-        let users = JSON.parse(localStorage.getItem('users') || '[]');
-        let savedSearches = [];
-        let currentPage = 1;
-        let autoRefreshEnabled = false;
-        let autoRefreshInterval = null;
-        let loadGenerationInterval = null;
-        let currentViewMode = 'list';
-        let currentLoadDetails = null;
-
-        const MC_PHASEOUT_DATE = new Date('2025-10-01T00:00:00Z');
-
-        function isMcStillRequired() {
-            return new Date() < MC_PHASEOUT_DATE;
-        }
-
-        // Sample cities for smart suggestions
-        const cities = [
-            'Chicago, IL', 'Atlanta, GA', 'Los Angeles, CA', 'Phoenix, AZ', 'Miami, FL', 'New York, NY',
-            'Dallas, TX', 'Denver, CO', 'Seattle, WA', 'Portland, OR', 'Houston, TX', 'Memphis, TN',
-            'Detroit, MI', 'Indianapolis, IN', 'Nashville, TN', 'Charlotte, NC', 'Jacksonville, FL',
-            'Tampa, FL', 'Orlando, FL', 'Kansas City, MO', 'St. Louis, MO', 'Minneapolis, MN',
-            'Milwaukee, WI', 'Cleveland, OH', 'Cincinnati, OH', 'Columbus, OH', 'Pittsburgh, PA',
-            'Philadelphia, PA', 'Baltimore, MD', 'Washington, DC', 'Richmond, VA', 'Norfolk, VA',
-            'Raleigh, NC', 'Charleston, SC', 'Savannah, GA', 'Birmingham, AL', 'Mobile, AL',
-            'New Orleans, LA', 'Baton Rouge, LA', 'Little Rock, AR', 'Oklahoma City, OK', 'Tulsa, OK'
-        ];
-
-        // Enhanced sample load data with more realistic information
-        const commodities = ['Electronics', 'Food Products', 'Automotive Parts', 'Machinery', 'Textiles', 'Chemicals', 'Paper Products', 'Steel', 'Lumber', 'Consumer Goods'];
-        const companies = ['ABC Logistics', 'XYZ Freight', 'Global Transport', 'Prime Shipping', 'Elite Cargo', 'Metro Freight', 'Swift Logistics', 'Apex Transport'];
-        const contacts = ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'Tom Brown', 'Amy Garcia', 'Chris Lee', 'Maria Rodriguez'];
-        
-        function generateLoadId() {
-            return 'FCP-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        }
-        
-        function generatePhoneNumber() {
-            return `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
-        }
-        
-        function generateEmail(contact, company) {
-            const firstName = contact.split(' ')[0].toLowerCase();
-            const companyName = company.toLowerCase().replace(/[^a-z]/g, '');
-            return `${firstName}@${companyName}.com`;
-        }
-
         const sampleLoads = [
             {
                 id: 'FCP-001',
@@ -4199,18 +4210,70 @@
                 origin: 'Seattle, WA',
                 destination: 'Portland, OR',
                 equipment: 'Van',
-                miles: 173,
-                rate: 520,
-                ratePerMile: 3.01,
-                pickupDate: '2024-12-19',
-                weight: 35000,
+                miles: 174,
+                rate: 750,
+                ratePerMile: 4.31,
+                pickupDate: '2024-12-14',
+                weight: 32000,
                 loadType: 'Partial',
-                company: 'Pacific Northwest Freight',
-                posted: '6 hours ago',
+                company: 'Pacific Northwest Carriers',
+                posted: '15 minutes ago',
                 priority: 'normal',
                 coordinates: { pickup: { lat: 47.6062, lng: -122.3321 }, delivery: { lat: 45.5152, lng: -122.6784 } }
             }
         ];
+
+        const normalizedSampleLoads = Array.isArray(sampleLoads)
+            ? sampleLoads.map(normalizeLoad).filter(Boolean)
+            : [];
+        let loads = [...normalizedSampleLoads];
+        let filteredLoads = [...normalizedSampleLoads];
+        let bookedLoads = [];
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        let savedSearches = [];
+        let currentPage = 1;
+        let autoRefreshEnabled = false;
+        let autoRefreshInterval = null;
+        let loadGenerationInterval = null;
+        let currentViewMode = 'list';
+        let currentLoadDetails = null;
+
+        const MC_PHASEOUT_DATE = new Date('2025-10-01T00:00:00Z');
+
+        function isMcStillRequired() {
+            return new Date() < MC_PHASEOUT_DATE;
+        }
+
+        // Sample cities for smart suggestions
+        const cities = [
+            'Chicago, IL', 'Atlanta, GA', 'Los Angeles, CA', 'Phoenix, AZ', 'Miami, FL', 'New York, NY',
+            'Dallas, TX', 'Denver, CO', 'Seattle, WA', 'Portland, OR', 'Houston, TX', 'Memphis, TN',
+            'Detroit, MI', 'Indianapolis, IN', 'Nashville, TN', 'Charlotte, NC', 'Jacksonville, FL',
+            'Tampa, FL', 'Orlando, FL', 'Kansas City, MO', 'St. Louis, MO', 'Minneapolis, MN',
+            'Milwaukee, WI', 'Cleveland, OH', 'Cincinnati, OH', 'Columbus, OH', 'Pittsburgh, PA',
+            'Philadelphia, PA', 'Baltimore, MD', 'Washington, DC', 'Richmond, VA', 'Norfolk, VA',
+            'Raleigh, NC', 'Charleston, SC', 'Savannah, GA', 'Birmingham, AL', 'Mobile, AL',
+            'New Orleans, LA', 'Baton Rouge, LA', 'Little Rock, AR', 'Oklahoma City, OK', 'Tulsa, OK'
+        ];
+
+        // Enhanced sample load data with more realistic information
+        const commodities = ['Electronics', 'Food Products', 'Automotive Parts', 'Machinery', 'Textiles', 'Chemicals', 'Paper Products', 'Steel', 'Lumber', 'Consumer Goods'];
+        const companies = ['ABC Logistics', 'XYZ Freight', 'Global Transport', 'Prime Shipping', 'Elite Cargo', 'Metro Freight', 'Swift Logistics', 'Apex Transport'];
+        const contacts = ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'Tom Brown', 'Amy Garcia', 'Chris Lee', 'Maria Rodriguez'];
+        
+        function generateLoadId() {
+            return 'FCP-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        }
+        
+        function generatePhoneNumber() {
+            return `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
+        }
+        
+        function generateEmail(contact, company) {
+            const firstName = contact.split(' ')[0].toLowerCase();
+            const companyName = company.toLowerCase().replace(/[^a-z]/g, '');
+            return `${firstName}@${companyName}.com`;
+        }
 
         // Sidebar toggle
         function toggleSidebar() {
@@ -5034,6 +5097,8 @@
             localStorage.setItem('users', JSON.stringify(users));
         }
         // ENHANCED UNIVERSAL MASTER PROGRAMMER REGISTRATION WITH FMCSA INTEGRATION
+        let lastVerificationEmail = '';
+
         function setAuthenticatedSession(result) {
             if (!result || !result.token || !result.user) {
                 console.warn('Authentication result missing token or user payload');
@@ -5055,6 +5120,128 @@
             }
         }
 
+        function showVerificationModal(email) {
+            const modal = document.getElementById('verificationModal');
+            if (!modal) return;
+            const emailInput = document.getElementById('verificationEmail');
+            const emailDisplay = document.getElementById('verificationEmailDisplay');
+            const codeInput = document.getElementById('verificationCode');
+
+            const targetEmail = email || lastVerificationEmail;
+            if (targetEmail && emailInput) {
+                emailInput.value = targetEmail;
+                lastVerificationEmail = targetEmail;
+            }
+
+            if (emailDisplay) {
+                emailDisplay.textContent = targetEmail || 'your email';
+            }
+
+            if (codeInput) {
+                codeInput.value = '';
+                codeInput.focus();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideVerificationModal() {
+            const modal = document.getElementById('verificationModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        async function handleVerificationSubmit(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('verificationEmail');
+            const codeInput = document.getElementById('verificationCode');
+            if (!emailInput || !codeInput) return;
+
+            const email = emailInput.value.trim();
+            const code = codeInput.value.trim();
+
+            if (!email || !code) {
+                showNotification('Enter both email and the verification code.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/auth/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showNotification('Email verified successfully! You can now log in.', 'success');
+                    hideVerificationModal();
+                    showPage('login');
+                } else {
+                    showNotification(result.message || 'Verification failed. Please check the code and try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showNotification('Verification failed. Please try again later.', 'error');
+            }
+        }
+
+        async function resendVerificationCode() {
+            const emailInput = document.getElementById('verificationEmail');
+            const email = (emailInput?.value || lastVerificationEmail || '').trim();
+
+            if (!email) {
+                showNotification('Enter your email to resend the verification code.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/auth/resend-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showNotification('A new verification code has been sent to your email.', 'success');
+                    const hint = document.getElementById('verificationCodeHint');
+                    if (hint) {
+                        const minutes = result.expiresInMinutes;
+                        hint.textContent = minutes ? `Code valid for ${minutes} minutes.` : 'Code valid for 24 hours.';
+                    }
+                } else {
+                    showNotification(result.message || 'Could not resend the verification code.', 'error');
+                }
+            } catch (error) {
+                console.error('Resend verification error:', error);
+                showNotification('Failed to resend verification code. Please try again later.', 'error');
+            }
+        }
+
+        (function attachVerificationHandlers() {
+            try {
+                const verificationForm = document.getElementById('verificationForm');
+                if (verificationForm) {
+                    verificationForm.addEventListener('submit', handleVerificationSubmit);
+                }
+            } catch (error) {
+                console.warn('Failed to attach verification handler', error);
+            }
+        })();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const verificationForm = document.getElementById('verificationForm');
+            if (verificationForm && !verificationForm.dataset.bound) {
+                verificationForm.addEventListener('submit', handleVerificationSubmit);
+                verificationForm.dataset.bound = 'true';
+            }
+        });
+
         async function handleRegister(event) {
             event.preventDefault();
             console.log('🚀 FreightPro Registration with Backend API');
@@ -5066,12 +5253,8 @@
             console.log('Selected account type for registration:', selectedAccountType);
             
             // Enhanced validation using the new validation function
-            if (!validateRegistrationForm()) {
-                return; // Validation failed, error already shown
-            }
-            
             // Basic field validation
-            if (!form.company.value.trim() || !form.email.value.trim() || !form.password.value) {
+            if (!form.company.value.trim() || !form.email.value.trim() || !form.password.value || !form.phone.value.trim()) {
                 showNotification('Please fill in all required fields.', 'error');
                     return;
             }
@@ -5084,7 +5267,7 @@
                 email: form.email.value.trim(),
                 password: form.password.value,
                 company: form.company.value.trim(),
-                phone: form.phone?.value?.trim() || '',
+                phone: form.phone.value.trim(),
                 accountType: selectedAccountType,
                 usdotNumber: selectedAccountType === 'shipper' ? '' : (fmcsaData.usdotNumber || ''),
                 mcNumber: selectedAccountType === 'shipper' ? '' : (fmcsaData.mcNumber || ''),
@@ -5112,9 +5295,14 @@
                 });
                 
                 const result = await response.json();
-                
+
                 if (response.ok && result.success) {
                     showNotification('Registration successful! Signing you in...', 'success');
+
+                    if (result.emailSent && registrationData.email) {
+                        lastVerificationEmail = registrationData.email;
+                        showVerificationModal(registrationData.email);
+                    }
 
                     // Attempt automatic login
                     try {
@@ -5132,6 +5320,13 @@
                         const loginResult = await loginResponse.json();
 
                         if (loginResponse.ok && loginResult.success) {
+                            if (loginResult.user && loginResult.user.isEmailVerified === false) {
+                                showNotification('Please verify your email before logging in. We sent you a verification code.', 'warning');
+                                lastVerificationEmail = registrationData.email;
+                                showVerificationModal(registrationData.email);
+                                showPage('login');
+                                return;
+                            }
                             setAuthenticatedSession(loginResult);
                             showNotification('Welcome to FreightPro! You are now logged in.', 'success');
                             navigateAfterLogin(loginResult.user);
@@ -5203,6 +5398,12 @@
                     const result = await response.json();
                     
                     if (response.ok && result.success) {
+                        if (result.user && result.user.isEmailVerified === false) {
+                            showNotification('Please verify your email address. We just sent you a verification code.', 'warning');
+                            lastVerificationEmail = email;
+                            showVerificationModal(email);
+                            return;
+                        }
                         setAuthenticatedSession(result);
                         showNotification('Login successful! Welcome to FreightPro', 'success');
                         navigateAfterLogin(result.user);
