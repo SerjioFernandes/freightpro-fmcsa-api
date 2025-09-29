@@ -2478,20 +2478,13 @@
                         </button>
                         
                         <!-- Sign in link -->
-                        <div class="text-center mt-6 space-y-4">
+                        <div class="text-center mt-6">
                             <p class="text-gray-600">
                                 Already have an account? 
                                 <button type="button" onclick="showPage('login')" class="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200">
                                     Sign in here
                                 </button>
                             </p>
-
-                            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                                <p class="text-sm text-blue-700 font-semibold mb-2">Have a verification code already?</p>
-                                <button type="button" onclick="showVerificationModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                    Enter Verification Code
-                                </button>
-                            </div>
                         </div>
                         
                         <!-- Terms and Privacy Links -->
@@ -5297,47 +5290,11 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    showNotification('Registration successful! Signing you in...', 'success');
+                    showNotification('Almost done! Enter the verification code we sent to your email.', 'success');
 
                     if (result.emailSent && registrationData.email) {
                         lastVerificationEmail = registrationData.email;
                         showVerificationModal(registrationData.email);
-                    }
-
-                    // Attempt automatic login
-                    try {
-                        const loginResponse = await fetch(`${window.API_BASE_URL}/auth/login`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                email: registrationData.email,
-                                password: registrationData.password
-                            })
-                        });
-
-                        const loginResult = await loginResponse.json();
-
-                        if (loginResponse.ok && loginResult.success) {
-                            if (loginResult.user && loginResult.user.isEmailVerified === false) {
-                                showNotification('Please verify your email before logging in. We sent you a verification code.', 'warning');
-                                lastVerificationEmail = registrationData.email;
-                                showVerificationModal(registrationData.email);
-                                showPage('login');
-                                return;
-                            }
-                            setAuthenticatedSession(loginResult);
-                            showNotification('Welcome to FreightPro! You are now logged in.', 'success');
-                            navigateAfterLogin(loginResult.user);
-                        } else {
-                            showNotification('Account created. Please log in to continue.', 'warning');
-                            showPage('login');
-                        }
-                    } catch (autoLoginError) {
-                        console.error('Auto-login after registration failed:', autoLoginError);
-                        showNotification('Account created. Please log in to continue.', 'warning');
-                        showPage('login');
                     }
 
                     // Clear form regardless
@@ -5347,6 +5304,8 @@
                     window.selectedAccountType = null;
                     localStorage.removeItem('selectedAccountType');
                     window.fmcsaCompanyData = null;
+
+                    return;
                 } else {
                     showNotification(result.message || 'Registration failed. Please try again.', 'error');
                 }
@@ -5399,10 +5358,10 @@
                     
                     if (response.ok && result.success) {
                         if (result.user && result.user.isEmailVerified === false) {
-                            showNotification('Please verify your email address. We just sent you a verification code.', 'warning');
-                            lastVerificationEmail = email;
-                            showVerificationModal(email);
-                            return;
+                        showNotification('Please verify your email address. We just sent you a verification code.', 'warning');
+                        lastVerificationEmail = email;
+                        showVerificationModal(email);
+                        return;
                         }
                         setAuthenticatedSession(result);
                         showNotification('Login successful! Welcome to FreightPro', 'success');
