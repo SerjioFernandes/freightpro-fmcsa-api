@@ -5292,9 +5292,17 @@
                 if (response.ok && result.success) {
                     showNotification('Almost done! Enter the verification code we sent to your email.', 'success');
 
-                    if (result.emailSent && registrationData.email) {
+                    if ((result.emailSent || result.verification?.code) && registrationData.email) {
                         lastVerificationEmail = registrationData.email;
                         showVerificationModal(registrationData.email);
+                    }
+
+                    if (result.verification?.code) {
+                        const hint = document.getElementById('verificationCodeHint');
+                        if (hint) {
+                            hint.textContent = `We temporarily display the code here for testing: ${result.verification.code}. Please also check your email.`;
+                        }
+                        console.info('[FreightPro] Verification code (testing):', result.verification.code);
                     }
 
                     // Clear form regardless
@@ -5358,10 +5366,13 @@
                     
                     if (response.ok && result.success) {
                         if (result.user && result.user.isEmailVerified === false) {
-                        showNotification('Please verify your email address. We just sent you a verification code.', 'warning');
-                        lastVerificationEmail = email;
-                        showVerificationModal(email);
-                        return;
+                            showNotification('Please verify your email address. We just sent you a verification code.', 'warning');
+                            lastVerificationEmail = email;
+                            showVerificationModal(email);
+                            if (result.verification?.code) {
+                                console.info('[FreightPro] Verification code (testing):', result.verification.code);
+                            }
+                            return;
                         }
                         setAuthenticatedSession(result);
                         showNotification('Login successful! Welcome to FreightPro', 'success');

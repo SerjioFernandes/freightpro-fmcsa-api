@@ -250,8 +250,8 @@ const authenticateToken = (req, res, next) => {
 const validateRegistration = [
     body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('company').notEmpty().withMessage('Company name required'),
-    body('phone').isMobilePhone().withMessage('Valid phone number required'),
+    body('company').trim().notEmpty().withMessage('Company name required'),
+    body('phone').trim().notEmpty().withMessage('Phone number required'),
     body('accountType').isIn(['carrier', 'broker', 'shipper']).withMessage('Valid account type required')
 ];
 
