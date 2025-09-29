@@ -9,8 +9,35 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
         <script>
-            // Backend API Configuration
-            window.API_BASE_URL = 'http://localhost:4000/api';
+            // Backend API Configuration (auto-detect environment)
+            (function configureApiBaseUrl(){
+                const LOCAL_API = 'http://localhost:4000/api';
+                const PROD_FALLBACK_API = 'https://your-render-service.onrender.com/api'; // <-- replace with your Render URL
+
+                const storedValue = (typeof localStorage !== 'undefined') ? localStorage.getItem('FP_API_BASE_URL') : null;
+                const inferredValue = (typeof window !== 'undefined' && window.location && window.location.hostname && window.location.hostname.includes('localhost'))
+                    ? LOCAL_API
+                    : PROD_FALLBACK_API;
+
+                const selectedBaseUrl = (storedValue && storedValue.trim()) || inferredValue;
+
+                if (typeof window !== 'undefined') {
+                    window.API_BASE_URL = selectedBaseUrl;
+                    window.setFreightProApiBaseUrl = function(newUrl) {
+                        if (!newUrl) return;
+                        if (typeof localStorage !== 'undefined') {
+                            localStorage.setItem('FP_API_BASE_URL', newUrl);
+                        }
+                        window.API_BASE_URL = newUrl;
+                        console.info('FreightPro API base URL updated to:', newUrl);
+                    };
+                }
+
+                console.info('[FreightPro] Using API base URL:', selectedBaseUrl);
+                if (!storedValue && inferredValue === PROD_FALLBACK_API) {
+                    console.info('[FreightPro] Update PROD_FALLBACK_API in index.html or call window.setFreightProApiBaseUrl("https://<render-app>.onrender.com/api") in the browser console.');
+                }
+            })();
             
             // Suppress Tailwind CDN warning for this static deployment
             if (typeof console !== 'undefined' && console.warn) {
@@ -5010,6 +5037,22 @@
             localStorage.setItem('users', JSON.stringify(users));
         }
         // ENHANCED UNIVERSAL MASTER PROGRAMMER REGISTRATION WITH FMCSA INTEGRATION
+        function setAuthenticatedSession(result) {
+            if (!result || !result.token || !result.user) return;
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('currentUser', JSON.stringify(result.user));
+            window.currentUser = result.user;
+        }
+
+        function navigateAfterLogin(user) {
+            if (!user) return;
+            if (user.role === 'admin') {
+                showPage('admin');
+            } else {
+                showPage('home');
+            }
+        }
+
         async function handleRegister(event) {
             event.preventDefault();
             console.log('🚀 FreightPro Registration with Backend API');
@@ -5069,21 +5112,44 @@
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    showNotification('Registration successful! Please check your email to verify your account.', 'success');
-                    
-                    // Clear form
+                    showNotification('Registration successful! Signing you in...', 'success');
+
+                    // Attempt automatic login
+                    try {
+                        const loginResponse = await fetch(`${window.API_BASE_URL}/auth/login`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                email: registrationData.email,
+                                password: registrationData.password
+                            })
+                        });
+
+                        const loginResult = await loginResponse.json();
+
+                        if (loginResponse.ok && loginResult.success) {
+                            setAuthenticatedSession(loginResult);
+                            showNotification('Welcome to FreightPro! You are now logged in.', 'success');
+                            navigateAfterLogin(loginResult.user);
+                        } else {
+                            showNotification('Account created. Please log in to continue.', 'warning');
+                            showPage('login');
+                        }
+                    } catch (autoLoginError) {
+                        console.error('Auto-login after registration failed:', autoLoginError);
+                        showNotification('Account created. Please log in to continue.', 'warning');
+                        showPage('login');
+                    }
+
+                    // Clear form regardless
                     form.reset();
-                    
+
                     // Clear stored data
                     window.selectedAccountType = null;
                     localStorage.removeItem('selectedAccountType');
                     window.fmcsaCompanyData = null;
-                    
-                    // Redirect to login
-                    setTimeout(() => {
-                            showPage('login');
-                    }, 2000);
-                    
                 } else {
                     showNotification(result.message || 'Registration failed. Please try again.', 'error');
                 }
@@ -5135,21 +5201,9 @@
                     const result = await response.json();
                     
                     if (response.ok && result.success) {
-                        // Store token and user data
-                        localStorage.setItem('authToken', result.token);
-                        localStorage.setItem('currentUser', JSON.stringify(result.user));
-                        
-                        // Set global user
-                        window.currentUser = result.user;
-                        
+                        setAuthenticatedSession(result);
                         showNotification('Login successful! Welcome to FreightPro', 'success');
-                        
-                        // Redirect based on user role
-                        if (result.user.role === 'admin') {
-                            showPage('admin');
-                        } else {
-                                showPage('home');
-                        }
+                        navigateAfterLogin(result.user);
                         
                         } else {
                         showNotification(result.message || 'Login failed. Please check your credentials.', 'error');
