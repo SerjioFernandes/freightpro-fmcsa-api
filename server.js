@@ -18,6 +18,36 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+async function ensureDefaultAdminUser() {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+        console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
+        return;
+    }
+
+    const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+    if (existing) {
+        return;
+    }
+
+    const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
+
+    const adminUser = new User({
+        email: ADMIN_EMAIL.toLowerCase(),
+        password: hashedPassword,
+        company: 'FreightPro',
+        phone: '+1-000-000-0000',
+        accountType: 'broker',
+        role: 'admin',
+        isEmailVerified: true
+    });
+
+    await adminUser.save();
+    console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
+}
+
 // MongoDB Connection
 async function connectToMongoDB() {
     try {
@@ -559,6 +589,7 @@ app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
 async function startServer() {
     try {
         await connectToMongoDB();
+        await ensureDefaultAdminUser();
         
         app.listen(PORT, () => {
             console.log(`🚛 FreightPro Load Board Server Started`);
