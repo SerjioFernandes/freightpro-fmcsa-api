@@ -250,7 +250,7 @@ const validateRegistration = [
     body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('company').trim().notEmpty().withMessage('Company name required'),
-    body('phone').trim().notEmpty().withMessage('Phone number required'),
+    body('phone').trim().isLength({ min: 7, max: 50 }).withMessage('Phone number must be 7-50 characters'),
     body('accountType').isIn(['carrier', 'broker', 'shipper']).withMessage('Valid account type required')
 ];
 
