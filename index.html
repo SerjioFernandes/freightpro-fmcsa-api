@@ -5233,6 +5233,12 @@
                 verificationForm.addEventListener('submit', handleVerificationSubmit);
                 verificationForm.dataset.bound = 'true';
             }
+
+            // Attach registration form handler
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+            }
         });
 
         async function handleRegister(event) {

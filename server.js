@@ -21,7 +21,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freightpro.netlify.app').trim();
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freight-pro.netlify.app').trim();
 const EMAIL_VERIFICATION_TTL_MS = Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000;
 
 async function ensureDefaultAdminUser() {
@@ -168,7 +168,6 @@ const Message = mongoose.model('Message', messageSchema);
 app.use(helmet());
 app.use(compression());
 const allowedOrigins = [
-    'https://freightpro.netlify.app',
     'https://freight-pro.netlify.app',
     'http://localhost:3000',
     'http://localhost:8000',
