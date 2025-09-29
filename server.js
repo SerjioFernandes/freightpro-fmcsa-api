@@ -167,6 +167,7 @@ app.use(helmet());
 app.use(compression());
 const allowedOrigins = [
     'https://freightpro.netlify.app',
+    'https://freight-pro.netlify.app',
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:4000',
@@ -301,7 +302,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         const emailVerificationToken = jsonwebtoken.sign(
             { email: normalizedEmail },
             JWT_SECRET,
-            { expiresIn: `${Math.ceil(EMAIL_VERIFICATION_TTL_MS / 1000)}s` }
+            { expiresIn: EMAIL_VERIFICATION_TTL_MS / 1000 }
         );
         const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 
@@ -532,7 +533,7 @@ app.post('/api/auth/resend-code', async (req, res) => {
     user.emailVerificationToken = jsonwebtoken.sign(
         { email: normalizedEmail },
         JWT_SECRET,
-        { expiresIn: `${Math.ceil(EMAIL_VERIFICATION_TTL_MS / 1000)}s` }
+        { expiresIn: EMAIL_VERIFICATION_TTL_MS / 1000 }
     );
         user.emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
         await user.save();
