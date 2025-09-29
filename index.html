@@ -5300,9 +5300,22 @@
                     if (result.verification?.code) {
                         const hint = document.getElementById('verificationCodeHint');
                         if (hint) {
-                            hint.textContent = `We temporarily display the code here for testing: ${result.verification.code}. Please also check your email.`;
+                            hint.innerHTML = `We emailed a 6-digit code to <strong>${registrationData.email}</strong>.<br/>For testing, the code is <span class="font-semibold text-blue-600">${result.verification.code}</span>.`;
+                        }
+                        const emailDisplay = document.getElementById('verificationEmailDisplay');
+                        if (emailDisplay) {
+                            emailDisplay.textContent = registrationData.email;
                         }
                         console.info('[FreightPro] Verification code (testing):', result.verification.code);
+                    } else {
+                        const emailDisplay = document.getElementById('verificationEmailDisplay');
+                        if (emailDisplay) {
+                            emailDisplay.textContent = registrationData.email;
+                        }
+                        const hint = document.getElementById('verificationCodeHint');
+                        if (hint) {
+                            hint.textContent = 'Code is valid for 24 hours. Please check your inbox.';
+                        }
                     }
 
                     // Clear form regardless
@@ -5370,6 +5383,12 @@
                             lastVerificationEmail = email;
                             showVerificationModal(email);
                             if (result.verification?.code) {
+                                const hint = document.getElementById('verificationCodeHint');
+                                if (hint) {
+                                    hint.innerHTML = `We mailed a code to <strong>${email}</strong>.<br/>Testing code: <span class="font-semibold text-blue-600">${result.verification.code}</span>`;
+                                }
+                                const emailDisplay = document.getElementById('verificationEmailDisplay');
+                                if (emailDisplay) emailDisplay.textContent = email;
                                 console.info('[FreightPro] Verification code (testing):', result.verification.code);
                             }
                             return;

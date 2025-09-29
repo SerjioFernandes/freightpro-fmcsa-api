@@ -358,10 +358,12 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'User registered successfully. Please check your email to verify your account.',
+            message: emailSent
+                ? 'We sent a verification code to your email. Enter it to finish registration.'
+                : 'Verification code generated. (Email disabled in this environment.)',
             emailVerificationRequired: true,
             emailSent,
-            verification: emailSent ? { code: emailVerificationCode } : undefined,
+            verification: { code: emailVerificationCode },
             user: {
                 id: user._id,
                 email: user.email,
