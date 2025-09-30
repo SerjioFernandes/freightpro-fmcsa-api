@@ -277,9 +277,11 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.error('Registration validation failed:', errors.array());
+            console.error('Request body received:', JSON.stringify(req.body, null, 2));
             return res.status(400).json({
                 error: 'Validation failed',
-                details: errors.array()
+                details: errors.array(),
+                receivedData: req.body
             });
         }
 
@@ -826,16 +828,23 @@ app.get('/api/loads', async (req, res) => {
 // Book a Load
 app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
     try {
+        console.log('Load booking request for ID:', req.params.id);
+        console.log('User ID:', req.user.userId);
+        
         const load = await Load.findById(req.params.id);
         
         if (!load) {
+            console.log('Load not found for ID:', req.params.id);
             return res.status(404).json({
                 error: 'Load not found',
                 message: 'The requested load does not exist'
             });
         }
 
+        console.log('Found load:', load.title, 'Status:', load.status);
+
         if (load.status !== 'available') {
+            console.log('Load not available, current status:', load.status);
             return res.status(400).json({
                 error: 'Load not available',
                 message: 'This load is no longer available'
@@ -847,6 +856,7 @@ app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
         load.updatedAt = new Date();
         
         await load.save();
+        console.log('Load booked successfully by user:', req.user.userId);
 
         res.json({
             success: true,
@@ -856,6 +866,7 @@ app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
 
     } catch (error) {
         console.error('Load booking error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             error: 'Load booking failed',
             message: 'An error occurred while booking the load'

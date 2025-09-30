@@ -5511,10 +5511,16 @@
             }
 
             try {
+                const token = getAuthToken();
+                if (!token) {
+                    showNotification('Admin session expired. Please log in again.', 'warning');
+                    return;
+                }
+
                 const response = await fetch(`${window.API_BASE_URL}/admin/users/${encodeURIComponent(email)}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -5530,6 +5536,38 @@
             } catch (error) {
                 console.error('Delete user error:', error);
                 showNotification('Failed to delete user', 'error');
+            }
+        }
+
+        // Toggle raw user data display
+        let showRawUserData = false;
+        function toggleRawUsers() {
+            showRawUserData = !showRawUserData;
+            const rawDataContainer = document.getElementById('adminRawUsersData');
+            const toggleButton = document.getElementById('toggleRawUsersBtn');
+
+            if (rawDataContainer) {
+                rawDataContainer.classList.toggle('hidden', !showRawUserData);
+            }
+            if (toggleButton) {
+                toggleButton.textContent = showRawUserData ? 'Hide Raw Data' : 'Show Raw Data';
+            }
+            console.log('Raw user data display toggled:', showRawUserData);
+        }
+
+        // Open profile modal
+        function openProfileModal() {
+            console.log('Opening profile modal');
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Populate profile data if user is logged in
+                if (currentUser) {
+                    populateProfileForm();
+                }
+            } else {
+                console.error('Profile modal not found');
+                showNotification('Profile modal not available', 'error');
             }
         }
 
