@@ -225,9 +225,15 @@ function createEmailTransporter() {
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
         auth: {
             user,
             pass
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
 
@@ -277,8 +283,71 @@ app.get('/api/health', (req, res) => {
         uptime: process.uptime(),
         database: {
             status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+        },
+        email: {
+            configured: !!transporter,
+            user: process.env.EMAIL_USER ? 'set' : 'not set'
         }
     });
+});
+
+// Test Email Endpoint
+app.post('/api/test-email', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({
+                error: 'Email required',
+                message: 'Please provide an email address to test'
+            });
+        }
+
+        if (!transporter) {
+            return res.status(500).json({
+                error: 'Email not configured',
+                message: 'Email transporter is not available. Check EMAIL_USER and EMAIL_PASS environment variables.'
+            });
+        }
+
+        console.log('🧪 Testing email to:', email);
+        
+        const testCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        await transporter.sendMail({
+            from: `"FreightPro" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'FreightPro - Test Email',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1a2238;">FreightPro Email Test</h2>
+                    <p>This is a test email to verify email configuration.</p>
+                    <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                        <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb;">${testCode}</div>
+                    </div>
+                    <p>If you received this email, your email configuration is working correctly!</p>
+                </div>
+            `
+        });
+
+        res.json({
+            success: true,
+            message: 'Test email sent successfully',
+            testCode: testCode
+        });
+
+    } catch (error) {
+        console.error('Test email error:', error);
+        res.status(500).json({
+            error: 'Test email failed',
+            message: error.message,
+            details: {
+                code: error.code,
+                command: error.command,
+                response: error.response
+            }
+        });
+    }
 });
 
 // User Registration
@@ -366,26 +435,43 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         let emailSent = false;
 
         if (transporter) {
+            console.log('📧 Attempting to send email to:', normalizedEmail);
+            console.log('📧 From:', process.env.EMAIL_USER);
+            
             // Send email asynchronously without waiting
             transporter.sendMail({
-                from: process.env.EMAIL_USER,
+                from: `"FreightPro" <${process.env.EMAIL_USER}>`,
                 to: normalizedEmail,
                 subject: 'FreightPro - Verify Your Email',
                 html: `
-                    <h2>Welcome to FreightPro!</h2>
-                    <p>Thank you for registering with FreightPro Load Board.</p>
-                    <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
-                    <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
-                    <p style="margin-top: 12px;">This code will expire in 24 hours.</p>
-                    <p>If you didn't create this account, please ignore this email.</p>
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #1a2238;">Welcome to FreightPro!</h2>
+                        <p>Thank you for registering with FreightPro Load Board.</p>
+                        <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
+                        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                            <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb;">${emailVerificationCode}</div>
+                        </div>
+                        <p style="margin-top: 12px; color: #666;">This code will expire in 24 hours.</p>
+                        <p style="color: #666;">If you didn't create this account, please ignore this email.</p>
+                        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+                        <p style="font-size: 12px; color: #999;">This email was sent from FreightPro Load Board System</p>
+                    </div>
                 `
-            }).then(() => {
+            }).then((info) => {
                 console.log('✅ Email sent successfully to:', normalizedEmail);
+                console.log('📧 Email info:', info.messageId);
                 emailSent = true;
             }).catch((emailError) => {
                 console.error('❌ Email sending failed:', emailError);
+                console.error('❌ Email error details:', {
+                    code: emailError.code,
+                    command: emailError.command,
+                    response: emailError.response
+                });
                 // Don't fail registration if email fails
             });
+        } else {
+            console.warn('⚠️ No email transporter available - email not sent');
         }
 
         console.log('Registration completed for:', user.email);
