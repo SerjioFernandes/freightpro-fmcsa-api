@@ -458,6 +458,40 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
     }
 });
 
+// Admin: delete user by email
+app.delete('/api/admin/users/:email', authenticateToken, async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).json({
+                error: 'Access denied',
+                message: 'Admin privileges required'
+            });
+        }
+
+        const email = req.params.email;
+        const user = await User.findOneAndDelete({ email: email.toLowerCase() });
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'No user found with this email'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `User ${email} deleted successfully`
+        });
+
+    } catch (error) {
+        console.error('Admin user delete error:', error);
+        res.status(500).json({
+            error: 'User deletion failed',
+            message: 'Unable to delete user'
+        });
+    }
+});
+
 // Email Verification via code
 app.post('/api/auth/verify-code', async (req, res) => {
     try {
