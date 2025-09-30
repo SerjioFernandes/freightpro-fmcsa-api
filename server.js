@@ -276,19 +276,24 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.error('Registration validation failed:', errors.array());
             return res.status(400).json({
                 error: 'Validation failed',
                 details: errors.array()
             });
         }
 
+        console.log('Registration request body:', JSON.stringify(req.body, null, 2));
+
         const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName, address } = req.body;
 
         const normalizedEmail = (email || '').trim().toLowerCase();
 
         // Check if user already exists
+        console.log('Checking for existing user with email:', normalizedEmail);
         const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
+            console.log('User already exists:', existingUser.email);
             return res.status(400).json({
                 error: 'User already exists',
                 message: 'An account with this email already exists'
@@ -329,6 +334,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         });
 
         await user.save();
+        console.log('User created successfully:', user.email, 'ID:', user._id);
 
         // Send verification email
         let emailSent = false;
@@ -355,6 +361,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
             }
         }
 
+        console.log('Registration completed for:', user.email);
         res.status(201).json({
             success: true,
             message: emailSent
@@ -374,6 +381,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
 
     } catch (error) {
         console.error('Registration error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             error: 'Registration failed',
             message: 'An error occurred during registration',
