@@ -168,7 +168,7 @@ const Message = mongoose.model('Message', messageSchema);
 app.use(helmet());
 app.use(compression());
 const allowedOrigins = [
-    'https://freight-pro.netlify.app',
+    'https://freight-pro.netlify.app', // Your new Netlify URL
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:4000',
