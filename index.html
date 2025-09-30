@@ -5113,13 +5113,19 @@
         }
 
         function showVerificationModal(email) {
+            console.log('Showing verification modal for email:', email);
             const modal = document.getElementById('verificationModal');
-            if (!modal) return;
+            if (!modal) {
+                console.error('Verification modal not found!');
+                return;
+            }
             const emailInput = document.getElementById('verificationEmail');
             const emailDisplay = document.getElementById('verificationEmailDisplay');
             const codeInput = document.getElementById('verificationCode');
 
             const targetEmail = email || lastVerificationEmail;
+            console.log('Target email for verification:', targetEmail);
+            
             if (targetEmail && emailInput) {
                 emailInput.value = targetEmail;
                 lastVerificationEmail = targetEmail;
@@ -5135,6 +5141,7 @@
             }
 
             modal.classList.remove('hidden');
+            console.log('Verification modal shown');
         }
 
         function hideVerificationModal() {
@@ -5243,6 +5250,7 @@
         async function handleRegister(event) {
             event.preventDefault();
             console.log('🚀 FreightPro Registration with Backend API');
+            console.log('API Base URL:', window.API_BASE_URL);
             
             const form = event.target;
             
@@ -5284,6 +5292,9 @@
             
             try {
                 // Call backend registration API
+                console.log('Sending registration request to:', `${window.API_BASE_URL}/auth/register`);
+                console.log('Registration data:', registrationData);
+                
                 const response = await fetch(`${window.API_BASE_URL}/auth/register`, {
                     method: 'POST',
                     headers: {
@@ -5292,7 +5303,9 @@
                     body: JSON.stringify(registrationData)
                 });
                 
+                console.log('Registration response status:', response.status);
                 const result = await response.json();
+                console.log('Registration response:', result);
 
                 if (response.ok && result.success) {
                     showNotification('Almost done! Enter the verification code we sent to your email.', 'success');
