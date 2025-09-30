@@ -211,18 +211,28 @@ function createEmailTransporter() {
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
 
+    console.log('📧 Email configuration check:');
+    console.log('EMAIL_USER set:', !!user);
+    console.log('EMAIL_PASS set:', !!pass);
+
     if (!user || !pass) {
         console.warn('⚠️ EMAIL_USER or EMAIL_PASS environment variables are missing. Email notifications are disabled.');
+        console.warn('To enable email sending, set these in Render environment variables:');
+        console.warn('EMAIL_USER=your-gmail@gmail.com');
+        console.warn('EMAIL_PASS=your-app-password');
         return null;
     }
 
-    return nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user,
             pass
         }
     });
+
+    console.log('✅ Email transporter created successfully');
+    return transporter;
 }
 
 const transporter = createEmailTransporter();
@@ -336,7 +346,16 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
         });
 
         await user.save();
-        console.log('User created successfully:', user.email, 'ID:', user._id);
+        console.log('✅ User created successfully:', user.email, 'ID:', user._id);
+        console.log('✅ User saved to MongoDB database');
+        
+        // Verify user exists in database
+        const savedUser = await User.findById(user._id);
+        if (savedUser) {
+            console.log('✅ User verification: Found in database');
+        } else {
+            console.error('❌ User verification: NOT found in database');
+        }
 
         // Send verification email
         let emailSent = false;

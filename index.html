@@ -2399,11 +2399,16 @@
                                 class="block w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
-                                placeholder="Create a secure password">
+                                placeholder="Create a secure password"
+                                oninput="validatePassword(this.value)">
                             <button type="button" id="toggleRegisterPassword" aria-pressed="false" aria-label="Show password" 
                                 class="absolute right-3 top-11 p-1 text-gray-400 hover:text-blue-500 transition-colors" title="Show password">
                                 <span id="toggleRegisterPasswordIcon">👁️</span>
                             </button>
+                            <div id="passwordValidation" class="mt-2 text-xs space-y-1">
+                                <div id="passwordLength" class="text-gray-500">• At least 6 characters</div>
+                                <div id="passwordStrength" class="text-gray-500">• Mix of letters and numbers recommended</div>
+                            </div>
                         </div>
                         <!-- Confirm Password Field -->
                         <div class="group relative">
@@ -5260,11 +5265,41 @@
             const selectedAccountType = window.selectedAccountType || localStorage.getItem('selectedAccountType') || 'shipper';
             console.log('Selected account type for registration:', selectedAccountType);
             
-            // Enhanced validation using the new validation function
-            // Basic field validation
-            if (!form.company.value.trim() || !form.email.value.trim() || !form.password.value || !form.phone.value.trim()) {
-                showNotification('Please fill in all required fields.', 'error');
-                    return;
+            // Enhanced validation with specific error messages
+            if (!form.company.value.trim()) {
+                showNotification('Company name is required.', 'error');
+                form.company.focus();
+                return;
+            }
+            
+            if (!form.email.value.trim()) {
+                showNotification('Email address is required.', 'error');
+                form.email.focus();
+                return;
+            }
+            
+            if (!form.password.value) {
+                showNotification('Password is required.', 'error');
+                form.password.focus();
+                return;
+            }
+            
+            if (form.password.value.length < 6) {
+                showNotification('Password must be at least 6 characters long.', 'error');
+                form.password.focus();
+                return;
+            }
+            
+            if (!form.phone.value.trim()) {
+                showNotification('Phone number is required.', 'error');
+                form.phone.focus();
+                return;
+            }
+            
+            if (form.phone.value.trim().length < 7) {
+                showNotification('Phone number must be at least 7 characters long.', 'error');
+                form.phone.focus();
+                return;
             }
             
             // Get authority data if available
@@ -5310,35 +5345,34 @@
                 console.log('Registration response:', result);
 
                 if (response.ok && result.success) {
-                    showNotification('Almost done! Enter the verification code we sent to your email.', 'success');
+                    console.log('Registration successful, showing verification modal immediately');
+                    
+                    // Show verification modal IMMEDIATELY - no delay
+                    lastVerificationEmail = registrationData.email;
+                    showVerificationModal(registrationData.email);
 
-                    if ((result.emailSent || result.verification?.code) && registrationData.email) {
-                        lastVerificationEmail = registrationData.email;
-                        showVerificationModal(registrationData.email);
+                    // Update verification modal content
+                    const hint = document.getElementById('verificationCodeHint');
+                    const emailDisplay = document.getElementById('verificationEmailDisplay');
+                    
+                    if (emailDisplay) {
+                        emailDisplay.textContent = registrationData.email;
                     }
 
                     if (result.verification?.code) {
-                        const hint = document.getElementById('verificationCodeHint');
                         if (hint) {
                             hint.innerHTML = `We emailed a 6-digit code to <strong>${registrationData.email}</strong>.<br/>For testing, the code is <span class="font-semibold text-blue-600">${result.verification.code}</span>.`;
                         }
-                        const emailDisplay = document.getElementById('verificationEmailDisplay');
-                        if (emailDisplay) {
-                            emailDisplay.textContent = registrationData.email;
-                        }
                         console.info('[FreightPro] Verification code (testing):', result.verification.code);
+                        showNotification('Registration successful! Enter the verification code below.', 'success');
                     } else {
-                        const emailDisplay = document.getElementById('verificationEmailDisplay');
-                        if (emailDisplay) {
-                            emailDisplay.textContent = registrationData.email;
-                        }
-                        const hint = document.getElementById('verificationCodeHint');
                         if (hint) {
                             hint.textContent = 'Code is valid for 24 hours. Please check your inbox.';
                         }
+                        showNotification('Registration successful! Check your email for the verification code.', 'success');
                     }
 
-                    // Clear form regardless
+                    // Clear form
                     form.reset();
 
                     // Clear stored data
@@ -5568,6 +5602,42 @@
             } else {
                 console.error('Profile modal not found');
                 showNotification('Profile modal not available', 'error');
+            }
+        }
+
+        // Password validation function
+        function validatePassword(password) {
+            const lengthCheck = document.getElementById('passwordLength');
+            const strengthCheck = document.getElementById('passwordStrength');
+            
+            if (!lengthCheck || !strengthCheck) return;
+
+            // Check length
+            if (password.length >= 6) {
+                lengthCheck.textContent = '✓ At least 6 characters';
+                lengthCheck.className = 'text-green-600';
+            } else {
+                lengthCheck.textContent = '• At least 6 characters';
+                lengthCheck.className = 'text-red-500';
+            }
+
+            // Check strength
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            if (password.length >= 6 && hasLetter && hasNumber) {
+                strengthCheck.textContent = '✓ Strong password';
+                strengthCheck.className = 'text-green-600';
+            } else if (password.length >= 6 && (hasLetter || hasNumber)) {
+                strengthCheck.textContent = '• Mix of letters and numbers recommended';
+                strengthCheck.className = 'text-yellow-600';
+            } else if (password.length > 0) {
+                strengthCheck.textContent = '• Mix of letters and numbers recommended';
+                strengthCheck.className = 'text-gray-500';
+            } else {
+                strengthCheck.textContent = '• Mix of letters and numbers recommended';
+                strengthCheck.className = 'text-gray-500';
             }
         }
 
