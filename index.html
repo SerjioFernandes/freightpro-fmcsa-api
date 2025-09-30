@@ -5316,13 +5316,7 @@
                 mcNumber: selectedAccountType === 'shipper' ? '' : (fmcsaData.mcNumber || ''),
                 hasUSDOT: selectedAccountType !== 'shipper' && !!fmcsaData.usdotNumber,
                 companyLegalName: fmcsaData.legalName || form.company.value.trim(),
-                dbaName: fmcsaData.dba || '',
-                address: {
-                    street: '',
-                    city: '',
-                    state: '',
-                    zip: ''
-                }
+                dbaName: fmcsaData.dba || ''
             };
             
             console.log('Registering user with data:', registrationData);

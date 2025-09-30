@@ -297,7 +297,7 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
 
         console.log('Registration request body:', JSON.stringify(req.body, null, 2));
 
-        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName, address } = req.body;
+        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName } = req.body;
 
         const normalizedEmail = (email || '').trim().toLowerCase();
 
@@ -339,7 +339,12 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
             hasUSDOT: hasUSDOT || false,
             companyLegalName: companyLegalName || '',
             dbaName: dbaName || '',
-            address: address || {},
+            address: {
+                street: '',
+                city: '',
+                state: '',
+                zip: ''
+            },
             emailVerificationToken,
             emailVerificationCodeHash,
             emailVerificationExpires
@@ -357,29 +362,30 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
             console.error('❌ User verification: NOT found in database');
         }
 
-        // Send verification email
+        // Send verification email in background (don't wait for it)
         let emailSent = false;
 
         if (transporter) {
-            try {
-                await transporter.sendMail({
-                    from: process.env.EMAIL_USER,
-                    to: normalizedEmail,
-                    subject: 'FreightPro - Verify Your Email',
-                    html: `
-                        <h2>Welcome to FreightPro!</h2>
-                        <p>Thank you for registering with FreightPro Load Board.</p>
-                        <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
-                        <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
-                        <p style="margin-top: 12px;">This code will expire in 24 hours.</p>
-                        <p>If you didn't create this account, please ignore this email.</p>
-                    `
-                });
+            // Send email asynchronously without waiting
+            transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: normalizedEmail,
+                subject: 'FreightPro - Verify Your Email',
+                html: `
+                    <h2>Welcome to FreightPro!</h2>
+                    <p>Thank you for registering with FreightPro Load Board.</p>
+                    <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
+                    <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb; margin: 20px 0;">${emailVerificationCode}</div>
+                    <p style="margin-top: 12px;">This code will expire in 24 hours.</p>
+                    <p>If you didn't create this account, please ignore this email.</p>
+                `
+            }).then(() => {
+                console.log('✅ Email sent successfully to:', normalizedEmail);
                 emailSent = true;
-            } catch (emailError) {
-                console.error('Email sending failed:', emailError);
+            }).catch((emailError) => {
+                console.error('❌ Email sending failed:', emailError);
                 // Don't fail registration if email fails
-            }
+            });
         }
 
         console.log('Registration completed for:', user.email);
