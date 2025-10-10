@@ -12,7 +12,7 @@
             // Backend API Configuration (auto-detect environment)
             (function configureApiBaseUrl(){
                 const LOCAL_API = 'http://localhost:4000/api';
-                const DEFAULT_PROD_API = 'https://freightpro-fmcsa-api.onrender.com/api';
+                const DEFAULT_PROD_API = 'https://freightpro-load-board.onrender.com/api';
                 const storedValue = (typeof localStorage !== 'undefined') ? localStorage.getItem('FP_API_BASE_URL') : null;
 
                 let selectedBaseUrl = storedValue && storedValue.trim();
@@ -518,90 +518,6 @@
             padding: 1.5rem;
         }
         
-        .fmcsa-search-btn {
-            padding: 0.5rem 1rem;
-            background-color: #2563eb;
-            color: white;
-            font-size: 0.875rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
-            transform: scale(1);
-        }
-        
-        .fmcsa-search-btn:hover {
-            background-color: #1d4ed8;
-            transform: scale(1.05);
-        }
-        .fmcsa-search-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .fmcsa-results-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        @media (min-width: 768px) {
-            .fmcsa-results-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        .fmcsa-data-card {
-            background-color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #bfdbfe;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.2s ease;
-        }
-        
-        .fmcsa-data-card:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .fmcsa-data-title {
-            font-weight: 600;
-            color: #1e40af;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .fmcsa-data-content {
-            font-size: 0.875rem;
-            color: #374151;
-        }
-        
-        .fmcsa-data-content > * + * {
-            margin-top: 0.5rem;
-        }
-        
-        .fmcsa-data-item {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .fmcsa-data-label {
-            font-weight: 500;
-            color: #4b5563;
-        }
-        
-        .fmcsa-data-value {
-            font-weight: 600;
-        }
-        
-        .fmcsa-data-value.active {
-            color: #16a34a;
-        }
-        
-        .fmcsa-data-value.inactive {
-            color: #dc2626;
-        }
-        
-        .fmcsa-data-value.warning {
-            color: #ca8a04;
-        }
         
         .manual-company-form {
             display: grid;
@@ -1892,6 +1808,89 @@
                 </div>
             </div>
         </div>
+
+        <!-- User Dashboard Section (shown only when logged in) -->
+        <div id="userDashboardSection" class="py-16 bg-gradient-to-br from-blue-50 to-indigo-100 hidden">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
+                    <p class="text-lg text-gray-600">Manage your freight operations and view your account information</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Quick Profile Card -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl" id="dashboardUserInitials">U</div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-800" id="dashboardUserName">User Name</h3>
+                                <p class="text-sm text-gray-600" id="dashboardUserCompany">Company Name</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Account Type:</span>
+                                <span class="font-semibold text-blue-600" id="dashboardAccountType">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">USDOT:</span>
+                                <span class="font-semibold" id="dashboardUSDOT">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">MC Number:</span>
+                                <span class="font-semibold" id="dashboardMC">-</span>
+                            </div>
+                        </div>
+                        <button onclick="showPage('profile')" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-user mr-2"></i>View Full Profile
+                        </button>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-bolt mr-2 text-yellow-500"></i>Quick Actions
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="showPage('loadboard'); initializeLoadBoard();" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
+                                <i class="fas fa-search mr-3 text-blue-600"></i>Browse Loads
+                            </button>
+                            <button onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-3 text-green-600"></i>Post a Load
+                            </button>
+                            <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
+                                <i class="fas fa-chart-line mr-3 text-purple-600"></i>Rate Analysis
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Account Statistics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-chart-bar mr-2 text-orange-500"></i>Your Stats
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600" id="dashboardLoadsPosted">0</div>
+                                <div class="text-sm text-gray-600">Loads Posted</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600" id="dashboardLoadsBooked">0</div>
+                                <div class="text-sm text-gray-600">Loads Booked</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-600" id="dashboardRevenue">$0</div>
+                                <div class="text-sm text-gray-600">Revenue</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-orange-600" id="dashboardRating">5.0</div>
+                                <div class="text-sm text-gray-600">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
                     <!-- Account Type Selection Page -->
@@ -2210,7 +2209,7 @@
                                                     maxlength="8"
                                                     pattern="[0-9]{7,8}">
                                             </div>
-                                            <p class="text-xs text-gray-500 mt-1">7-8 digit number from FMCSA (e.g., 1234567, 12345678)</p>
+                                            <p class="text-xs text-gray-500 mt-1">7-8 digit USDOT number (e.g., 1234567, 12345678)</p>
                                         </div>
                                         
                                         <!-- MC Number Field -->
@@ -2230,33 +2229,13 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- FMCSA Search Results -->
-                                    <div id="fmcsaResults" class="hidden">
+                                    <!-- Company Information -->
+                                    <div id="companyInfoSection">
                                         <div class="p-6 bg-blue-50 border border-blue-200 rounded-xl">
                                             <h4 class="text-lg font-semibold text-blue-800 mb-4">
-                                                <i class="fas fa-check-circle mr-2"></i>FMCSA Verification Results
+                                                <i class="fas fa-building mr-2"></i>Company Information
                                             </h4>
-                                            <div id="fmcsaData" class="space-y-4">
-                                                <!-- FMCSA data will be populated here -->
-                                            </div>
-                                            <div class="mt-4 pt-4 border-t border-blue-200">
-                                                <button type="button" onclick="useFMCSAData()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                                                    <i class="fas fa-check mr-2"></i>Use This Company Information
-                                                </button>
-                                                <button type="button" onclick="showManualCompanyInfo()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors ml-3">
-                                                    <i class="fas fa-edit mr-2"></i>Enter Manually
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Manual Company Information (shown if FMCSA search fails) -->
-                                    <div id="manualCompanyInfo" class="hidden">
-                                        <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
-                                            <h4 class="text-lg font-semibold text-yellow-800 mb-4">
-                                                <i class="fas fa-exclamation-triangle mr-2"></i>Manual Company Information
-                                            </h4>
-                                            <p class="text-yellow-700 mb-4">FMCSA search was unsuccessful. Please provide company information manually:</p>
+                                            <p class="text-blue-700 mb-4">Please provide your company information:</p>
                                             
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div class="group">
@@ -2294,7 +2273,7 @@
                                                 
                                                 <div class="group">
                                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                                        <i class="fas fa-envelope mr-2 text-blue-500"></i>Email Address *
+                                                        <i class="fas fa-envelope mr-2 text-blue-500"></i>Work Email *
                                                     </label>
                                                     <input type="email" name="companyEmail" required
                                                         class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
@@ -2304,31 +2283,19 @@
                                                 </div>
                                             </div>
                                             
-                                            <!-- Submit Manual Info Button -->
-                                            <div class="mt-4 pt-4 border-t border-yellow-200 space-y-4">
-                                                <button type="button" onclick="submitManualCompanyInfo()" class="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
-                                                    <i class="fas fa-save mr-2"></i>Save Company Information
+                                            <!-- Submit Company Info Button -->
+                                            <div class="mt-4 pt-4 border-t border-blue-200">
+                                                <button type="button" onclick="proceedToRegistration()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                                    <i class="fas fa-arrow-right mr-2"></i>Continue to Registration
                                                 </button>
-                                                
-                                                <div class="text-center">
-                                                    <button type="button" onclick="showAPIKeyRequestForm()" 
-                                                        class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                                        <i class="fas fa-key mr-2"></i>Get Official FMCSA API Key
-                                                    </button>
-                                                    <p class="text-xs text-gray-500 mt-2">Free access to real-time data</p>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <!-- Navigation Buttons -->
-                                    <div class="flex justify-between pt-6">
+                                    <div class="flex justify-start pt-6">
                                         <button type="button" onclick="goBackToUSDOTQuestion()" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
                                             <i class="fas fa-arrow-left mr-2"></i>Back to USDOT Question
-                                        </button>
-                                        
-                                        <button type="button" onclick="proceedToRegistration()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                                            <i class="fas fa-arrow-right mr-2"></i>Continue to Registration
                                         </button>
                                     </div>
                                 </form>
@@ -2460,7 +2427,7 @@
                                 <div>
                                     <h4 class="text-sm font-semibold text-green-800 mb-1">Professional Verification</h4>
                                     <p class="text-xs text-green-700">
-                                        Your registration will be verified against official FMCSA records. This ensures a professional and trustworthy freight network.
+                                        Your registration will be verified to ensure a professional and trustworthy freight network.
                                     </p>
                                 </div>
                             </div>
@@ -3497,7 +3464,7 @@
                                 <div class="font-medium">ELD Solutions</div>
                             </div>
                             <div class="text-sm text-gray-600">Electronic logging devices</div>
-                            <div class="text-xs text-blue-600 mt-1">FMCSA compliant</div>
+                            <div class="text-xs text-blue-600 mt-1">Professional platform</div>
                         </div>
                         <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                             <div class="flex items-center mb-2">
@@ -4575,7 +4542,7 @@
             const equipmentLabel = document.getElementById('equipmentLabel');
             if (equipmentLabel) equipmentLabel.textContent = 'All Equipment';
             applyFiltersAndRender();
-            showNotification('Filters cleared. Showing all loads.', 'info');
+            // showNotification('Filters cleared. Showing all loads.', 'info');
         }
 
         function saveSearch() {
@@ -4609,7 +4576,7 @@
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
                 autoRefreshEnabled = false;
-                showNotification('Auto refresh disabled.', 'info');
+                // showNotification('Auto refresh disabled.', 'info');
             } else {
                 refreshLoads();
                 autoRefreshInterval = setInterval(refreshLoads, 60000);
@@ -4933,7 +4900,7 @@
             currentUser = null;
             window.currentUser = null;
             try { localStorage.removeItem('currentUser'); } catch (e) {}
-            showNotification('Logged out successfully', 'info');
+            // showNotification('Logged out successfully', 'info');
             showPage('home');
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
@@ -4986,7 +4953,7 @@
             // Check if user is already logged in and trying to access auth pages
             if ((pageId === 'login' || pageId === 'register') && window.currentUser) {
                 // User is already logged in, redirect to home
-                showNotification('You are already logged in!', 'info');
+                // showNotification('You are already logged in!', 'info');
                 pageId = 'home';
             }
             
@@ -5050,42 +5017,23 @@
                 }
             } else if (pageId === 'reports') {
                 initializeReports();
+            } else if (pageId === 'home') {
+                // Populate user dashboard if logged in
+                populateUserDashboard();
+            } else if (pageId === 'profile') {
+                // Populate profile page with user data
+                populateProfilePage();
             } else if (pageId === 'admin') {
                 // Ensure only admin can see and populate the admin users table
                 fetchAdminUsers();
-                return;
-            } else if (pageId === 'profile') {
-                document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
-                document.getElementById('profile').classList.remove('hidden');
                 
                 // Show profile page
                 console.log('Showing profile page');
                 
                 return;
             } else if (pageId === 'register') {
-                // Reset form state
-                window.selectedAccountType = null;
-                localStorage.removeItem('selectedAccountType');
-                
-                // Show account type selection section
-                const accountTypeSection = document.getElementById('accountTypeSelectionSection');
-                if (accountTypeSection) {
-                    accountTypeSection.classList.remove('hidden');
-                }
-                
-                // Navigation system will handle history tracking automatically
-                
-                // Hide registration form section
-                const registrationFormSection = document.getElementById('registrationFormSection');
-                if (registrationFormSection) {
-                    registrationFormSection.classList.add('hidden');
-                }
-                
-                // Hide account type status
-                const accountTypeStatus = document.getElementById('accountTypeStatus');
-                if (accountTypeStatus) {
-                    accountTypeStatus.classList.add('hidden');
-                }
+                // Reset all registration form state
+                resetRegistrationForm();
             }
             
             // Navigation system will handle history tracking automatically
@@ -5116,6 +5064,8 @@
                 showPage('admin');
             } else {
                 showPage('home');
+                // Populate dashboard after showing home page
+                setTimeout(() => populateUserDashboard(), 100);
             }
         }
 
@@ -5302,8 +5252,10 @@
                 return;
             }
             
-            // Get authority data if available
-            const fmcsaData = window.fmcsaCompanyData || {};
+            // Get authority data from stored values
+            const storedUSDOT = window.storedUSDOT || '';
+            const storedMC = window.storedMC || '';
+            const storedBusinessAddress = window.storedBusinessAddress || '';
             
             // Prepare registration data
             const registrationData = {
@@ -5312,11 +5264,11 @@
                 company: form.company.value.trim(),
                 phone: form.phone.value.trim(),
                 accountType: selectedAccountType,
-                usdotNumber: selectedAccountType === 'shipper' ? '' : (fmcsaData.usdotNumber || ''),
-                mcNumber: selectedAccountType === 'shipper' ? '' : (fmcsaData.mcNumber || ''),
-                hasUSDOT: selectedAccountType !== 'shipper' && !!fmcsaData.usdotNumber,
-                companyLegalName: fmcsaData.legalName || form.company.value.trim(),
-                dbaName: fmcsaData.dba || ''
+                usdotNumber: selectedAccountType === 'shipper' ? '' : storedUSDOT,
+                mcNumber: selectedAccountType === 'shipper' ? '' : storedMC,
+                hasUSDOT: selectedAccountType !== 'shipper' && !!storedUSDOT,
+                companyLegalName: form.company.value.trim(),
+                dbaName: ''
             };
             
             console.log('Registering user with data:', registrationData);
@@ -5599,6 +5551,133 @@
             }
         }
 
+        // Populate profile page with user data
+        function populateProfilePage() {
+            console.log('Populating profile page with user data');
+            const user = getCurrentUser();
+            if (!user) {
+                console.log('No user data available');
+                return;
+            }
+
+            // Update profile header
+            const profileName = document.getElementById('profileName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileCompany = document.getElementById('profileCompany');
+            const profileInitials = document.getElementById('profileInitials');
+            const profileAccountType = document.getElementById('profileAccountType');
+            const profileRole = document.getElementById('profileRole');
+            const profileMemberSince = document.getElementById('profileMemberSince');
+
+            if (profileName) profileName.textContent = user.company || user.name || 'User Profile';
+            if (profileEmail) profileEmail.textContent = user.email || 'user@example.com';
+            if (profileCompany) profileCompany.textContent = user.company || 'Company Name';
+            if (profileInitials) {
+                const displayName = user.company || user.name || user.email;
+                const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                profileInitials.textContent = initials;
+            }
+            if (profileAccountType) profileAccountType.textContent = user.accountType || 'Free';
+            if (profileRole) profileRole.textContent = user.role || 'User';
+            if (profileMemberSince) {
+                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                profileMemberSince.textContent = regDate;
+            }
+
+            // Update account information section
+            const profileCompanyDisplay = document.getElementById('profileCompanyDisplay');
+            const profileUsernameDisplay = document.getElementById('profileUsernameDisplay');
+            const profileEmailDisplay = document.getElementById('profileEmailDisplay');
+            const profilePhoneDisplay = document.getElementById('profilePhoneDisplay');
+            const profileUSDOTDisplay = document.getElementById('profileUSDOTDisplay');
+            const profileMCDisplay = document.getElementById('profileMCDisplay');
+
+            if (profileCompanyDisplay) profileCompanyDisplay.textContent = user.company || '-';
+            if (profileUsernameDisplay) profileUsernameDisplay.textContent = user.name || user.email?.split('@')[0] || '-';
+            if (profileEmailDisplay) profileEmailDisplay.textContent = user.email || '-';
+            if (profilePhoneDisplay) profilePhoneDisplay.textContent = user.phone || '-';
+            if (profileUSDOTDisplay) profileUSDOTDisplay.textContent = user.usdotNumber || '-';
+            if (profileMCDisplay) profileMCDisplay.textContent = user.mcNumber || '-';
+
+            // Update account details section
+            const profileAccountTypeDisplay = document.getElementById('profileAccountTypeDisplay');
+            const profileRoleDisplay = document.getElementById('profileRoleDisplay');
+            const profileRegistrationDate = document.getElementById('profileRegistrationDate');
+            const profileLastUpdated = document.getElementById('profileLastUpdated');
+
+            if (profileAccountTypeDisplay) profileAccountTypeDisplay.textContent = user.accountType || 'Free';
+            if (profileRoleDisplay) profileRoleDisplay.textContent = user.role || 'User';
+            if (profileRegistrationDate) {
+                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                profileRegistrationDate.textContent = regDate;
+            }
+            if (profileLastUpdated) {
+                const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-';
+                profileLastUpdated.textContent = lastUpdate;
+            }
+
+            // Update statistics (these would come from actual data in a real app)
+            const userLoadsPosted = document.getElementById('userLoadsPosted');
+            const userLoadsBooked = document.getElementById('userLoadsBooked');
+            const userTotalRevenue = document.getElementById('userTotalRevenue');
+            const userRating = document.getElementById('userRating');
+
+            if (userLoadsPosted) userLoadsPosted.textContent = user.loadsPosted || '0';
+            if (userLoadsBooked) userLoadsBooked.textContent = user.loadsBooked || '0';
+            if (userTotalRevenue) userTotalRevenue.textContent = user.totalRevenue ? `$${user.totalRevenue}` : '$0';
+            if (userRating) userRating.textContent = user.rating || '5.0';
+
+            console.log('Profile page populated successfully');
+        }
+
+        // Populate user dashboard section on home page
+        function populateUserDashboard() {
+            console.log('Populating user dashboard');
+            const user = getCurrentUser();
+            const dashboardSection = document.getElementById('userDashboardSection');
+            
+            if (!user || !dashboardSection) {
+                console.log('No user data or dashboard section not found');
+                if (dashboardSection) dashboardSection.classList.add('hidden');
+                return;
+            }
+
+            // Show dashboard section
+            dashboardSection.classList.remove('hidden');
+
+            // Update dashboard elements
+            const dashboardUserInitials = document.getElementById('dashboardUserInitials');
+            const dashboardUserName = document.getElementById('dashboardUserName');
+            const dashboardUserCompany = document.getElementById('dashboardUserCompany');
+            const dashboardAccountType = document.getElementById('dashboardAccountType');
+            const dashboardUSDOT = document.getElementById('dashboardUSDOT');
+            const dashboardMC = document.getElementById('dashboardMC');
+            const dashboardLoadsPosted = document.getElementById('dashboardLoadsPosted');
+            const dashboardLoadsBooked = document.getElementById('dashboardLoadsBooked');
+            const dashboardRevenue = document.getElementById('dashboardRevenue');
+            const dashboardRating = document.getElementById('dashboardRating');
+
+            // Update profile info
+            if (dashboardUserInitials) {
+                const displayName = user.company || user.name || user.email;
+                const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                dashboardUserInitials.textContent = initials;
+            }
+            if (dashboardUserName) dashboardUserName.textContent = user.company || user.name || 'User';
+            if (dashboardUserCompany) dashboardUserCompany.textContent = user.company || 'Company';
+            if (dashboardAccountType) dashboardAccountType.textContent = user.accountType || 'Free';
+            if (dashboardUSDOT) dashboardUSDOT.textContent = user.usdotNumber || '-';
+            if (dashboardMC) dashboardMC.textContent = user.mcNumber || '-';
+
+            // Update statistics
+            if (dashboardLoadsPosted) dashboardLoadsPosted.textContent = user.loadsPosted || '0';
+            if (dashboardLoadsBooked) dashboardLoadsBooked.textContent = user.loadsBooked || '0';
+            if (dashboardRevenue) dashboardRevenue.textContent = user.totalRevenue ? `$${user.totalRevenue}` : '$0';
+            if (dashboardRating) dashboardRating.textContent = user.rating || '5.0';
+
+            console.log('User dashboard populated successfully');
+        }
+
         // Password validation function
         function validatePassword(password) {
             const lengthCheck = document.getElementById('passwordLength');
@@ -5649,12 +5728,12 @@
                 const registrationFormSection = document.getElementById('registrationFormSection');
                 if (registrationFormSection) registrationFormSection.classList.remove('hidden');
                 setAccountTypeInForm();
-                showNotification(`Selected ${type} account type - proceeding to registration`, 'success');
+                // showNotification(`Selected ${type} account type - proceeding to registration`, 'success');
             } else {
                 const usdotQuestionSection = document.getElementById('usdotQuestionSection');
                 if (usdotQuestionSection) usdotQuestionSection.classList.remove('hidden');
             }
-            showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} flow selected.`, 'info');
+            // showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} flow selected.`, 'info');
         }
 
         // Show broker authority question (MC first)
@@ -5671,7 +5750,7 @@
                     infoBanner.classList.toggle('hidden', requiresMC);
                     infoBanner.textContent = 'Starting Oct 1, 2025 brokers will only need a USDOT number.';
                 }
-                showNotification(requiresMC ? 'Broker MC question shown' : 'MC number no longer required after Oct 1, 2025', 'info');
+                // showNotification(requiresMC ? 'Broker MC question shown' : 'MC number no longer required after Oct 1, 2025', 'info');
             }
         }
 
@@ -5688,7 +5767,7 @@
                     infoBanner.classList.toggle('hidden', requiresMC);
                     infoBanner.textContent = 'After Oct 1, 2025 USDOT will be the sole identifier for interstate carriers.';
                 }
-                showNotification(requiresMC ? 'Carrier authority question shown' : 'MC number will no longer be used after Oct 1, 2025', 'info');
+                // showNotification(requiresMC ? 'Carrier authority question shown' : 'MC number will no longer be used after Oct 1, 2025', 'info');
             }
         }
 
@@ -5718,7 +5797,7 @@
             const brokerUSDOTQuestionSection = document.getElementById('brokerUSDOTQuestionSection');
             if (brokerUSDOTQuestionSection) {
                 brokerUSDOTQuestionSection.classList.remove('hidden');
-                showNotification('Broker USDOT question shown', 'info');
+                // showNotification('Broker USDOT question shown', 'info');
             }
         }
 
@@ -5735,12 +5814,12 @@
             }
             if (isMcStillRequired()) {
                 showBrokerAuthorityForm();
-                showNotification('Please provide both USDOT and MC numbers', 'info');
+                // showNotification('Please provide both USDOT and MC numbers', 'info');
             } else {
                 const registrationFormSection = document.getElementById('registrationFormSection');
                 if (registrationFormSection) registrationFormSection.classList.remove('hidden');
                 setAccountTypeInForm();
-                showNotification('MC number no longer required. Proceeding to registration.', 'success');
+                // showNotification('MC number no longer required. Proceeding to registration.', 'success');
             }
         }
 
@@ -5786,11 +5865,11 @@
             if (authorityVerificationSection) authorityVerificationSection.classList.remove('hidden');
             updateCarrierAuthorityForm(hasMC);
             if (isMcStillRequired() && hasMC) {
-                showNotification('Please provide both USDOT and MC numbers', 'info');
+                // showNotification('Please provide both USDOT and MC numbers', 'info');
             } else if (isMcStillRequired() && !hasMC) {
-                showNotification('You indicated intrastate operations. MC number not required—USDOT only.', 'info');
+                // showNotification('You indicated intrastate operations. MC number not required—USDOT only.', 'info');
             } else {
-                showNotification('MC number is no longer used after Oct 1, 2025. USDOT only.', 'info');
+                // showNotification('MC number is no longer used after Oct 1, 2025. USDOT only.', 'info');
             }
         }
         // Update carrier authority form based on MC requirement
@@ -5800,7 +5879,10 @@
             const mcField = document.getElementById('authorityMC');
             const usdotFieldContainer = document.getElementById('usdotFieldContainer');
             if (usdotFieldContainer) usdotFieldContainer.classList.remove('hidden');
-            const requiresMC = isMcStillRequired() && hasMC;
+            
+            // For carriers, if they have MC, always show MC field (regardless of date)
+            // If they don't have MC, hide MC field
+            const requiresMC = hasMC; // Simplified: if user has MC, show MC field
             if (mcFieldContainer) mcFieldContainer.classList.toggle('hidden', !requiresMC);
             if (mcRequiredLabel) mcRequiredLabel.style.display = requiresMC ? 'inline' : 'none';
             if (mcField) {
@@ -5820,7 +5902,11 @@
             if (registrationFormSection) registrationFormSection.classList.add('hidden');
             const accountTypeSection = document.getElementById('accountTypeSelectionSection');
             if (accountTypeSection) accountTypeSection.classList.remove('hidden');
-            showNotification('Back to account type selection', 'info');
+            
+            // Only show notification if not resetting form
+            if (!window.isResettingForm) {
+                showNotification('Back to account type selection', 'info');
+            }
         }
         // Test authority verification function
         function testAuthorityVerification() {
@@ -5828,7 +5914,7 @@
             const authorityVerificationSection = document.getElementById('authorityVerificationSection');
             if (authorityVerificationSection) {
                 authorityVerificationSection.classList.remove('hidden');
-                showNotification('Authority verification section shown', 'info');
+                // showNotification('Authority verification section shown', 'info');
             }
         }
 
@@ -5845,6 +5931,10 @@
                 const valid = validateAuthorityFields(requireMCValidation);
                 if (!valid) return;
             }
+            
+            // Transfer authority and company data to main registration form
+            transferAuthorityDataToRegistration();
+            
             const authorityVerificationSection = document.getElementById('authorityVerificationSection');
             if (authorityVerificationSection) authorityVerificationSection.classList.add('hidden');
             const registrationFormSection = document.getElementById('registrationFormSection');
@@ -5870,38 +5960,6 @@
                     accountTypeSelect.classList.add('bg-gray-100', 'cursor-not-allowed');
                 }
             }
-        }
-        // Enhanced notification system
-        function showNotification(message, type = 'info', duration = 3000) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            const icon = {
-                success: 'fas fa-check-circle',
-                error: 'fas fa-exclamation-circle',
-                info: 'fas fa-info-circle',
-                warning: 'fas fa-exclamation-triangle'
-            }[type] || 'fas fa-info-circle';
-            
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="${icon} mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.getElementById('notifications').appendChild(notification);
-            
-                setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, duration);
         }
 
         // Session management
@@ -5965,13 +6023,13 @@
 
             if (window.selectedAccountType === 'broker') {
                 if (brokerUSDOTQuestionSection) brokerUSDOTQuestionSection.classList.remove('hidden');
-                showNotification('Please answer the USDOT question first.', 'info');
+                // showNotification('Please answer the USDOT question first.', 'info');
             } else if (window.selectedAccountType === 'carrier') {
                 if (carrierQuestionSection) carrierQuestionSection.classList.remove('hidden');
-                showNotification('Please confirm your MC authority first.', 'info');
+                // showNotification('Please confirm your MC authority first.', 'info');
             } else if (window.brokerHasMC === true || window.brokerHasMC === false) {
                 if (brokerMCQuestionSection) brokerMCQuestionSection.classList.remove('hidden');
-                showNotification('Return to the MC authority question.', 'info');
+                // showNotification('Return to the MC authority question.', 'info');
             } else {
                 goBackToAccountType();
             }
@@ -5984,14 +6042,46 @@
             const mcRequired = requireMC && !document.getElementById('mcFieldContainer')?.classList.contains('hidden');
             const missingUsd = usdRequired && usdField && !usdField.value.trim();
             const missingMc = mcRequired && mcField && !mcField.value.trim();
-            if (missingUsd || missingMc) {
+            
+            // Validate company information fields
+            const companyLegalName = document.querySelector('input[name="companyLegalName"]');
+            const companyEmail = document.querySelector('input[name="companyEmail"]');
+            const businessAddress = document.querySelector('input[name="companyAddress"]');
+            const companyPhone = document.querySelector('input[name="companyPhone"]');
+            
+            const missingCompanyName = companyLegalName && !companyLegalName.value.trim();
+            const missingCompanyEmail = companyEmail && !companyEmail.value.trim();
+            const missingBusinessAddress = businessAddress && !businessAddress.value.trim();
+            const missingCompanyPhone = companyPhone && !companyPhone.value.trim();
+            
+            if (missingUsd || missingMc || missingCompanyName || missingCompanyEmail || missingBusinessAddress || missingCompanyPhone) {
                 if (usdField) usdField.classList.toggle('border-red-400', missingUsd);
                 if (mcField) mcField.classList.toggle('border-red-400', missingMc);
-                showNotification('Please fill in the required authority fields before continuing.', 'warning');
+                if (companyLegalName) companyLegalName.classList.toggle('border-red-400', missingCompanyName);
+                if (companyEmail) companyEmail.classList.toggle('border-red-400', missingCompanyEmail);
+                if (businessAddress) businessAddress.classList.toggle('border-red-400', missingBusinessAddress);
+                if (companyPhone) companyPhone.classList.toggle('border-red-400', missingCompanyPhone);
+                
+                let errorMessage = 'Please fill in all required fields before continuing:';
+                if (missingUsd) errorMessage += ' USDOT number,';
+                if (missingMc) errorMessage += ' MC number,';
+                if (missingCompanyName) errorMessage += ' Company legal name,';
+                if (missingCompanyEmail) errorMessage += ' Company email,';
+                if (missingBusinessAddress) errorMessage += ' Business address,';
+                if (missingCompanyPhone) errorMessage += ' Phone number,';
+                
+                errorMessage = errorMessage.replace(/,$/, ''); // Remove trailing comma
+                showNotification(errorMessage, 'warning');
                 return false;
             }
+            
+            // Clear error styling
             usdField?.classList.remove('border-red-400');
             mcField?.classList.remove('border-red-400');
+            companyLegalName?.classList.remove('border-red-400');
+            companyEmail?.classList.remove('border-red-400');
+            businessAddress?.classList.remove('border-red-400');
+            
             return true;
         }
 
@@ -6015,7 +6105,10 @@
                     const carrierQuestionSection = document.getElementById('carrierAuthorityQuestionSection');
                     if (carrierQuestionSection) carrierQuestionSection.classList.remove('hidden');
                 } else {
-                    showNotification('Carriers must have a USDOT number to continue.', 'warning');
+                    // Only show notification if not resetting form
+                    if (!window.isResettingForm) {
+                        showNotification('Carriers must have a USDOT number to continue.', 'warning');
+                    }
                     goBackToAccountType();
                 }
             }
@@ -6025,8 +6118,179 @@
             const carrierQuestionSection = document.getElementById('carrierAuthorityQuestionSection');
             if (carrierQuestionSection) {
                 carrierQuestionSection.classList.remove('hidden');
-                showNotification('Carrier authority question shown', 'info');
+                // showNotification('Carrier authority question shown', 'info');
             }
+        }
+
+        // Missing functions that were referenced but not defined
+        function useFMCSAData() {
+            console.log('useFMCSAData called - this function is no longer needed');
+            // This function is no longer needed since we removed FMCSA integration
+            proceedToRegistration();
+        }
+
+        function showManualCompanyInfo() {
+            console.log('showManualCompanyInfo called - this function is no longer needed');
+            // This function is no longer needed since we always show manual entry
+            proceedToRegistration();
+        }
+
+        function submitManualCompanyInfo() {
+            console.log('submitManualCompanyInfo called - redirecting to proceedToRegistration');
+            // This function is no longer needed since we always show manual entry
+            proceedToRegistration();
+        }
+
+        function showAPIKeyRequestForm() {
+            console.log('showAPIKeyRequestForm called - this function is no longer needed');
+            // This function is no longer needed since we removed FMCSA integration
+            // showNotification('FMCSA API integration has been removed. Please enter company information manually.', 'info');
+        }
+
+        // Transfer authority and company data to main registration form
+        function transferAuthorityDataToRegistration() {
+            console.log('Transferring authority data to registration form');
+            
+            // Get authority form data
+            const authorityUSDOT = document.getElementById('authorityUSDOT');
+            const authorityMC = document.getElementById('authorityMC');
+            const companyLegalName = document.querySelector('input[name="companyLegalName"]');
+            const dbaName = document.querySelector('input[name="dbaName"]');
+            const companyEmail = document.querySelector('input[name="companyEmail"]');
+            const businessAddress = document.querySelector('input[name="companyAddress"]');
+            const companyPhone = document.querySelector('input[name="companyPhone"]');
+            
+            // Get registration form fields
+            const regCompany = document.querySelector('input[name="company"]');
+            const regEmail = document.querySelector('input[name="email"]');
+            const regPhone = document.querySelector('input[name="phone"]');
+            
+            // Transfer data if fields exist
+            if (authorityUSDOT && authorityUSDOT.value) {
+                // Store USDOT for later use in registration
+                window.storedUSDOT = authorityUSDOT.value;
+            }
+            
+            if (authorityMC && authorityMC.value) {
+                // Store MC for later use in registration
+                window.storedMC = authorityMC.value;
+            }
+            
+            if (companyLegalName && companyLegalName.value && regCompany) {
+                regCompany.value = companyLegalName.value;
+            }
+            
+            if (companyEmail && companyEmail.value && regEmail) {
+                regEmail.value = companyEmail.value;
+            }
+            
+            if (businessAddress && businessAddress.value) {
+                // Store business address for later use
+                window.storedBusinessAddress = businessAddress.value;
+            }
+            
+            if (companyPhone && companyPhone.value && regPhone) {
+                regPhone.value = companyPhone.value;
+            }
+            
+            console.log('Authority data transferred:', {
+                usdot: window.storedUSDOT,
+                mc: window.storedMC,
+                company: regCompany?.value,
+                email: regEmail?.value,
+                address: window.storedBusinessAddress,
+                phone: regPhone?.value
+            });
+        }
+
+        // Reset all registration form state to start fresh
+        function resetRegistrationForm() {
+            console.log('Resetting registration form to start fresh');
+            
+            // Set flag to prevent notifications during reset
+            window.isResettingForm = true;
+            
+            // Reset all global variables
+            window.selectedAccountType = null;
+            window.carrierHasMC = null;
+            window.brokerHasMC = null;
+            window.storedUSDOT = null;
+            window.storedMC = null;
+            window.storedBusinessAddress = null;
+            window.fmcsaCompanyData = null;
+            
+            // Clear localStorage
+            localStorage.removeItem('selectedAccountType');
+            
+            // Hide all registration sections
+            const sectionsToHide = [
+                'accountTypeSelectionSection',
+                'usdotQuestionSection', 
+                'brokerMCQuestionSection',
+                'brokerUSDOTQuestionSection',
+                'carrierAuthorityQuestionSection',
+                'authorityVerificationSection',
+                'registrationFormSection',
+                'accountTypeStatus'
+            ];
+            
+            sectionsToHide.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.add('hidden');
+                }
+            });
+            
+            // Show only the account type selection section
+            const accountTypeSection = document.getElementById('accountTypeSelectionSection');
+            if (accountTypeSection) {
+                accountTypeSection.classList.remove('hidden');
+            }
+            
+            // Reset all form fields
+            const formsToReset = [
+                'authorityVerificationForm',
+                'registerForm'
+            ];
+            
+            formsToReset.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.reset();
+                }
+            });
+            
+            // Clear any error styling
+            const errorFields = document.querySelectorAll('.border-red-400');
+            errorFields.forEach(field => {
+                field.classList.remove('border-red-400');
+            });
+            
+            // Reset authority form fields specifically
+            const authorityFields = [
+                'authorityUSDOT',
+                'authorityMC'
+            ];
+            
+            authorityFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = '';
+                    field.classList.remove('border-red-400');
+                }
+            });
+            
+            // Reset company info fields
+            const companyFields = document.querySelectorAll('input[name="companyLegalName"], input[name="companyEmail"], input[name="businessAddress"]');
+            companyFields.forEach(field => {
+                field.value = '';
+                field.classList.remove('border-red-400');
+            });
+            
+            // Clear the reset flag
+            window.isResettingForm = false;
+            
+            console.log('Registration form reset complete');
         }
 
     </script>
