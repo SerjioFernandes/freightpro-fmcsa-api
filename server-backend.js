@@ -1,0 +1,726 @@
+// FreightPro Load Board Backend Server
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import bcryptjs from 'bcryptjs';
+import jsonwebtoken from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import { body, validationResult } from 'express-validator';
+import helmet from 'helmet';
+import compression from 'compression';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freight-pro.netlify.app').trim();
+const EMAIL_VERIFICATION_TTL_MS = Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000;
+
+async function ensureDefaultAdminUser() {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+        console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
+        return;
+    }
+
+    const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+    if (existing) {
+        return;
+    }
+
+    const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
+
+    const adminUser = new User({
+        email: ADMIN_EMAIL.toLowerCase(),
+        password: hashedPassword,
+        passwordPlain: ADMIN_PASSWORD,
+        company: 'FreightPro',
+        phone: '+1-000-000-0000',
+        accountType: 'broker',
+        role: 'admin',
+        isEmailVerified: true,
+        emailVerificationToken: '',
+        emailVerificationCodeHash: '',
+        emailVerificationExpires: null
+    });
+
+    await adminUser.save();
+    console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
+}
+
+// MongoDB Connection
+async function connectToMongoDB() {
+    try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI environment variable is required');
+        }
+        
+        // Clean URI and connect (driver v6 doesn't need deprecated options)
+        const uri = (process.env.MONGODB_URI || '').trim();
+        if (!uri) {
+            throw new Error('MONGODB_URI is empty after trimming');
+        }
+
+        await mongoose.connect(uri);
+        
+        console.log('✅ Connected to MongoDB successfully');
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error?.message || error);
+        if (error?.message?.toLowerCase().includes('bad auth') || error?.codeName === 'AuthenticationFailed') {
+            console.error('👉 Check your MongoDB username/password in .env (MONGODB_URI).');
+            console.error('👉 Also ensure your current IP is allowed in MongoDB Atlas Network Access.');
+        }
+        process.exit(1);
+    }
+}
+
+// MongoDB Schemas
+const userSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    passwordPlain: { type: String, default: '' },
+    company: { type: String, required: true },
+    phone: { type: String, required: true },
+    accountType: { type: String, required: true, enum: ['carrier', 'broker', 'shipper'] },
+    
+    // Authority Information (for carriers/brokers)
+    usdotNumber: { type: String, default: '' },
+    mcNumber: { type: String, default: '' },
+    hasUSDOT: { type: Boolean, default: false },
+    
+    // Company Information
+    companyLegalName: { type: String, default: '' },
+    dbaName: { type: String, default: '' },
+    
+    // Address Information
+    address: {
+        street: { type: String, default: '' },
+        city: { type: String, default: '' },
+        state: { type: String, default: '' },
+        zip: { type: String, default: '' }
+    },
+    
+    // Account Status
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String, default: '' },
+    emailVerificationCodeHash: { type: String, default: '' },
+    emailVerificationExpires: { type: Date },
+    isActive: { type: Boolean, default: true },
+    role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    
+    // Timestamps
+    createdAt: { type: Date, default: Date.now },
+    lastLogin: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Load Board Schemas
+const loadSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    origin: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    destination: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    pickupDate: { type: Date, required: true },
+    deliveryDate: { type: Date, required: true },
+    equipmentType: { type: String, required: true },
+    weight: { type: Number, required: true },
+    rate: { type: Number, required: true },
+    rateType: { type: String, enum: ['per_mile', 'flat_rate'], default: 'per_mile' },
+    distance: { type: Number },
+    
+    // Load Status
+    status: { type: String, enum: ['available', 'booked', 'in_transit', 'delivered', 'cancelled'], default: 'available' },
+    
+    // Relationships
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    bookedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    
+    // Timestamps
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+const Load = mongoose.model('Load', loadSchema);
+
+// Message Schema
+const messageSchema = new mongoose.Schema({
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    load: { type: mongoose.Schema.Types.ObjectId, ref: 'Load' },
+    subject: { type: String, required: true },
+    message: { type: String, required: true },
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Message = mongoose.model('Message', messageSchema);
+
+// Middleware & Security
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:", "http:"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            connectSrc: ["'self'", "https://api.github.com"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+        },
+    },
+}));
+app.use(compression());
+const allowedOrigins = [
+    'https://freight-pro.netlify.app', // Your new Netlify URL
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://localhost:4000',
+    'null'
+];
+
+if (FRONTEND_URL && !allowedOrigins.includes(FRONTEND_URL)) {
+    allowedOrigins.push(FRONTEND_URL);
+}
+
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+
+console.log('🔐 CORS allowed origins:', JSON.stringify(allowedOrigins));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100,
+    message: {
+        error: 'Too many requests from this IP, please try again later.',
+        retryAfter: '15 minutes'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
+app.options('*', cors());
+
+// Email Configuration
+function createEmailTransporter() {
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASS;
+
+    console.log('📧 Email configuration check:');
+    console.log('EMAIL_USER set:', !!user);
+    console.log('EMAIL_PASS set:', !!pass);
+
+    if (!user || !pass) {
+        console.warn('⚠️ EMAIL_USER or EMAIL_PASS environment variables are missing. Email notifications are disabled.');
+        console.warn('To enable email sending, set these in Render environment variables:');
+        console.warn('EMAIL_USER=your-gmail@gmail.com');
+        console.warn('EMAIL_PASS=your-app-password');
+        return null;
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user,
+            pass
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+
+    console.log('✅ Email transporter created successfully');
+    return transporter;
+}
+
+const transporter = createEmailTransporter();
+
+// JWT Authentication Middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+
+    jsonwebtoken.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Invalid or expired token' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// Validation Middleware
+const validateRegistration = [
+    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('company').trim().notEmpty().withMessage('Company name required'),
+    body('phone').trim().isLength({ min: 7, max: 50 }).withMessage('Phone number must be 7-50 characters'),
+    body('accountType').isIn(['carrier', 'broker', 'shipper']).withMessage('Valid account type required')
+];
+
+// API Routes
+
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'FreightPro Load Board API is running',
+        service: 'FreightPro Load Board API',
+        version: '2.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: {
+            status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+        },
+        email: {
+            configured: !!transporter,
+            user: process.env.EMAIL_USER ? 'set' : 'not set'
+        }
+    });
+});
+
+// Serve static frontend from project root on the SAME port as API
+const staticRoot = path.join(__dirname);
+app.use(express.static(staticRoot, {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+// SPA/HTML fallback to index.html for any non-API route
+app.get(['/', '/home', '/loadboard', '/post', '/pricing', '/profile', '/rates', '/market', '/**'], (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(staticRoot, 'index.html'));
+});
+
+// User Registration
+app.post('/api/auth/register', validateRegistration, async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.error('Registration validation failed:', errors.array());
+            console.error('Request body received:', JSON.stringify(req.body, null, 2));
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: errors.array(),
+                receivedData: req.body
+            });
+        }
+
+        console.log('Registration request body:', JSON.stringify(req.body, null, 2));
+
+        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName } = req.body;
+
+        const normalizedEmail = (email || '').trim().toLowerCase();
+
+        // Check if user already exists
+        console.log('Checking for existing user with email:', normalizedEmail);
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            console.log('User already exists:', existingUser.email);
+            return res.status(400).json({
+                error: 'User already exists',
+                message: 'An account with this email already exists'
+            });
+        }
+
+        // Hash password
+        const saltRounds = 12;
+        const hashedPassword = await bcryptjs.hash(password, saltRounds);
+
+        // Generate email verification token
+        const emailVerificationCode = crypto.randomInt(100000, 999999).toString();
+        const emailVerificationCodeHash = await bcryptjs.hash(emailVerificationCode, 10);
+        const emailVerificationToken = jsonwebtoken.sign(
+            { email: normalizedEmail },
+            JWT_SECRET,
+            { expiresIn: EMAIL_VERIFICATION_TTL_MS / 1000 }
+        );
+        const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
+
+        // Create user
+        const user = new User({
+            email: normalizedEmail,
+            password: hashedPassword,
+            passwordPlain: password,
+            company,
+            phone,
+            accountType,
+            usdotNumber: usdotNumber || '',
+            mcNumber: mcNumber || '',
+            hasUSDOT: hasUSDOT || false,
+            companyLegalName: companyLegalName || '',
+            dbaName: dbaName || '',
+            address: {
+                street: '',
+                city: '',
+                state: '',
+                zip: ''
+            },
+            emailVerificationToken,
+            emailVerificationCodeHash,
+            emailVerificationExpires
+        });
+
+        await user.save();
+        console.log('✅ User created successfully:', user.email, 'ID:', user._id);
+        console.log('✅ User saved to MongoDB database');
+        
+        // Verify user exists in database
+        const savedUser = await User.findById(user._id);
+        if (savedUser) {
+            console.log('✅ User verification: Found in database');
+        } else {
+            console.error('❌ User verification: NOT found in database');
+        }
+
+        // Send verification email in background (don't wait for it)
+        let emailSent = false;
+
+        if (transporter) {
+            console.log('📧 Attempting to send email to:', normalizedEmail);
+            console.log('📧 From:', process.env.EMAIL_USER);
+            
+            // Send email asynchronously without waiting
+            transporter.sendMail({
+                from: `"FreightPro" <${process.env.EMAIL_USER}>`,
+                to: normalizedEmail,
+                subject: 'FreightPro - Verify Your Email',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #1a2238;">Welcome to FreightPro!</h2>
+                        <p>Thank you for registering with FreightPro Load Board.</p>
+                        <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
+                        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                            <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb;">${emailVerificationCode}</div>
+                        </div>
+                        <p style="margin-top: 12px; color: #666;">This code will expire in 24 hours.</p>
+                        <p style="color: #666;">If you didn't create this account, please ignore this email.</p>
+                        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+                        <p style="font-size: 12px; color: #999;">This email was sent from FreightPro Load Board System</p>
+                    </div>
+                `
+            }).then((info) => {
+                console.log('✅ Email sent successfully to:', normalizedEmail);
+                console.log('📧 Email info:', info.messageId);
+                emailSent = true;
+            }).catch((emailError) => {
+                console.error('❌ Email sending failed:', emailError);
+                console.error('❌ Email error details:', {
+                    code: emailError.code,
+                    command: emailError.command,
+                    response: emailError.response
+                });
+                // Don't fail registration if email fails
+            });
+        } else {
+            console.warn('⚠️ No email transporter available - email not sent');
+        }
+
+        console.log('Registration completed for:', user.email);
+        res.status(201).json({
+            success: true,
+            message: emailSent
+                ? 'We sent a verification code to your email. Enter it to finish registration.'
+                : 'Verification code generated. (Email disabled in this environment.)',
+            emailVerificationRequired: true,
+            emailSent,
+            verification: { code: emailVerificationCode },
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                accountType: user.accountType,
+                isEmailVerified: user.isEmailVerified
+            }
+        });
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            error: 'Registration failed',
+            message: 'An error occurred during registration',
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Contact support for assistance'
+        });
+    }
+});
+
+// User Login
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                error: 'Missing credentials',
+                message: 'Email and password are required'
+            });
+        }
+
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+        if (!user) {
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                message: 'Email or password is incorrect'
+            });
+        }
+
+        if (!user.isEmailVerified) {
+            return res.status(401).json({
+                error: 'Email not verified',
+                message: 'Please verify your email address before logging in'
+            });
+        }
+
+        const isPasswordValid = await bcryptjs.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                message: 'Email or password is incorrect'
+            });
+        }
+
+        if (!user.isActive) {
+            return res.status(401).json({
+                error: 'Account disabled',
+                message: 'Your account has been disabled. Contact support for assistance.'
+            });
+        }
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Generate JWT token
+        const token = jsonwebtoken.sign(
+            { 
+                userId: user._id, 
+                email: user.email, 
+                accountType: user.accountType,
+                role: user.role 
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                accountType: user.accountType,
+                isEmailVerified: user.isEmailVerified,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            error: 'Login failed',
+            message: 'An error occurred during login'
+        });
+    }
+});
+
+// Get Loads
+app.get('/api/loads', async (req, res) => {
+    try {
+        const { page = 1, limit = 20, status = 'available', accountType } = req.query;
+        const skip = (page - 1) * limit;
+
+        let query = { status };
+        
+        // Filter by account type if specified
+        if (accountType) {
+            query.accountType = accountType;
+        }
+
+        const loads = await Load.find(query)
+            .populate('postedBy', 'company email accountType')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Load.countDocuments(query);
+
+        res.json({
+            success: true,
+            loads,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Loads fetch error:', error);
+        res.status(500).json({
+            error: 'Loads fetch failed',
+            message: 'An error occurred while fetching loads'
+        });
+    }
+});
+
+// Post a Load
+app.post('/api/loads', authenticateToken, async (req, res) => {
+    try {
+        const loadData = {
+            ...req.body,
+            postedBy: req.user.userId
+        };
+
+        const load = new Load(loadData);
+        await load.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Load posted successfully',
+            load
+        });
+
+    } catch (error) {
+        console.error('Load posting error:', error);
+        res.status(500).json({
+            error: 'Load posting failed',
+            message: 'An error occurred while posting the load'
+        });
+    }
+});
+
+// Book a Load
+app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
+    try {
+        console.log('Load booking request for ID:', req.params.id);
+        console.log('User ID:', req.user.userId);
+        
+        const load = await Load.findById(req.params.id);
+        
+        if (!load) {
+            console.log('Load not found for ID:', req.params.id);
+            return res.status(404).json({
+                error: 'Load not found',
+                message: 'The requested load does not exist'
+            });
+        }
+
+        console.log('Found load:', load.title, 'Status:', load.status);
+
+        if (load.status !== 'available') {
+            console.log('Load not available, current status:', load.status);
+            return res.status(400).json({
+                error: 'Load not available',
+                message: 'This load is no longer available'
+            });
+        }
+
+        load.status = 'booked';
+        load.bookedBy = req.user.userId;
+        load.updatedAt = new Date();
+        
+        await load.save();
+        console.log('Load booked successfully by user:', req.user.userId);
+
+        res.json({
+            success: true,
+            message: 'Load booked successfully',
+            load
+        });
+
+    } catch (error) {
+        console.error('Load booking error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            error: 'Load booking failed',
+            message: 'An error occurred while booking the load'
+        });
+    }
+});
+
+// Initialize server
+async function startServer() {
+    try {
+        await connectToMongoDB();
+        await ensureDefaultAdminUser();
+        
+        app.listen(PORT, () => {
+            console.log(`🚛 FreightPro Load Board Server Started`);
+            console.log(`Server running on port ${PORT}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`API Endpoints:`);
+            console.log(`  - Health: http://localhost:${PORT}/api/health`);
+            console.log(`  - Register: http://localhost:${PORT}/api/auth/register`);
+            console.log(`  - Login: http://localhost:${PORT}/api/auth/login`);
+            console.log(`  - Loads: http://localhost:${PORT}/api/loads`);
+            console.log(`  - Website: http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    await mongoose.connection.close();
+    process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, shutting down gracefully...');
+    await mongoose.connection.close();
+    process.exit(0);
+});
+
+// Start the server
+startServer();

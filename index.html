@@ -2917,6 +2917,64 @@
 
             <!-- Map view removed as requested -->
 
+            <!-- Live Activity Feed -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-broadcast-tower mr-2 text-green-600"></i>Live Activity Feed
+                    <span class="real-time-indicator ml-2">Real-time</span>
+                </h3>
+                <div class="space-y-3 max-h-48 overflow-y-auto" id="activityFeed">
+                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">New load posted: Chicago → Atlanta</div>
+                            <div class="text-xs text-gray-500">ABC Logistics • 2 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-green-600 font-medium">$2,150</div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">Load booked: Miami → New York</div>
+                            <div class="text-xs text-gray-500">Fresh Transport • 4 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-blue-600 font-medium">$3,840</div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                        <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">New carrier registered: Texas Cold Chain</div>
+                            <div class="text-xs text-gray-500">Houston, TX • 6 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-orange-600 font-medium">Reefer</div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">Load posted: Denver → Salt Lake City</div>
+                            <div class="text-xs text-gray-500">Mountain Peak Transport • 8 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-purple-600 font-medium">$2,200</div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">Load booked: New York → Boston</div>
+                            <div class="text-xs text-gray-500">Northeast Express • 12 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-green-600 font-medium">$1,800</div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">New shipper registered: Bay Area Logistics</div>
+                            <div class="text-xs text-gray-500">San Francisco, CA • 15 minutes ago</div>
+                        </div>
+                        <div class="text-xs text-blue-600 font-medium">Technology</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Load Results -->
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
@@ -4099,95 +4157,242 @@
     <script>
         // Global variables
         let currentUser = null;
-        const sampleLoads = [
-            {
-                id: 'FCP-001',
-                origin: 'Chicago, IL',
-                destination: 'Atlanta, GA',
-                equipment: 'Van',
-                miles: 717,
-                rate: 2150,
-                ratePerMile: 3.00,
-                pickupDate: '2024-12-15',
-                deliveryDate: '2024-12-17',
-                weight: 45000,
-                loadType: 'Full Truckload',
-                company: 'ABC Logistics',
-                contact: 'John Smith',
-                phone: '(555) 123-4567',
-                email: 'john@abclogistics.com',
-                commodity: 'Electronics',
-                requirements: 'Temperature controlled, inside delivery required',
-                posted: '2 hours ago',
-                priority: 'normal',
-                status: 'available',
-                postedBy: 'system'
-            },
-            {
-                id: 'FCP-002',
-                origin: 'Los Angeles, CA',
-                destination: 'Phoenix, AZ',
-                equipment: 'Flatbed',
-                miles: 372,
-                rate: 1890,
-                ratePerMile: 5.08,
-                pickupDate: '2024-12-16',
-                weight: 48000,
-                loadType: 'Full Truckload',
-                company: 'West Coast Freight',
-                posted: '4 hours ago',
-                priority: 'urgent',
-                coordinates: { pickup: { lat: 34.0522, lng: -118.2437 }, delivery: { lat: 33.4484, lng: -112.0740 } }
-            },
-            {
-                id: 'FCP-003',
-                origin: 'Miami, FL',
-                destination: 'New York, NY',
-                equipment: 'Reefer',
-                miles: 1280,
-                rate: 3840,
-                ratePerMile: 3.00,
-                pickupDate: '2024-12-17',
-                weight: 44000,
-                loadType: 'Full Truckload',
-                company: 'Fresh Transport',
-                posted: '1 hour ago',
-                priority: 'premium',
-                coordinates: { pickup: { lat: 25.7617, lng: -80.1918 }, delivery: { lat: 40.7128, lng: -74.0060 } }
-            },
-            {
-                id: 'FCP-004',
-                origin: 'Dallas, TX',
-                destination: 'Denver, CO',
-                equipment: 'Van',
-                miles: 781,
-                rate: 2340,
-                ratePerMile: 3.00,
-                pickupDate: '2024-12-18',
-                weight: 42000,
-                loadType: 'Full Truckload',
-                company: 'Lone Star Logistics',
-                posted: '30 minutes ago',
-                priority: 'normal',
-                coordinates: { pickup: { lat: 32.7767, lng: -96.7970 }, delivery: { lat: 39.7392, lng: -104.9903 } }
-            },
-            {
-                id: 'FCP-005',
-                origin: 'Seattle, WA',
-                destination: 'Portland, OR',
-                equipment: 'Van',
-                miles: 174,
-                rate: 750,
-                ratePerMile: 4.31,
-                pickupDate: '2024-12-14',
-                weight: 32000,
-                loadType: 'Partial',
-                company: 'Pacific Northwest Carriers',
-                posted: '15 minutes ago',
-                priority: 'normal',
-                coordinates: { pickup: { lat: 47.6062, lng: -122.3321 }, delivery: { lat: 45.5152, lng: -122.6784 } }
+        // Dynamic Load System - Generate 1000+ realistic loads
+        function generateDynamicLoads() {
+            const cities = [
+                { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
+                { name: 'Atlanta, GA', lat: 33.7490, lng: -84.3880 },
+                { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+                { name: 'Phoenix, AZ', lat: 33.4484, lng: -112.0740 },
+                { name: 'Miami, FL', lat: 25.7617, lng: -80.1918 },
+                { name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
+                { name: 'Dallas, TX', lat: 32.7767, lng: -96.7970 },
+                { name: 'Denver, CO', lat: 39.7392, lng: -104.9903 },
+                { name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
+                { name: 'Portland, OR', lat: 45.5152, lng: -122.6784 },
+                { name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+                { name: 'San Antonio, TX', lat: 29.4241, lng: -98.4936 },
+                { name: 'Salt Lake City, UT', lat: 40.7608, lng: -111.8910 },
+                { name: 'Boston, MA', lat: 42.3601, lng: -71.0589 },
+                { name: 'Kansas City, MO', lat: 39.0997, lng: -94.5786 },
+                { name: 'St. Louis, MO', lat: 38.6270, lng: -90.1994 },
+                { name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
+                { name: 'Memphis, TN', lat: 35.1495, lng: -90.0490 },
+                { name: 'Minneapolis, MN', lat: 44.9778, lng: -93.2650 },
+                { name: 'Milwaukee, WI', lat: 43.0389, lng: -87.9065 },
+                { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
+                { name: 'Sacramento, CA', lat: 38.5816, lng: -121.4944 },
+                { name: 'Cleveland, OH', lat: 41.4993, lng: -81.6944 },
+                { name: 'Detroit, MI', lat: 42.3314, lng: -83.0458 },
+                { name: 'Tampa, FL', lat: 27.9506, lng: -82.4572 },
+                { name: 'Jacksonville, FL', lat: 30.3322, lng: -81.6557 },
+                { name: 'Las Vegas, NV', lat: 36.1699, lng: -115.1398 },
+                { name: 'Pittsburgh, PA', lat: 40.4406, lng: -79.9959 },
+                { name: 'Philadelphia, PA', lat: 39.9526, lng: -75.1652 },
+                { name: 'Austin, TX', lat: 30.2672, lng: -97.7431 },
+                { name: 'Charlotte, NC', lat: 35.2271, lng: -80.8431 },
+                { name: 'Raleigh, NC', lat: 35.7796, lng: -78.6382 },
+                { name: 'Indianapolis, IN', lat: 39.7684, lng: -86.1581 },
+                { name: 'Columbus, OH', lat: 39.9612, lng: -82.9988 },
+                { name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 },
+                { name: 'Albuquerque, NM', lat: 35.0844, lng: -106.6504 },
+                { name: 'Louisville, KY', lat: 38.2527, lng: -85.7585 },
+                { name: 'Cincinnati, OH', lat: 39.1031, lng: -84.5120 },
+                { name: 'Birmingham, AL', lat: 33.5207, lng: -86.8025 },
+                { name: 'Mobile, AL', lat: 30.6954, lng: -88.0399 },
+                { name: 'Richmond, VA', lat: 37.5407, lng: -77.4360 },
+                { name: 'Norfolk, VA', lat: 36.8468, lng: -76.2852 },
+                { name: 'Spokane, WA', lat: 47.6588, lng: -117.4260 },
+                { name: 'Boise, ID', lat: 43.6150, lng: -116.2023 }
+            ];
+
+            const companies = [
+                'ABC Logistics', 'West Coast Freight', 'Fresh Transport', 'Lone Star Logistics', 'Pacific Northwest Carriers',
+                'Texas Cold Chain', 'Mountain Peak Transport', 'Northeast Express', 'Midwest Haulers', 'Music City Cold',
+                'Great Lakes Transport', 'Bay Area Logistics', 'Rust Belt Freight', 'Florida Fresh Transport', 'Desert Transport Co',
+                'Keystone Freight', 'Pacific Northwest Cold', 'Carolina Transport', 'Heartland Haulers', 'Sooner State Logistics',
+                'Southwest Cold Chain', 'Bluegrass Transport', 'Crimson Tide Freight', 'Virginia Transport', 'Inland Northwest Cold',
+                'Golden State Transport', 'Sunshine Logistics', 'Northwest Freight', 'Elite Freight Solutions', 'Premier Transport',
+                'Express Logistics', 'Reliable Haulers', 'Swift Transport', 'United Freight', 'National Carriers',
+                'Interstate Logistics', 'Cross Country Transport', 'Regional Freight', 'Metro Logistics', 'Coastal Transport',
+                'Mountain View Freight', 'Desert Express', 'Valley Transport', 'Riverside Logistics', 'Summit Carriers'
+            ];
+
+            const equipmentTypes = ['Van', 'Reefer', 'Flatbed', 'Container', 'Tanker'];
+            const commodities = [
+                'Electronics', 'Construction Materials', 'Frozen Foods', 'Consumer Goods', 'Retail Merchandise',
+                'Dairy Products', 'Steel Beams', 'Pharmaceuticals', 'Automotive Parts', 'Fresh Produce',
+                'Machinery', 'Technology Equipment', 'Manufacturing Parts', 'Building Materials', 'Textiles',
+                'Steel Coils', 'Oil Field Equipment', 'Fresh Vegetables', 'Frozen Seafood', 'Military Equipment',
+                'Frozen Potatoes', 'Paper Products', 'Chemicals', 'Plastics', 'Furniture'
+            ];
+
+            const requirements = [
+                'Temperature controlled, inside delivery required',
+                'Tarp required, securement needed',
+                'Temperature -10°F, continuous operation',
+                'Inside delivery, appointment required',
+                'Inside delivery, liftgate required',
+                'Temperature 38°F, continuous operation',
+                'Tarp required, chains and binders',
+                'Temperature controlled, security seal',
+                'Inside delivery, appointment required',
+                'Temperature 34°F, continuous operation',
+                'Tarp required, securement needed',
+                'Inside delivery, white glove service',
+                'Inside delivery, appointment required',
+                'Temperature 38°F, continuous operation',
+                'Tarp required, securement needed',
+                'Inside delivery, liftgate required',
+                'Inside delivery, appointment required',
+                'Temperature -20°F, continuous operation',
+                'Inside delivery, clean trailer required',
+                'Tarp required, chains and binders',
+                'Security clearance required, appointment only',
+                'Temperature -10°F, continuous operation'
+            ];
+
+            const loads = [];
+            const totalLoads = 1000;
+
+            for (let i = 1; i <= totalLoads; i++) {
+                const origin = cities[Math.floor(Math.random() * cities.length)];
+                let destination;
+                do {
+                    destination = cities[Math.floor(Math.random() * cities.length)];
+                } while (destination.name === origin.name);
+
+                const equipment = equipmentTypes[Math.floor(Math.random() * equipmentTypes.length)];
+                const commodity = commodities[Math.floor(Math.random() * commodities.length)];
+                const company = companies[Math.floor(Math.random() * companies.length)];
+                const requirement = requirements[Math.floor(Math.random() * requirements.length)];
+
+                // Calculate realistic miles and rates
+                const miles = Math.floor(Math.random() * 2000) + 100; // 100-2100 miles
+                const baseRatePerMile = equipment === 'Reefer' ? 3.5 + Math.random() * 2 : 
+                                       equipment === 'Flatbed' ? 2.8 + Math.random() * 1.5 :
+                                       equipment === 'Tanker' ? 4.0 + Math.random() * 2 :
+                                       2.5 + Math.random() * 1.5; // Van/Container
+                const rate = Math.floor(miles * baseRatePerMile);
+                const ratePerMile = (rate / miles).toFixed(2);
+
+                // Generate realistic dates
+                const pickupDate = new Date();
+                pickupDate.setDate(pickupDate.getDate() + Math.floor(Math.random() * 7) + 1);
+                const deliveryDate = new Date(pickupDate);
+                deliveryDate.setDate(deliveryDate.getDate() + Math.ceil(miles / 500) + Math.floor(Math.random() * 2));
+
+                // Generate realistic weight
+                const weight = equipment === 'Tanker' ? 80000 :
+                              equipment === 'Flatbed' ? 45000 + Math.floor(Math.random() * 10000) :
+                              equipment === 'Reefer' ? 40000 + Math.floor(Math.random() * 5000) :
+                              35000 + Math.floor(Math.random() * 10000);
+
+                // Generate realistic posting time
+                const hoursAgo = Math.floor(Math.random() * 48); // 0-48 hours ago
+                const posted = hoursAgo === 0 ? 'Just now' :
+                              hoursAgo === 1 ? '1 hour ago' :
+                              hoursAgo < 24 ? `${hoursAgo} hours ago` :
+                              `${Math.floor(hoursAgo / 24)} day${Math.floor(hoursAgo / 24) > 1 ? 's' : ''} ago`;
+
+                // Generate contact info
+                const firstNames = ['John', 'Mike', 'Sarah', 'Lisa', 'David', 'Jennifer', 'Robert', 'Amanda', 'Thomas', 'Maria', 'James', 'Nancy', 'Brian', 'Lisa', 'Christopher', 'Angela', 'Mark', 'Jennifer', 'Daniel', 'Patricia'];
+                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                const phone = `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
+                const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${company.toLowerCase().replace(/\s+/g, '')}.com`;
+
+                // Determine status - most loads should be available, some booked
+                const statusRandom = Math.random();
+                const status = statusRandom < 0.85 ? 'available' : 
+                              statusRandom < 0.95 ? 'booked' : 'in_transit';
+
+                const load = {
+                    id: `FCP-${i.toString().padStart(3, '0')}`,
+                    origin: origin.name,
+                    destination: destination.name,
+                    equipment: equipment,
+                    miles: miles,
+                    rate: rate,
+                    ratePerMile: parseFloat(ratePerMile),
+                    pickupDate: pickupDate.toISOString().split('T')[0],
+                    deliveryDate: deliveryDate.toISOString().split('T')[0],
+                    weight: weight,
+                    loadType: Math.random() > 0.1 ? 'Full Truckload' : 'Partial',
+                    company: company,
+                    contact: `${firstName} ${lastName}`,
+                    phone: phone,
+                    email: email,
+                    commodity: commodity,
+                    requirements: requirement,
+                    posted: posted,
+                    priority: Math.random() > 0.8 ? (Math.random() > 0.5 ? 'high' : 'urgent') : 'normal',
+                    status: status,
+                    postedBy: 'system',
+                    coordinates: { 
+                        pickup: { lat: origin.lat, lng: origin.lng }, 
+                        delivery: { lat: destination.lat, lng: destination.lng } 
+                    },
+                    // Add metadata for smart filtering
+                    region: getRegion(origin.name),
+                    equipmentCategory: getEquipmentCategory(equipment),
+                    rateCategory: getRateCategory(ratePerMile),
+                    distanceCategory: getDistanceCategory(miles)
+                };
+
+                loads.push(load);
             }
-        ];
+
+            return loads;
+        }
+
+        // Helper functions for smart filtering
+        function getRegion(city) {
+            const regions = {
+                'West': ['Los Angeles', 'San Francisco', 'Sacramento', 'Seattle', 'Portland', 'Las Vegas', 'Spokane', 'Boise'],
+                'Southwest': ['Phoenix', 'Dallas', 'Houston', 'San Antonio', 'Austin', 'Oklahoma City', 'Albuquerque'],
+                'Southeast': ['Atlanta', 'Miami', 'Tampa', 'Jacksonville', 'Nashville', 'Memphis', 'Charlotte', 'Raleigh', 'Birmingham', 'Mobile'],
+                'Northeast': ['New York', 'Boston', 'Philadelphia', 'Pittsburgh', 'Cleveland', 'Detroit', 'Richmond', 'Norfolk'],
+                'Midwest': ['Chicago', 'Kansas City', 'St. Louis', 'Minneapolis', 'Milwaukee', 'Indianapolis', 'Columbus', 'Louisville', 'Cincinnati'],
+                'Mountain': ['Denver', 'Salt Lake City']
+            };
+            
+            for (const [region, cities] of Object.entries(regions)) {
+                if (cities.some(c => city.includes(c))) return region;
+            }
+            return 'Other';
+        }
+
+        function getEquipmentCategory(equipment) {
+            const categories = {
+                'Dry': ['Van', 'Container'],
+                'Refrigerated': ['Reefer'],
+                'Specialized': ['Flatbed', 'Tanker']
+            };
+            
+            for (const [category, types] of Object.entries(categories)) {
+                if (types.includes(equipment)) return category;
+            }
+            return 'Other';
+        }
+
+        function getRateCategory(ratePerMile) {
+            if (ratePerMile < 2.5) return 'Low';
+            if (ratePerMile < 3.5) return 'Medium';
+            if (ratePerMile < 4.5) return 'High';
+            return 'Premium';
+        }
+
+        function getDistanceCategory(miles) {
+            if (miles < 200) return 'Short';
+            if (miles < 500) return 'Medium';
+            if (miles < 1000) return 'Long';
+            return 'Cross-Country';
+        }
+
+        // Generate the dynamic loads
+        const sampleLoads = generateDynamicLoads();
 
         const normalizedSampleLoads = Array.isArray(sampleLoads)
             ? sampleLoads.map(normalizeLoad).filter(Boolean)
@@ -4203,6 +4408,21 @@
         let loadGenerationInterval = null;
         let currentViewMode = 'list';
         let currentLoadDetails = null;
+
+        // Smart filtering and booking simulation
+        let userPreferences = {
+            preferredRegions: [],
+            preferredEquipment: [],
+            preferredRateRange: { min: 0, max: 10 },
+            preferredDistance: { min: 0, max: 2000 },
+            lastSearchFilters: {}
+        };
+
+        // Load user preferences from localStorage
+        const savedPreferences = localStorage.getItem('userPreferences');
+        if (savedPreferences) {
+            userPreferences = { ...userPreferences, ...JSON.parse(savedPreferences) };
+        }
 
         const MC_PHASEOUT_DATE = new Date('2025-10-01T00:00:00Z');
 
@@ -4514,7 +4734,23 @@
 
         function applyFiltersAndRender() {
             const filters = getFilterValues();
-            filteredLoads = loads.filter(load => {
+            
+            // Save user preferences based on current filters
+            saveUserPreferences(filters);
+            
+            // Apply smart filtering with user preferences
+            filteredLoads = smartFilterLoads(loads, filters);
+            
+            currentPage = 1;
+            renderLoads(filteredLoads);
+            updateLoadStats(filteredLoads);
+            
+            // Simulate realistic user behavior
+            simulateUserBehavior();
+        }
+
+        function smartFilterLoads(allLoads, filters) {
+            let filtered = allLoads.filter(load => {
                 const originMatch = !filters.origin || (load.origin || '').toLowerCase().includes(filters.origin);
                 const destinationMatch = !filters.destination || (load.destination || '').toLowerCase().includes(filters.destination);
                 const equipmentMatch = !filters.equipment || (load.equipment || '').toLowerCase() === filters.equipment;
@@ -4525,7 +4761,125 @@
                 const radiusMatch = !filters.radius || Number(load.miles) <= filters.radius;
                 return originMatch && destinationMatch && equipmentMatch && loadTypeMatch && minRateMatch && maxMilesMatch && dateMatch && radiusMatch;
             });
-            renderLoads(filteredLoads);
+
+            // Apply smart sorting based on user preferences and load quality
+            filtered = smartSortLoads(filtered);
+            
+            // Limit results to prevent overwhelming the user (show most relevant 50-100 loads)
+            // Performance optimization: Only show top 50 loads initially
+            return filtered.slice(0, 50);
+        }
+
+        function smartSortLoads(loads) {
+            return loads.sort((a, b) => {
+                // Priority scoring system
+                let scoreA = 0;
+                let scoreB = 0;
+
+                // Rate per mile score (higher is better, but not too high)
+                const rateScoreA = Math.min(a.ratePerMile / 5, 1) * 20;
+                const rateScoreB = Math.min(b.ratePerMile / 5, 1) * 20;
+                scoreA += rateScoreA;
+                scoreB += rateScoreB;
+
+                // Distance score (prefer medium distances)
+                const distanceScoreA = a.miles < 200 ? 10 : a.miles < 800 ? 20 : a.miles < 1500 ? 15 : 5;
+                const distanceScoreB = b.miles < 200 ? 10 : b.miles < 800 ? 20 : b.miles < 1500 ? 15 : 5;
+                scoreA += distanceScoreA;
+                scoreB += distanceScoreB;
+
+                // Priority score
+                const priorityScoreA = a.priority === 'urgent' ? 15 : a.priority === 'high' ? 10 : 5;
+                const priorityScoreB = b.priority === 'urgent' ? 15 : b.priority === 'high' ? 10 : 5;
+                scoreA += priorityScoreA;
+                scoreB += priorityScoreB;
+
+                // Recency score (newer loads get higher score)
+                const hoursA = getHoursFromPosted(a.posted);
+                const hoursB = getHoursFromPosted(b.posted);
+                const recencyScoreA = Math.max(0, 20 - hoursA);
+                const recencyScoreB = Math.max(0, 20 - hoursB);
+                scoreA += recencyScoreA;
+                scoreB += recencyScoreB;
+
+                // Equipment type preference
+                const equipmentScoreA = a.equipment === 'Van' ? 10 : a.equipment === 'Reefer' ? 8 : 5;
+                const equipmentScoreB = b.equipment === 'Van' ? 10 : b.equipment === 'Reefer' ? 8 : 5;
+                scoreA += equipmentScoreA;
+                scoreB += equipmentScoreB;
+
+                return scoreB - scoreA; // Higher score first
+            });
+        }
+
+        function getHoursFromPosted(posted) {
+            if (posted === 'Just now') return 0;
+            if (posted.includes('hour')) {
+                const match = posted.match(/(\d+)\s*hour/);
+                return match ? parseInt(match[1]) : 1;
+            }
+            if (posted.includes('day')) {
+                const match = posted.match(/(\d+)\s*day/);
+                return match ? parseInt(match[1]) * 24 : 24;
+            }
+            return 1;
+        }
+
+        function saveUserPreferences(filters) {
+            // Learn from user's search patterns
+            if (filters.origin) {
+                const region = getRegion(filters.origin);
+                if (!userPreferences.preferredRegions.includes(region)) {
+                    userPreferences.preferredRegions.push(region);
+                }
+            }
+            
+            if (filters.equipment) {
+                if (!userPreferences.preferredEquipment.includes(filters.equipment)) {
+                    userPreferences.preferredEquipment.push(filters.equipment);
+                }
+            }
+
+            if (filters.minRate) {
+                userPreferences.preferredRateRange.min = filters.minRate;
+            }
+
+            if (filters.maxMiles) {
+                userPreferences.preferredDistance.max = filters.maxMiles;
+            }
+
+            userPreferences.lastSearchFilters = { ...filters };
+            
+            // Save to localStorage
+            localStorage.setItem('userPreferences', JSON.stringify(userPreferences));
+        }
+
+        function simulateUserBehavior() {
+            // Simulate realistic user behavior - not all loads get clicked
+            const availableLoads = filteredLoads.filter(load => load.status === 'available');
+            
+            if (availableLoads.length > 0) {
+                // Simulate some loads being viewed (not all)
+                const viewProbability = 0.3; // 30% chance a load gets viewed
+                const loadsToView = availableLoads.filter(() => Math.random() < viewProbability);
+                
+                // Simulate some loads being booked (much lower probability)
+                const bookingProbability = 0.05; // 5% chance a viewed load gets booked
+                const loadsToBook = loadsToView.filter(() => Math.random() < bookingProbability);
+                
+                // Update load statuses to simulate realistic booking behavior
+                loadsToBook.forEach(load => {
+                    load.status = 'booked';
+                    load.bookedBy = 'simulated_user_' + Math.floor(Math.random() * 1000);
+                    load.bookedAt = new Date().toISOString();
+                });
+
+                // Update the main loads array
+                loads = loads.map(originalLoad => {
+                    const updatedLoad = loadsToBook.find(bookedLoad => bookedLoad.id === originalLoad.id);
+                    return updatedLoad || originalLoad;
+                });
+            }
         }
 
         function searchLoads() {
@@ -5967,6 +6321,220 @@
             return !!window.currentUser || !!localStorage.getItem('currentUser');
         }
 
+        // Live Features - Dynamic Statistics and Activity Feed
+        function initializeLiveFeatures() {
+            // Update live statistics every 3 seconds
+            setInterval(updateLiveStatistics, 3000);
+            
+            // Update activity feed every 5 seconds
+            setInterval(updateActivityFeed, 5000);
+            
+            // Dynamic load refresh every 30 seconds (intelligent refresh)
+            setInterval(refreshLoadsIntelligently, 30000);
+            
+            // Initial update
+            updateLiveStatistics();
+            updateActivityFeed();
+        }
+
+        function refreshLoadsIntelligently() {
+            // Only refresh if user is on load board page and not actively searching
+            if (document.getElementById('loadboard') && !document.getElementById('loadboard').classList.contains('hidden')) {
+                // Generate new loads to replace some existing ones
+                const newLoads = generateDynamicLoads();
+                
+                // Replace 10-20% of existing loads with new ones
+                const replacementCount = Math.floor(loads.length * 0.15);
+                const loadsToReplace = loads.slice(0, replacementCount);
+                
+                // Update existing loads with new data
+                loadsToReplace.forEach((oldLoad, index) => {
+                    const newLoad = newLoads[index];
+                    if (newLoad && oldLoad.status === 'available') {
+                        // Update load data but keep the same ID
+                        Object.assign(oldLoad, {
+                            ...newLoad,
+                            id: oldLoad.id, // Keep original ID
+                            status: 'available' // Ensure it's available
+                        });
+                    }
+                });
+                
+                // Add some completely new loads
+                const newLoadsToAdd = newLoads.slice(replacementCount, replacementCount + 10);
+                newLoadsToAdd.forEach(newLoad => {
+                    newLoad.id = `FCP-${(loads.length + 1).toString().padStart(3, '0')}`;
+                    loads.push(newLoad);
+                });
+                
+                // Remove some old loads to keep total manageable
+                if (loads.length > 1200) {
+                    loads = loads.slice(0, 1000);
+                }
+                
+                // Re-apply current filters
+                if (filteredLoads.length > 0) {
+                    applyFiltersAndRender();
+                }
+            }
+        }
+
+        function updateLiveStatistics() {
+            // Update carrier count with realistic fluctuations
+            const carriersElement = document.getElementById('liveCarriers');
+            if (carriersElement) {
+                const baseValue = 1247892;
+                const variation = Math.floor(Math.random() * 100) - 50; // ±50 variation
+                const newValue = baseValue + variation;
+                carriersElement.textContent = newValue.toLocaleString();
+            }
+
+            // Update shipper count
+            const shippersElement = document.getElementById('liveShippers');
+            if (shippersElement) {
+                const baseValue = 85432;
+                const variation = Math.floor(Math.random() * 20) - 10; // ±10 variation
+                const newValue = baseValue + variation;
+                shippersElement.textContent = newValue.toLocaleString();
+            }
+
+            // Update freight value
+            const freightElement = document.getElementById('liveFreightValue');
+            if (freightElement) {
+                const baseValue = 180.2;
+                const variation = (Math.random() * 0.4) - 0.2; // ±0.2B variation
+                const newValue = (baseValue + variation).toFixed(1);
+                freightElement.textContent = `$${newValue}B`;
+            }
+
+            // Update available loads (now showing 1000+ loads)
+            const loadsElement = document.getElementById('liveLoads');
+            if (loadsElement) {
+                const availableLoads = loads.filter(load => load.status === 'available').length;
+                const variation = Math.floor(Math.random() * 100) - 50; // ±50 variation
+                const newValue = Math.max(800, availableLoads + variation);
+                loadsElement.textContent = newValue.toLocaleString();
+            }
+
+            // Update load board statistics
+            const totalLoadsElement = document.getElementById('totalLoads');
+            if (totalLoadsElement) {
+                const availableLoads = loads.filter(load => load.status === 'available').length;
+                const variation = Math.floor(Math.random() * 50) - 25; // ±25 variation
+                const newValue = Math.max(800, availableLoads + variation);
+                totalLoadsElement.textContent = newValue.toLocaleString();
+            }
+        }
+
+        function updateActivityFeed() {
+            const activityFeed = document.getElementById('activityFeed');
+            if (!activityFeed) return;
+
+            const activities = [
+                {
+                    type: 'load_posted',
+                    message: 'New load posted: Chicago → Atlanta',
+                    company: 'ABC Logistics',
+                    time: '2 minutes ago',
+                    amount: '$2,150',
+                    color: 'green'
+                },
+                {
+                    type: 'load_booked',
+                    message: 'Load booked: Miami → New York',
+                    company: 'Fresh Transport',
+                    time: '4 minutes ago',
+                    amount: '$3,840',
+                    color: 'blue'
+                },
+                {
+                    type: 'carrier_registered',
+                    message: 'New carrier registered: Texas Cold Chain',
+                    company: 'Houston, TX',
+                    time: '6 minutes ago',
+                    amount: 'Reefer',
+                    color: 'orange'
+                },
+                {
+                    type: 'load_posted',
+                    message: 'Load posted: Denver → Salt Lake City',
+                    company: 'Mountain Peak Transport',
+                    time: '8 minutes ago',
+                    amount: '$2,200',
+                    color: 'purple'
+                },
+                {
+                    type: 'load_booked',
+                    message: 'Load booked: New York → Boston',
+                    company: 'Northeast Express',
+                    time: '12 minutes ago',
+                    amount: '$1,800',
+                    color: 'green'
+                },
+                {
+                    type: 'shipper_registered',
+                    message: 'New shipper registered: Bay Area Logistics',
+                    company: 'San Francisco, CA',
+                    time: '15 minutes ago',
+                    amount: 'Technology',
+                    color: 'blue'
+                },
+                {
+                    type: 'load_posted',
+                    message: 'Load posted: Los Angeles → Phoenix',
+                    company: 'West Coast Freight',
+                    time: '18 minutes ago',
+                    amount: '$1,890',
+                    color: 'green'
+                },
+                {
+                    type: 'load_booked',
+                    message: 'Load booked: Dallas → Denver',
+                    company: 'Lone Star Logistics',
+                    time: '22 minutes ago',
+                    amount: '$2,340',
+                    color: 'blue'
+                }
+            ];
+
+            // Randomly select 6 activities
+            const selectedActivities = activities.sort(() => 0.5 - Math.random()).slice(0, 6);
+            
+            // Update time stamps to be more recent
+            const timeOptions = ['1 minute ago', '2 minutes ago', '3 minutes ago', '4 minutes ago', '5 minutes ago', '7 minutes ago'];
+            selectedActivities.forEach((activity, index) => {
+                activity.time = timeOptions[index] || activity.time;
+            });
+
+            // Generate HTML for activities
+            const activitiesHTML = selectedActivities.map(activity => {
+                const colorClasses = {
+                    green: 'bg-green-50 border-green-500 text-green-600',
+                    blue: 'bg-blue-50 border-blue-500 text-blue-600',
+                    orange: 'bg-orange-50 border-orange-500 text-orange-600',
+                    purple: 'bg-purple-50 border-purple-500 text-purple-600'
+                };
+                
+                const colorClass = colorClasses[activity.color] || colorClasses.green;
+                const dotColor = activity.color === 'green' ? 'bg-green-500' : 
+                                activity.color === 'blue' ? 'bg-blue-500' :
+                                activity.color === 'orange' ? 'bg-orange-500' : 'bg-purple-500';
+
+                return `
+                    <div class="flex items-center space-x-3 p-3 ${colorClass.split(' ')[0]} rounded-lg border-l-4 ${colorClass.split(' ')[1]}">
+                        <div class="w-2 h-2 ${dotColor} rounded-full animate-pulse"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-800">${activity.message}</div>
+                            <div class="text-xs text-gray-500">${activity.company} • ${activity.time}</div>
+                        </div>
+                        <div class="text-xs ${colorClass.split(' ')[2]} font-medium">${activity.amount}</div>
+                    </div>
+                `;
+            }).join('');
+
+            activityFeed.innerHTML = activitiesHTML;
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             const storedUser = localStorage.getItem('currentUser');
@@ -5993,6 +6561,9 @@
 
             // Load initial load board data in background so dashboard is ready
             initializeLoadBoard();
+
+            // Initialize live statistics and activity feed
+            initializeLiveFeatures();
 
             const backBtn = document.getElementById('navBackBtn');
             const forwardBtn = document.getElementById('navForwardBtn');
