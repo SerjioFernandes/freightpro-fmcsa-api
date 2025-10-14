@@ -8015,55 +8015,186 @@
         });
 
         // =====================
-        // Live Chat: UI + Logic
+        // Simple Live Chat Helper - The Best in the World
         // =====================
-        (function initLiveChat() {
+        (function initSimpleLiveChat() {
+            // Chat state management
+            const chatState = {
+                messages: [],
+                currentUserRole: null,
+                currentLanguage: 'en',
+                isOpen: false,
+                agent: null
+            };
+
+            // Multi-language support
+            const translations = {
+                en: {
+                    welcome: "👋 Hello! I'm your FreightPro assistant. Please choose who you are:",
+                    carrier: "🚛 Carrier",
+                    broker: "🤝 Broker", 
+                    shipper: "📦 Shipper",
+                    browsing: "ℹ️ Just browsing",
+                    online: "Online now",
+                    typing: "Agent is typing...",
+                    placeholder: "Type your message...",
+                    needHelp: "Need help?",
+                    wasHelpful: "Was this helpful?",
+                    yes: "👍 Yes",
+                    no: "👎 No"
+                },
+                es: {
+                    welcome: "👋 ¡Hola! Soy tu asistente de FreightPro. Por favor elige quién eres:",
+                    carrier: "🚛 Transportista",
+                    broker: "🤝 Agente",
+                    shipper: "📦 Remitente",
+                    browsing: "ℹ️ Solo navegando",
+                    online: "En línea ahora",
+                    typing: "El agente está escribiendo...",
+                    placeholder: "Escribe tu mensaje...",
+                    needHelp: "¿Necesitas ayuda?",
+                    wasHelpful: "¿Fue útil?",
+                    yes: "👍 Sí",
+                    no: "👎 No"
+                },
+                hy: {
+                    welcome: "👋 Բարև! Ես ձեր FreightPro օգնականն եմ: Խնդրում եմ ընտրեք, թե ով եք դուք:",
+                    carrier: "🚛 Փոխադրող",
+                    broker: "🤝 Բրոքեր",
+                    shipper: "📦 Բեռնափոխադրող",
+                    browsing: "ℹ️ Պարզապես զննում եմ",
+                    online: "Առցանց հիմա",
+                    typing: "Գործակալը գրում է...",
+                    placeholder: "Գրեք ձեր հաղորդագրությունը...",
+                    needHelp: "Օգնության կարիք ունե՞ք:",
+                    wasHelpful: "Օգտակար էր՞:",
+                    yes: "👍 Այո",
+                    no: "👎 Ոչ"
+                },
+                ru: {
+                    welcome: "👋 Привет! Я ваш помощник FreightPro. Пожалуйста, выберите, кто вы:",
+                    carrier: "🚛 Перевозчик",
+                    broker: "🤝 Брокер",
+                    shipper: "📦 Грузоотправитель",
+                    browsing: "ℹ️ Просто просматриваю",
+                    online: "В сети сейчас",
+                    typing: "Агент печатает...",
+                    placeholder: "Введите ваше сообщение...",
+                    needHelp: "Нужна помощь?",
+                    wasHelpful: "Было полезно?",
+                    yes: "👍 Да",
+                    no: "👎 Нет"
+                }
+            };
+
+            // Support agent names
+            function getSupportAgentName() {
+                const supportAgents = [
+                    'Alex Johnson', 'Sarah Chen', 'Mike Rodriguez', 'Emily Davis', 'David Kim',
+                    'Lisa Thompson', 'James Wilson', 'Maria Garcia', 'Robert Brown', 'Jennifer Lee',
+                    'Christopher Taylor', 'Amanda White', 'Daniel Martinez', 'Jessica Anderson', 'Matthew Thomas',
+                    'Ashley Jackson', 'Joshua Harris', 'Stephanie Martin', 'Andrew Thompson', 'Nicole Garcia',
+                    'Kevin Martinez', 'Rachel Davis', 'Ryan Miller', 'Samantha Wilson', 'Brandon Anderson',
+                    'Lauren Taylor', 'Justin Brown', 'Megan Johnson', 'Tyler Davis', 'Kayla Rodriguez',
+                    'Jordan Smith', 'Brittany Wilson', 'Zachary Martinez', 'Courtney Anderson', 'Nathan Taylor',
+                    'Destiny Brown', 'Cody Johnson', 'Haley Davis', 'Austin Rodriguez', 'Paige Wilson',
+                    'Logan Martinez', 'Jenna Anderson', 'Connor Taylor', 'Mackenzie Brown', 'Hunter Johnson',
+                    'Savannah Davis', 'Blake Rodriguez', 'Madison Wilson', 'Caleb Martinez', 'Chloe Anderson'
+                ];
+                
+                let sessionAgent = localStorage.getItem('fp_chat_agent');
+                if (!sessionAgent) {
+                    sessionAgent = supportAgents[Math.floor(Math.random() * supportAgents.length)];
+                    localStorage.setItem('fp_chat_agent', sessionAgent);
+                }
+                
+                return sessionAgent;
+            }
+
+            // Create chat UI
             function createChatUI() {
                 if (document.getElementById('fpChatLauncher')) return;
 
+                // Create enhanced launcher button
                 const launcher = document.createElement('button');
                 launcher.id = 'fpChatLauncher';
                 launcher.setAttribute('aria-label', 'Open chat');
-                launcher.className = 'fixed z-50 bottom-6 right-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-full shadow-2xl w-20 h-20 flex items-center justify-center focus:outline-none transform transition-all duration-300 hover:scale-110 hover:shadow-3xl animate-float';
+                launcher.className = 'fixed z-50 bottom-6 right-6 w-24 h-24 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-full shadow-2xl flex items-center justify-center focus:outline-none transform transition-all duration-300 hover:scale-110 hover:shadow-3xl animate-float';
                 launcher.innerHTML = `
                     <div class="relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 animate-pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10 animate-pulse">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75c0 2.904 2.42 5.25 5.4 5.25h.9c.373 0 .738.074 1.08.217l3.487 1.41a.75.75 0 001.033-.7l-.004-1.086c0-.463.188-.907.522-1.235A5.19 5.19 0 0019.35 12.75c0-2.904-2.42-5.25-5.4-5.25H7.65c-2.98 0-5.4 2.346-5.4 5.25z"/>
                         </svg>
-                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
-                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div class="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full animate-ping border-2 border-white"></div>
+                        <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                    </div>
+                    <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">
+                        ${translations[chatState.currentLanguage].needHelp}
                     </div>
                 `;
 
+                // Create chat panel
                 const panel = document.createElement('div');
                 panel.id = 'fpChatPanel';
-                panel.className = 'fixed z-50 bottom-32 right-6 w-96 max-w-[92vw] bg-white rounded-xl shadow-2xl border border-gray-200 hidden transform transition-all duration-300';
+                panel.className = 'fixed z-50 bottom-36 right-6 w-[420px] max-w-[95vw] bg-white rounded-t-xl shadow-2xl border border-gray-200 hidden transform transition-all duration-300';
                 panel.innerHTML = `
-                    <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
+                    <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-t-xl">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75c0 2.904 2.42 5.25 5.4 5.25h.9c.373 0 .738.074 1.08.217l3.487 1.41a.75.75 0 001.033-.7l-.004-1.086c0-.463.188-.907.522-1.235A5.19 5.19 0 0019.35 12.75c0-2.904-2.42-5.25-5.4-5.25H7.65c-2.98 0-5.4 2.346-5.4 5.25z"/>
+                                </svg>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg" id="fpChatAgentName">${getSupportAgentName()}</h3>
+                                <p class="text-sm opacity-90" id="fpChatStatus">${translations[chatState.currentLanguage].online}</p>
+                            </div>
+                        </div>
                         <div class="flex items-center space-x-2">
-                            <span class="inline-flex w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                            <span id="fpChatAgentName" class="font-semibold">Alex • Support</span>
-                            <span class="text-xs bg-green-500 px-2 py-1 rounded-full">Online</span>
+                            <div class="relative">
+                                <select id="fpLanguageSelect" class="bg-white bg-opacity-20 text-white text-sm rounded px-2 py-1 border-0 focus:outline-none" onchange="changeLanguage(this.value)">
+                                    <option value="en">🇺🇸 EN</option>
+                                    <option value="es">🇪🇸 ES</option>
+                                    <option value="hy">🇦🇲 HY</option>
+                                    <option value="ru">🇷🇺 RU</option>
+                                </select>
+                            </div>
+                            <button id="fpChatClose" class="text-white hover:text-gray-200 focus:outline-none hover:bg-white/20 rounded-full p-1">✕</button>
                         </div>
-                        <button id="fpChatClose" class="text-white/90 hover:text-white focus:outline-none hover:bg-white/20 rounded-full p-1">✕</button>
                     </div>
+                    
                     <div id="fpChatMessages" class="px-4 py-4 space-y-4 max-h-96 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"></div>
+                    
                     <div class="p-3 border-t bg-white">
-                        <div class="flex items-end space-x-2">
-                            <textarea id="fpChatInput" rows="1" placeholder="Type your message..." class="flex-1 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm transition-all duration-200"></textarea>
-                            <button id="fpChatSend" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">Send</button>
-                        </div>
-                        <div class="mt-3 flex flex-wrap gap-2">
+                        <!-- Quick Actions -->
+                        <div class="flex flex-wrap gap-2 mb-3">
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 px-3 py-2 rounded-full transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm" data-text="How do I register?">📝 Register</button>
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 px-3 py-2 rounded-full transition-all duration-200 border border-green-200 hover:border-green-300 hover:shadow-sm" data-text="Find loads">🔍 Find Loads</button>
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-orange-700 px-3 py-2 rounded-full transition-all duration-200 border border-orange-200 hover:border-orange-300 hover:shadow-sm" data-text="Post load">📋 Post Load</button>
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 px-3 py-2 rounded-full transition-all duration-200 border border-purple-200 hover:border-purple-300 hover:shadow-sm" data-text="Pricing plans">💰 Pricing</button>
+                        </div>
+                        
+                        <!-- File Upload Area -->
+                        <div id="fpFileUpload" class="mb-3 p-3 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-400 transition-colors cursor-pointer" onclick="triggerFileUpload()">
+                            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <p class="text-sm text-gray-500">Click to upload files or drag & drop</p>
+                            <input type="file" id="fpFileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event)">
+                        </div>
+
+                        <!-- Message Input -->
+                        <div class="flex items-end space-x-2">
+                            <textarea id="fpChatInput" rows="1" placeholder="${translations[chatState.currentLanguage].placeholder}" class="flex-1 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm transition-all duration-200"></textarea>
+                            <button id="fpChatSend" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">Send</button>
                         </div>
                     </div>`;
 
                 document.body.appendChild(launcher);
                 document.body.appendChild(panel);
 
+                // Event listeners
                 launcher.addEventListener('click', toggleChatOpen);
                 panel.querySelector('#fpChatClose').addEventListener('click', toggleChatOpen);
                 panel.querySelector('#fpChatSend').addEventListener('click', handleChatSend);
@@ -8080,78 +8211,631 @@
                     });
                 });
 
-                loadChatHistory();
-                const wasOpen = localStorage.getItem('fp_chat_open') === '1';
-                if (wasOpen) openChat(); else closeChat();
+                // File upload drag & drop
+                const fileUpload = panel.querySelector('#fpFileUpload');
+                fileUpload.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUpload.classList.add('border-blue-400', 'bg-blue-50');
+                });
+                
+                fileUpload.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    fileUpload.classList.remove('border-blue-400', 'bg-blue-50');
+                });
+                
+                fileUpload.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUpload.classList.remove('border-blue-400', 'bg-blue-50');
+                    const files = Array.from(e.dataTransfer.files);
+                    handleFileUpload({ target: { files } });
+                });
 
-                const hasHistory = (chatState.messages || []).length > 0;
-                if (!hasHistory) addAssistantMessage(`Hi! I'm ${getSupportAgentName()}. How can I help you with FreightPro today?`);
+                // Load chat state
+                loadChatState();
+                loadChatHistory();
+                
+                // Show welcome message if first time
+                if (chatState.messages.length === 0) {
+                    showWelcomeMessage();
+                }
             }
 
-            const chatState = { messages: [] };
-            function getSupportAgentName(){ return 'Alex from Support'; }
-
-            function openChat(){ const p = document.getElementById('fpChatPanel'); if (p) p.classList.remove('hidden'); localStorage.setItem('fp_chat_open','1'); }
-            function closeChat(){ const p = document.getElementById('fpChatPanel'); if (p) p.classList.add('hidden'); localStorage.setItem('fp_chat_open','0'); }
-            function toggleChatOpen(){ const p = document.getElementById('fpChatPanel'); if (!p) return; p.classList.contains('hidden') ? openChat() : closeChat(); }
-
-            function addMessage(role, text){
-                chatState.messages.push({ role, text, ts: Date.now() });
-                const list = document.getElementById('fpChatMessages');
-                if (!list) return;
-                const item = document.createElement('div');
-                if (role === 'user') { 
-                    item.className = 'flex justify-end animate-fadeIn'; 
-                    item.innerHTML = `<div class="max-w-[85%] bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg px-3 py-2 text-sm shadow-md">${escapeHTML(text)}</div>`; 
-                } else { 
-                    item.className = 'flex justify-start animate-fadeIn'; 
-                    item.innerHTML = `<div class="max-w-[85%] bg-white border border-gray-200 text-gray-800 rounded-lg px-3 py-2 text-sm shadow-sm hover:shadow-md transition-shadow">${escapeHTML(text)}</div>`; 
+            // Chat functions
+            function toggleChatOpen() {
+                if (chatState.isOpen) {
+                    closeChat();
+                } else {
+                    openChat();
                 }
-                list.appendChild(item); 
-                list.scrollTop = list.scrollHeight; 
+            }
+
+            function openChat() {
+                const panel = document.getElementById('fpChatPanel');
+                const launcher = document.getElementById('fpChatLauncher');
+                
+                if (panel && launcher) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('animate-fadeIn');
+                    launcher.style.transform = 'scale(0.9)';
+                    chatState.isOpen = true;
+                    
+                    // Focus input
+                    const input = document.getElementById('fpChatInput');
+                    if (input) {
+                        setTimeout(() => input.focus(), 300);
+                    }
+                    
+                    localStorage.setItem('fp_chat_open', '1');
+                }
+            }
+
+            function closeChat() {
+                const panel = document.getElementById('fpChatPanel');
+                const launcher = document.getElementById('fpChatLauncher');
+                
+                if (panel && launcher) {
+                    panel.classList.add('hidden');
+                    launcher.style.transform = 'scale(1)';
+                    chatState.isOpen = false;
+                    
+                    localStorage.setItem('fp_chat_open', '0');
+                }
+            }
+
+            function showWelcomeMessage() {
+                const welcomeMsg = {
+                    role: 'assistant',
+                    text: translations[chatState.currentLanguage].welcome,
+                    timestamp: new Date().toLocaleTimeString(),
+                    buttons: [
+                        { text: translations[chatState.currentLanguage].carrier, action: 'select-role', data: 'carrier' },
+                        { text: translations[chatState.currentLanguage].broker, action: 'select-role', data: 'broker' },
+                        { text: translations[chatState.currentLanguage].shipper, action: 'select-role', data: 'shipper' },
+                        { text: translations[chatState.currentLanguage].browsing, action: 'select-role', data: 'browsing' }
+                    ]
+                };
+                
+                addMessage(welcomeMsg);
+            }
+
+            function addMessage(message) {
+                chatState.messages.push(message);
+                const messagesContainer = document.getElementById('fpChatMessages');
+                if (!messagesContainer) return;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex items-start space-x-2 ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''} animate-fadeIn`;
+                
+                const avatar = message.role === 'user' ? 
+                    `<div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>` :
+                    `<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                    </div>`;
+
+                const messageClass = message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-200';
+                
+                messageDiv.innerHTML = `
+                    ${avatar}
+                    <div class="${messageClass} rounded-lg p-3 max-w-xs shadow-sm">
+                        <p class="text-sm">${escapeHTML(message.text)}</p>
+                        ${message.timestamp ? `<p class="text-xs opacity-70 mt-1">${message.timestamp}</p>` : ''}
+                    </div>
+                `;
+                
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // Add buttons if present
+                if (message.buttons) {
+                    addMessageButtons(message.buttons);
+                }
+                
                 saveChatHistory();
             }
-            function addAssistantMessage(text){ addMessage('assistant', text); }
-            function addUserMessage(text){ addMessage('user', text); }
-            function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
 
-            function handleChatSend(){
-                const input = document.getElementById('fpChatInput'); if (!input) return;
-                const text = input.value.trim(); if (!text) return; input.value = '';
-                addUserMessage(text);
+            function addMessageButtons(buttons) {
+                const messagesContainer = document.getElementById('fpChatMessages');
+                if (!messagesContainer) return;
                 
-                // Add realistic delay with typing indicator
-                setTimeout(() => { 
+                const buttonsHTML = `
+                    <div class="flex flex-wrap gap-2 mt-2 animate-fadeIn">
+                        ${buttons.map(btn => `
+                            <button onclick="handleButtonClick('${btn.action}', '${btn.data}')" 
+                                    class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs rounded-full hover:from-blue-600 hover:to-purple-600 transition-all">
+                                ${btn.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                messagesContainer.insertAdjacentHTML('beforeend', buttonsHTML);
+            }
+
+            function handleButtonClick(action, data) {
+                switch(action) {
+                    case 'select-role':
+                        selectUserRole(data);
+                        break;
+                    case 'navigate':
+                        showPage(data);
+                        break;
+                    case 'quick-reply':
+                        sendQuickReply(data);
+                        break;
+                }
+            }
+
+            function selectUserRole(role) {
+                chatState.currentUserRole = role;
+                localStorage.setItem('fpUserRole', role);
+                
+                let response = '';
+                switch(role) {
+                    case 'carrier':
+                        response = `Great! I see you're a Carrier 🚛. How can I help you today?`;
+                        break;
+                    case 'broker':
+                        response = `Perfect! You're a Broker 🤝. What would you like to do?`;
+                        break;
+                    case 'shipper':
+                        response = `Excellent! You're a Shipper 📦. How can I assist you?`;
+                        break;
+                    case 'browsing':
+                        response = `No problem! Feel free to explore our platform. Here are some quick links:`;
+                        break;
+                }
+                
+                addMessage({
+                    role: 'assistant',
+                    text: response,
+                    timestamp: new Date().toLocaleTimeString(),
+                    buttons: getRoleSpecificButtons(role)
+                });
+            }
+
+            function getRoleSpecificButtons(role) {
+                switch(role) {
+                    case 'carrier':
+                        return [
+                            { text: '🔍 Find Loads', action: 'navigate', data: 'loadboard' },
+                            { text: '📊 My Dashboard', action: 'navigate', data: 'dashboard' },
+                            { text: '💰 Get Paid', action: 'navigate', data: 'payments' },
+                            { text: '❓ Get Help', action: 'quick-reply', data: 'help' }
+                        ];
+                    case 'broker':
+                        return [
+                            { text: '📝 Post Load', action: 'navigate', data: 'postload' },
+                            { text: '🚛 Find Carriers', action: 'navigate', data: 'carriers' },
+                            { text: '📊 Analytics', action: 'navigate', data: 'analytics' },
+                            { text: '❓ Get Help', action: 'quick-reply', data: 'help' }
+                        ];
+                    case 'shipper':
+                        return [
+                            { text: '💰 Get Quote', action: 'navigate', data: 'quote' },
+                            { text: '📦 Track Shipment', action: 'navigate', data: 'tracking' },
+                            { text: '📞 Contact Team', action: 'quick-reply', data: 'contact' },
+                            { text: '❓ Get Help', action: 'quick-reply', data: 'help' }
+                        ];
+                    case 'browsing':
+                        return [
+                            { text: '🏠 Home', action: 'navigate', data: 'home' },
+                            { text: '🚚 Load Board', action: 'navigate', data: 'loadboard' },
+                            { text: '📞 Contact', action: 'navigate', data: 'contact' },
+                            { text: 'ℹ️ About', action: 'navigate', data: 'about' }
+                        ];
+                }
+            }
+
+            function sendQuickReply(message) {
+                const input = document.getElementById('fpChatInput');
+                if (input) {
+                    input.value = message;
+                    handleChatSend();
+                }
+            }
+
+            function escapeHTML(s) {
+                return String(s).replace(/[&<>"']/g, m => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    '\'': '&#39;'
+                }[m]));
+            }
+
+            function handleChatSend() {
+                const input = document.getElementById('fpChatInput');
+                if (!input || !input.value.trim()) return;
+
+                const message = input.value.trim();
+                input.value = '';
+                
+                // Add user message
+                addMessage({
+                    role: 'user',
+                    text: message,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Generate response after delay
+                setTimeout(() => {
                     hideTypingIndicator();
-                    addAssistantMessage(generateAssistantResponse(text)); 
-                }, 800 + Math.random() * 1200); // 0.8-2 second delay
+                    const response = generateAssistantResponse(message);
+                    addMessage({
+                        role: 'assistant',
+                        text: response,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                }, Math.random() * 1200 + 800);
             }
 
-            // Built-in AI Assistant (no external API needed)
-            function generateAssistantResponse(q){
+            function showTypingIndicator() {
+                const messagesContainer = document.getElementById('fpChatMessages');
+                if (!messagesContainer) return;
+
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'fpTypingIndicator';
+                typingDiv.className = 'flex items-start space-x-2 animate-fadeIn';
+                typingDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                        <div class="flex items-center space-x-1">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <span class="text-sm text-gray-600 ml-2">${translations[chatState.currentLanguage].typing}</span>
+                        </div>
+                    </div>
+                `;
+                
+                messagesContainer.appendChild(typingDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('fpTypingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.style.opacity = '0';
+                    typingIndicator.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        if (typingIndicator.parentNode) {
+                            typingIndicator.parentNode.removeChild(typingIndicator);
+                        }
+                    }, 300);
+                }
+            }
+
+            // Simple but intelligent response generation
+            function generateAssistantResponse(message) {
+                const normalizedMessage = message.toLowerCase().trim();
                 const agent = getSupportAgentName();
-                const question = (q || '').trim();
                 
-                // AI Context: FreightPro is a freight matching platform
-                const context = {
-                    platform: 'FreightPro',
-                    features: ['load board', 'post loads', 'book loads', 'user registration', 'pricing plans', 'profile management'],
-                    userTypes: ['carriers', 'brokers', 'shippers'],
-                    pages: ['home', 'register', 'login', 'loadboard', 'postload', 'profile', 'pricing']
-                };
-
-                // AI Intent Analysis
-                const intent = analyzeIntent(question, context);
+                // Role-based responses
+                if (chatState.currentUserRole) {
+                    return generateRoleBasedResponse(normalizedMessage, chatState.currentUserRole, agent);
+                }
                 
-                // Generate contextual response
-                return generateContextualResponse(intent, question, agent, context);
+                // General responses
+                return generateGeneralResponse(normalizedMessage, agent);
             }
 
-            function analyzeIntent(question, context) {
+            function generateRoleBasedResponse(message, role, agent) {
+                const responses = {
+                    carrier: {
+                        'find loads': `Perfect! As a carrier, you can find loads on our Load Board. Click "Load Board" to browse available loads. You can filter by origin, destination, equipment type, and rate. I can also help you set up load alerts! 🚛`,
+                        'post load': `I think you meant to find loads to haul! As a carrier, you find and book loads rather than post them. Would you like me to show you how to find the best loads for your equipment? 🔍`,
+                        'get paid': `Great question! FreightPro offers automated payments. Once you complete a load, payment is processed automatically. You can track your earnings in your dashboard. Need help setting up payment methods? 💰`,
+                        'help': `I'm here to help you succeed as a carrier! I can assist with finding loads, setting up your profile, understanding rates, tracking shipments, and getting paid. What specific help do you need? 🚛`
+                    },
+                    broker: {
+                        'post load': `Excellent! To post a load, click "Post Load" in the navigation. You'll need to provide origin, destination, equipment type, pickup date, and rate. I can help you optimize your posting for better carrier matches! 📝`,
+                        'find carriers': `Great! You can find qualified carriers in our carrier directory. Filter by equipment type, location, and ratings. I can also help you set up carrier alerts for specific lanes! 🚛`,
+                        'analytics': `Analytics help you track performance! View load posting success rates, carrier response times, and revenue trends. Access your analytics dashboard to optimize your operations! 📊`,
+                        'help': `I'm here to help you succeed as a broker! I can assist with posting loads, finding carriers, managing shipments, understanding rates, and growing your business. What do you need help with? 🤝`
+                    },
+                    shipper: {
+                        'get quote': `Perfect! To get a quote, click "Get Quote" and fill out the form with your shipment details. I can help you understand the process and find the best rates for your freight! 💰`,
+                        'track shipment': `Great! You can track your shipments in real-time. Enter your tracking number or load ID to see current location, ETA, and delivery status. Need help finding your tracking info? 📦`,
+                        'contact team': `I'm here to help! You can also contact our support team at support@freightpro.com or call (555) 123-4567. What specific assistance do you need? 📞`,
+                        'help': `I'm here to help you with all your shipping needs! I can assist with getting quotes, booking shipments, tracking deliveries, and understanding our services. How can I help? 📦`
+                    }
+                };
+                
+                const roleResponses = responses[role] || {};
+                for (const [key, response] of Object.entries(roleResponses)) {
+                    if (message.includes(key)) {
+                        return response;
+                    }
+                }
+                
+                return `I understand you're a ${role}. How can I help you with your ${role} needs today?`;
+            }
+
+            function generateGeneralResponse(message, agent) {
+                if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+                    return `Hello! I'm ${agent} from FreightPro support. Welcome! 🚛 How can I help you today?`;
+                }
+                
+                if (message.includes('help') || message.includes('support')) {
+                    return `I'm here to help! I can assist you with finding loads, posting loads, registration, login, pricing, and general navigation. What specific help do you need? 🚛`;
+                }
+                
+                if (message.includes('loads') || message.includes('load board')) {
+                    return `Great! You can find loads on our Load Board. Click "Load Board" in the navigation to browse available loads. You can filter by origin, destination, equipment type, and rate. Need help with the search? 🔍`;
+                }
+                
+                if (message.includes('post') || message.includes('create')) {
+                    return `To post a load, click "Post Load" in the navigation. You'll need to provide details like origin, destination, equipment type, pickup date, and rate. Need help with the posting process? 📝`;
+                }
+                
+                return `I'm here to help! Could you be more specific about what you need? I can assist with loads, registration, login, pricing, or general navigation. Use the quick action buttons for common tasks! 🚛`;
+            }
+
+            // File upload functionality
+            function triggerFileUpload() {
+                document.getElementById('fpFileInput').click();
+            }
+
+            function handleFileUpload(event) {
+                const files = Array.from(event.target.files);
+                files.forEach(file => {
+                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                        alert('File size must be less than 10MB');
+                        return;
+                    }
+                    
+                    addMessage({
+                        role: 'user',
+                        text: `📎 Uploaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                });
+            }
+
+            // Language change
+            function changeLanguage(lang) {
+                chatState.currentLanguage = lang;
+                localStorage.setItem('fpChatLanguage', lang);
+                updateChatLanguage();
+            }
+
+            function updateChatLanguage() {
+                const elements = {
+                    'fpChatStatus': translations[chatState.currentLanguage].online,
+                    'fpChatInput': translations[chatState.currentLanguage].placeholder
+                };
+                
+                for (const [id, text] of Object.entries(elements)) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        if (id === 'fpChatInput') {
+                            element.placeholder = text;
+                        } else {
+                            element.textContent = text;
+                        }
+                    }
+                }
+            }
+
+            // State management
+            function loadChatState() {
+                const savedState = localStorage.getItem('fp_chat_open');
+                const savedRole = localStorage.getItem('fpUserRole');
+                const savedLanguage = localStorage.getItem('fpChatLanguage');
+                
+                if (savedState === '1') {
+                    openChat();
+                }
+                
+                if (savedRole) {
+                    chatState.currentUserRole = savedRole;
+                }
+                
+                if (savedLanguage) {
+                    chatState.currentLanguage = savedLanguage;
+                    const select = document.getElementById('fpLanguageSelect');
+                    if (select) {
+                        select.value = savedLanguage;
+                    }
+                    updateChatLanguage();
+                }
+            }
+
+            function saveChatHistory() {
+                try {
+                    localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages));
+                } catch(e) {
+                    console.log('Could not save chat history');
+                }
+            }
+
+            function loadChatHistory() {
+                try {
+                    chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || [];
+                    const messagesContainer = document.getElementById('fpChatMessages');
+                    if (!messagesContainer) return;
+                    
+                    chatState.messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `flex items-start space-x-2 ${msg.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`;
+                        
+                        const avatar = msg.role === 'user' ? 
+                            `<div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>` :
+                            `<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                                </svg>
+                            </div>`;
+
+                        const messageClass = msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-200';
+                        
+                        messageDiv.innerHTML = `
+                            ${avatar}
+                            <div class="${messageClass} rounded-lg p-3 max-w-xs shadow-sm">
+                                <p class="text-sm">${escapeHTML(msg.text)}</p>
+                                ${msg.timestamp ? `<p class="text-xs opacity-70 mt-1">${msg.timestamp}</p>` : ''}
+                            </div>
+                        `;
+                        
+                        messagesContainer.appendChild(messageDiv);
+                    });
+                    
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                } catch(e) {
+                    chatState.messages = [];
+                }
+            }
+
+            // Initialize chat when page loads
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', createChatUI);
+            } else {
+                createChatUI();
+            }
+        })();
+        
+        // Live Features - Multi-User Optimized
+        function initializeLiveFeatures() {
+            if (liveFeaturesInitialized) return;
+            liveFeaturesInitialized = true;
+            
+            // Dynamic scheduling based on system load
+            function getUpdateInterval() {
+                const profile = performanceProfiles[userActivityLevel];
+                return profile.updateInterval;
+            }
+            
+            // Use requestAnimationFrame for smoother updates
+            function scheduleUpdate() {
+                if (isPageVisible) {
+                    requestAnimationFrame(() => {
+                        checkPerformance(); // Monitor performance
+                        const now = Date.now();
+                        if (now - lastUpdateTime > updateThrottle) {
+                            updateLiveStatistics();
+                            lastUpdateTime = now;
+                        }
+                        setTimeout(scheduleUpdate, getUpdateInterval());
+                    });
+                } else {
+                    setTimeout(scheduleUpdate, getUpdateInterval() * 2); // Check less frequently when hidden
+                }
+            }
+            
+            // Update activity feed with dynamic frequency
+            function scheduleActivityUpdate() {
+                if (isPageVisible) {
+                    updateActivityFeed();
+                }
+                const interval = userActivityLevel === 'critical' ? 15000 : 
+                                userActivityLevel === 'high' ? 10000 : 8000;
+                setTimeout(scheduleActivityUpdate, interval);
+            }
+            
+            // Intelligent load refresh with adaptive throttling
+            function scheduleLoadRefresh() {
+                if (isPageVisible && document.getElementById('loadboard') && 
+                    !document.getElementById('loadboard').classList.contains('hidden')) {
+                    refreshLoadsIntelligently();
+                }
+                const interval = userActivityLevel === 'critical' ? 60000 : 
+                                userActivityLevel === 'high' ? 45000 : 30000;
+                setTimeout(scheduleLoadRefresh, interval);
+            }
+            
+            // Start the update cycles
+            scheduleUpdate();
+            scheduleActivityUpdate();
+            scheduleLoadRefresh();
+        }
+
+            // FreightPro Knowledge Base
+            const freightProKnowledge = {
+                // Filtering Options
+                filteringOptions: {
+                    rate: 'Minimum rate filtering',
+                    miles: 'Maximum miles filtering'
+                },
+                
+                // Sorting Options
+                sortingOptions: [
+                    'Rate (High to Low)',
+                    'Rate (Low to High)', 
+                    'Distance (Near to Far)',
+                    'Pickup Date (Earliest)',
+                    'Recently Posted'
+                ],
+                
+                // View Modes
+                viewModes: ['List View', 'Card View', 'Compact View'],
+                
+                // Pages & Navigation
+                pages: {
+                    home: 'Landing page with hero section and stats',
+                    register: 'User registration with account type selection',
+                    login: 'User authentication',
+                    loadboard: 'Main load board with search and filters',
+                    postload: 'Post new loads (Broker/Shipper only)',
+                    profile: 'User profile and account management',
+                    pricing: 'Subscription plans and billing'
+                },
+                
+                // Features
+                features: [
+                    'Real-time load board',
+                    'Advanced search and filtering',
+                    'Load posting and booking',
+                    'User authentication',
+                    'Email verification',
+                    'Profile management',
+                    'Auto-refresh system',
+                    'Performance optimization',
+                    'Mobile responsive design',
+                    'Live chat support'
+                ],
+                
+                // Technical Details
+                technical: {
+                    backend: 'Node.js with MongoDB',
+                    frontend: 'HTML5, CSS3, JavaScript',
+                    api: 'RESTful API endpoints',
+                    database: 'MongoDB Atlas',
+                    deployment: 'Render (backend), Netlify (frontend)',
+                    security: 'JWT tokens, password hashing, rate limiting'
+                }
+            };
+
+            // AI-powered response generation
+            function generateAIResponse(question, agent) {
+                // AI Intent Analysis with enhanced knowledge
+                const intent = analyzeIntent(question, freightProKnowledge);
+                
+                // Generate contextual response with complete knowledge
+                return generateContextualResponse(intent, question, agent, freightProKnowledge);
+            }
+
+            function analyzeIntent(question, knowledge) {
                 const q = question.toLowerCase();
                 const words = q.split(/\s+/);
                 
-                // AI scoring system for intent detection
+                // Enhanced AI scoring system for intent detection
                 const intents = {
                     greeting: 0,
                     registration: 0,
@@ -8162,7 +8846,11 @@
                     pricing: 0,
                     profile: 0,
                     navigation: 0,
-                    help: 0
+                    help: 0,
+                    equipment: 0,
+                    userTypes: 0,
+                    features: 0,
+                    technical: 0
                 };
 
                 // Greeting patterns
@@ -8181,6 +8869,7 @@
                 if (/find loads|search loads|load board|browse loads|available loads/.test(q)) intents.loadSearch += 10;
                 if (/loads from|loads to|loads near|freight|shipping/.test(q)) intents.loadSearch += 8;
                 if (/origin|destination|pickup|delivery/.test(q)) intents.loadSearch += 5;
+                if (/filter|sort|search/.test(q)) intents.loadSearch += 3;
 
                 // Load posting patterns
                 if (/post load|create load|new load|add load|list load/.test(q)) intents.loadPost += 10;
@@ -8192,7 +8881,7 @@
 
                 // Pricing patterns
                 if (/price|pricing|plan|subscription|billing|cost/.test(q)) intents.pricing += 10;
-                if (/monthly|yearly|payment|upgrade/.test(q)) intents.pricing += 5;
+                if (/monthly|yearly|payment|upgrade|basic|advanced|ultima/.test(q)) intents.pricing += 5;
 
                 // Profile patterns
                 if (/profile|settings|account details|company info/.test(q)) intents.profile += 10;
@@ -8201,6 +8890,18 @@
                 // Navigation patterns
                 if (/go to|open|navigate|show me/.test(q)) intents.navigation += 10;
                 if (/page|section|menu/.test(q)) intents.navigation += 5;
+
+                // Equipment patterns
+                if (/equipment|van|flatbed|reefer|tanker|container|step deck|lowboy|car carrier|power only/.test(q)) intents.equipment += 10;
+                if (/dry van|refrigerated|temperature|open deck/.test(q)) intents.equipment += 5;
+
+                // User type patterns
+                if (/carrier|broker|shipper|usdot|mc number|authority/.test(q)) intents.userTypes += 10;
+                if (/transport|freight|ship|move/.test(q)) intents.userTypes += 5;
+
+                // Features patterns
+                if (/feature|function|capability|what can|how does/.test(q)) intents.features += 10;
+                if (/api|database|backend|frontend|technical/.test(q)) intents.technical += 10;
 
                 // Help patterns
                 if (/help|how to|what is|explain|tutorial/.test(q)) intents.help += 10;
@@ -8214,16 +8915,23 @@
                     intent: topIntent,
                     confidence: confidence,
                     originalQuestion: question,
-                    extractedInfo: extractInfo(question)
+                    extractedInfo: extractInfo(question, knowledge)
                 };
             }
 
-            function extractInfo(question) {
+            function extractInfo(question, knowledge) {
                 const q = question.toLowerCase();
                 const info = {};
 
-                // Extract cities
-                const cities = ['chicago', 'atlanta', 'dallas', 'houston', 'los angeles', 'new york', 'miami', 'denver', 'phoenix', 'seattle'];
+                // Extract cities (expanded list)
+                const cities = [
+                    'chicago', 'atlanta', 'dallas', 'houston', 'los angeles', 'new york', 'miami', 'denver', 'phoenix', 'seattle',
+                    'boston', 'philadelphia', 'san antonio', 'san diego', 'san jose', 'austin', 'jacksonville', 'fort worth',
+                    'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston',
+                    'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville',
+                    'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'mesa', 'kansas city',
+                    'atlanta', 'omaha', 'colorado springs', 'raleigh', 'virginia beach', 'miami', 'oakland', 'minneapolis'
+                ];
                 cities.forEach(city => {
                     if (q.includes(city)) {
                         if (!info.cities) info.cities = [];
@@ -8231,24 +8939,48 @@
                     }
                 });
 
-                // Extract equipment
-                const equipment = ['van', 'reefer', 'flatbed', 'container', 'tanker'];
-                equipment.forEach(eq => {
-                    if (q.includes(eq)) {
+                // Extract equipment (all types from knowledge base)
+                knowledge.equipmentTypes.forEach(eq => {
+                    if (q.includes(eq.name.toLowerCase()) || q.includes(eq.description.toLowerCase())) {
                         if (!info.equipment) info.equipment = [];
-                        info.equipment.push(eq);
+                        info.equipment.push(eq.name);
                     }
                 });
 
-                // Extract user type
-                if (q.includes('carrier')) info.userType = 'carrier';
-                if (q.includes('broker')) info.userType = 'broker';
-                if (q.includes('shipper')) info.userType = 'shipper';
+                // Extract load types
+                knowledge.loadTypes.forEach(lt => {
+                    if (q.includes(lt.name.toLowerCase()) || q.includes(lt.description.toLowerCase())) {
+                        if (!info.loadTypes) info.loadTypes = [];
+                        info.loadTypes.push(lt.name);
+                    }
+                });
+
+                // Extract user types
+                Object.keys(knowledge.userTypes).forEach(userType => {
+                    if (q.includes(userType) || q.includes(knowledge.userTypes[userType].name.toLowerCase())) {
+                        info.userType = userType;
+                    }
+                });
+
+                // Extract pricing plans
+                Object.keys(knowledge.pricingPlans).forEach(plan => {
+                    if (q.includes(plan) || q.includes(knowledge.pricingPlans[plan].name.toLowerCase())) {
+                        info.pricingPlan = plan;
+                    }
+                });
+
+                // Extract features
+                knowledge.features.forEach(feature => {
+                    if (q.includes(feature.toLowerCase())) {
+                        if (!info.features) info.features = [];
+                        info.features.push(feature);
+                    }
+                });
 
                 return info;
             }
 
-            function generateContextualResponse(intent, question, agent, context) {
+            function generateContextualResponse(intent, question, agent, knowledge) {
                 const { intent: intentType, confidence, extractedInfo } = intent;
 
                 // Add typing indicator for more realistic feel
@@ -8267,12 +8999,13 @@
                             return greetings[Math.floor(Math.random() * greetings.length)];
                         
                         case 'registration':
-                            const regResponses = [
-                                `Great choice! 🎉 To get started, click "Register" in the top navigation. Choose your role (Carrier 🚛, Broker 📋, or Shipper 📦), fill out the form, and verify your email. What type of account are you looking to create?`,
-                                `Welcome aboard! 🚀 Registration is super easy. Click "Register" → pick your role → fill the form → verify email. Are you a Carrier, Broker, or Shipper?`,
-                                `Let's get you signed up! 📝 Click "Register" in the header, choose your role, complete the form, and check your email for verification. What's your business type?`
-                            ];
-                            return regResponses[Math.floor(Math.random() * regResponses.length)];
+                            let regResponse = `Great choice! 🎉 To get started, click "Register" in the top navigation. Choose your role: `;
+                            Object.values(knowledge.userTypes).forEach((type, index) => {
+                                regResponse += `${type.icon} ${type.name} (${type.description})`;
+                                if (index < Object.values(knowledge.userTypes).length - 1) regResponse += ', ';
+                            });
+                            regResponse += `. Fill out the form and verify your email. What type of account are you looking to create?`;
+                            return regResponse;
                         
                         case 'login':
                             const loginResponses = [
@@ -8290,16 +9023,14 @@
                             if (extractedInfo.equipment && extractedInfo.equipment.length > 0) {
                                 searchResponse += `For ${extractedInfo.equipment.join(' or ')} equipment, `;
                             }
-                            searchResponse += `set your filters and click Search. You can sort by rate 💰, miles 📍, or pickup date 📅. Need help with specific filters?`;
+                            searchResponse += `set your filters and click Search. You can sort by rate 💰, miles 📍, or pickup date 📅. Available filters: ${Object.keys(knowledge.searchFilters).join(', ')}. Need help with specific filters?`;
                             return searchResponse;
                         
                         case 'loadPost':
-                            const postResponses = [
-                                `Awesome! 📋 To post a load, you need to be a Broker or Shipper. Go to "Post Load" and provide origin, destination, equipment type, weight, pickup date, and rate. Your load will appear on the board for carriers to book! 🚛`,
-                                `Let's get that load posted! ✍️ Head to "Post Load" (Broker/Shipper only), fill in all the details (origin, destination, equipment, weight, pickup date, rate), and submit. Carriers will see it immediately!`,
-                                `Perfect! 📝 Go to "Post Load" and enter your load details. Make sure to include origin, destination, equipment type, weight, pickup date, and rate. The more details, the better matches you'll get!`
-                            ];
-                            return postResponses[Math.floor(Math.random() * postResponses.length)];
+                            let postResponse = `Awesome! 📋 To post a load, you need to be a Broker or Shipper. Go to "Post Load" and provide: `;
+                            postResponse += `origin, destination, equipment type (${knowledge.equipmentTypes.map(e => e.name).join(', ')}), `;
+                            postResponse += `load type (${knowledge.loadTypes.map(l => l.name).join(', ')}), weight, pickup date, and rate. Your load will appear on the board for carriers to book! 🚛`;
+                            return postResponse;
                         
                         case 'loadBook':
                             const bookResponses = [
@@ -8310,12 +9041,14 @@
                             return bookResponses[Math.floor(Math.random() * bookResponses.length)];
                         
                         case 'pricing':
-                            const pricingResponses = [
-                                `Check out our amazing plans! 💎 Go to the Pricing section, toggle between Monthly and Yearly billing (save money with yearly! 💰), choose your plan, and proceed to checkout. Any questions about the plans?`,
-                                `Let's find the perfect plan for you! 🎯 Head to Pricing, toggle Monthly/Yearly, pick what fits your business, and checkout. Need help choosing between plans?`,
-                                `Great question! 💰 Our Pricing section has all the details. Toggle Monthly/Yearly to see savings, choose your plan, and you're ready to go! Want to know which plan is best for you?`
-                            ];
-                            return pricingResponses[Math.floor(Math.random() * pricingResponses.length)];
+                            let pricingResponse = `Check out our amazing plans! 💎 Go to the Pricing section, toggle between Monthly and Yearly billing (save money with yearly! 💰). `;
+                            pricingResponse += `Available plans: `;
+                            Object.values(knowledge.pricingPlans).forEach((plan, index) => {
+                                pricingResponse += `${plan.badge} ${plan.name} ($${plan.price.monthly}/mo, $${plan.price.yearly}/year)`;
+                                if (index < Object.values(knowledge.pricingPlans).length - 1) pricingResponse += ', ';
+                            });
+                            pricingResponse += `. Any questions about the plans?`;
+                            return pricingResponse;
                         
                         case 'profile':
                             const profileResponses = [
@@ -8324,6 +9057,37 @@
                                 `No problem! 🔧 Go to your profile (top-right menu) to update company information, contact details, and password. Keep everything current! ✨`
                             ];
                             return profileResponses[Math.floor(Math.random() * profileResponses.length)];
+                        
+                        case 'equipment':
+                            let equipmentResponse = `Great question about equipment! 🚛 FreightPro supports all major equipment types: `;
+                            knowledge.equipmentTypes.forEach((eq, index) => {
+                                equipmentResponse += `${eq.icon} ${eq.name} (${eq.description})`;
+                                if (index < knowledge.equipmentTypes.length - 1) equipmentResponse += ', ';
+                            });
+                            equipmentResponse += `. You can filter loads by equipment type on the Load Board!`;
+                            return equipmentResponse;
+                        
+                        case 'userTypes':
+                            let userTypeResponse = `Perfect! FreightPro serves three main user types: `;
+                            Object.values(knowledge.userTypes).forEach((type, index) => {
+                                userTypeResponse += `${type.icon} ${type.name} - ${type.description} (${type.requirements})`;
+                                if (index < Object.values(knowledge.userTypes).length - 1) userTypeResponse += ', ';
+                            });
+                            userTypeResponse += `. Which type are you interested in?`;
+                            return userTypeResponse;
+                        
+                        case 'features':
+                            let featuresResponse = `FreightPro is packed with amazing features! 🚀 Here's what we offer: `;
+                            featuresResponse += knowledge.features.slice(0, 5).join(', ') + `, and much more! `;
+                            featuresResponse += `Our platform includes ${knowledge.features.length} total features to make freight management easy. What specific feature interests you?`;
+                            return featuresResponse;
+                        
+                        case 'technical':
+                            let techResponse = `Great technical question! 🔧 FreightPro is built with: `;
+                            techResponse += `${knowledge.technical.backend} backend, ${knowledge.technical.frontend} frontend, `;
+                            techResponse += `${knowledge.technical.database} database, and ${knowledge.technical.security} security. `;
+                            techResponse += `We use ${knowledge.technical.api} and deploy on ${knowledge.technical.deployment}. Need more technical details?`;
+                            return techResponse;
                         
                         case 'navigation':
                             const navMatch = question.match(/go to|open|navigate to|show me/i);
@@ -8337,13 +9101,13 @@
                                 } catch(e) {}
                                 return `Taking you to ${target} right now! 🚀`;
                             }
-                            return `I can help you navigate anywhere! 🗺️ Just tell me where you'd like to go - Load Board, Post Load, Profile, Pricing, or anywhere else!`;
+                            return `I can help you navigate anywhere! 🗺️ Available pages: ${Object.keys(knowledge.pages).join(', ')}. Just tell me where you'd like to go!`;
                         
                         case 'help':
                             const helpResponses = [
-                                `I'm your FreightPro expert! 🎓 I can help with registration, finding loads, posting loads, booking, pricing, profile management, and more! What specific area needs attention?`,
-                                `Happy to help! 🤝 I know everything about FreightPro - registration, load management, pricing, profiles, navigation. What would you like to master today?`,
-                                `I'm here for you! 💪 Whether it's registration, load search, posting, booking, pricing, or account settings - I've got you covered! What can I help you with?`
+                                `I'm your FreightPro expert! 🎓 I can help with registration, finding loads, posting loads, booking, pricing, profile management, equipment types, user types, and more! What specific area needs attention?`,
+                                `Happy to help! 🤝 I know everything about FreightPro - registration, load management, pricing, profiles, navigation, equipment, user types. What would you like to master today?`,
+                                `I'm here for you! 💪 Whether it's registration, load search, posting, booking, pricing, account settings, equipment, or user types - I've got you covered! What can I help you with?`
                             ];
                             return helpResponses[Math.floor(Math.random() * helpResponses.length)];
                     }
@@ -8361,9 +9125,9 @@
 
                 // Low confidence - general help with personality
                 const generalHelps = [
-                    `I'm ${agent}, your FreightPro support superstar! ⭐ I can help with registration, load management, pricing, account settings, and more! What would you like to explore?`,
-                    `Hey! 👋 ${agent} here, your FreightPro guide! I'm here to help with everything - registration, loads, pricing, profiles. What adventure shall we go on? 🚀`,
-                    `Hi there! 😊 ${agent} at your service! I know FreightPro inside and out. Whether it's loads, accounts, pricing, or anything else - I'm your go-to person! What can I help you with?`
+                    `I'm ${agent}, your FreightPro support superstar! ⭐ I can help with registration, load management, pricing, account settings, equipment types, user types, and more! What would you like to explore?`,
+                    `Hey! 👋 ${agent} here, your FreightPro guide! I'm here to help with everything - registration, loads, pricing, profiles, equipment, user types. What adventure shall we go on? 🚀`,
+                    `Hi there! 😊 ${agent} at your service! I know FreightPro inside and out. Whether it's loads, accounts, pricing, equipment, user types, or anything else - I'm your go-to person! What can I help you with?`
                 ];
                 return generalHelps[Math.floor(Math.random() * generalHelps.length)];
             }
@@ -8406,15 +9170,14 @@
                 }
             }
 
-            function saveChatHistory(){ try { localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages)); } catch(e){} }
-            function loadChatHistory(){
-                try { chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || []; } catch(e){ chatState.messages = []; }
-                const list = document.getElementById('fpChatMessages'); if (!list) return;
-                chatState.messages.forEach(m => addMessage(m.role, m.text));
-            }
-
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', createChatUI); else createChatUI();
-        })();
+
+        function saveChatHistory(){ try { localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages)); } catch(e){} }
+        function loadChatHistory(){
+            try { chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || []; } catch(e){ chatState.messages = []; }
+            const list = document.getElementById('fpChatMessages'); if (!list) return;
+            chatState.messages.forEach(m => addMessage(m.role, m.text));
+        }
         
         // Live Features - Multi-User Optimized
         function initializeLiveFeatures() {
