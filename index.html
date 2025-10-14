@@ -4477,13 +4477,17 @@
                 performanceMonitor.responseTimes = performanceMonitor.responseTimes.slice(-10);
             }
             
-            // Clear DOM element cache if it gets too large
-            if (Object.keys(liveStatsCache).length > 20) {
-                Object.keys(liveStatsCache).forEach(key => {
-                    if (liveStatsCache[key] && !document.contains(liveStatsCache[key])) {
-                        liveStatsCache[key] = null;
-                    }
-                });
+            // Clear DOM element cache if it gets too large (use new domCache structure)
+            if (typeof domCache === 'object' && domCache.liveStats) {
+                const keys = Object.keys(domCache.liveStats);
+                if (keys.length > 0) {
+                    keys.forEach(key => {
+                        const el = domCache.liveStats[key];
+                        if (el && !document.contains(el)) {
+                            domCache.liveStats[key] = null;
+                        }
+                    });
+                }
             }
             
             // Clear old API cache data
@@ -6840,7 +6844,9 @@
                     }
                 });
 
-                const result = await response.json();
+                // Handle non-JSON responses gracefully (e.g., 404 HTML pages)
+                const contentType = response.headers.get('content-type') || '';
+                const result = contentType.includes('application/json') ? await response.json() : { success: false, message: `HTTP ${response.status}` };
 
                 if (!response.ok || !result.success) {
                     const message = result?.message || 'Failed to load users';
