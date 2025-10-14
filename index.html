@@ -8024,7 +8024,8 @@
                 currentUserRole: null,
                 currentLanguage: 'en',
                 isOpen: false,
-                agent: null
+                agent: null,
+                uploadedFiles: [] // Store uploaded files
             };
 
             // Multi-language support
@@ -8136,7 +8137,8 @@
                 // Create chat panel
                 const panel = document.createElement('div');
                 panel.id = 'fpChatPanel';
-                panel.className = 'fixed z-50 bottom-36 right-6 w-[420px] max-w-[95vw] bg-white rounded-t-xl shadow-2xl border border-gray-200 hidden transform transition-all duration-300';
+                panel.className = 'fixed z-50 bottom-20 right-4 w-[380px] max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-gray-200 hidden transform transition-all duration-300';
+                panel.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
                 panel.innerHTML = `
                     <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-t-xl">
                         <div class="flex items-center space-x-3">
@@ -8164,7 +8166,7 @@
                         </div>
                     </div>
                     
-                    <div id="fpChatMessages" class="px-4 py-4 space-y-4 max-h-96 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"></div>
+                    <div id="fpChatMessages" class="px-4 py-3 space-y-3 max-h-80 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"></div>
                     
                     <div class="p-3 border-t bg-white">
                         <!-- Quick Actions -->
@@ -8175,18 +8177,17 @@
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 px-3 py-2 rounded-full transition-all duration-200 border border-purple-200 hover:border-purple-300 hover:shadow-sm" data-text="Pricing plans">💰 Pricing</button>
                         </div>
                         
-                        <!-- File Upload Area -->
-                        <div id="fpFileUpload" class="mb-3 p-3 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-400 transition-colors cursor-pointer" onclick="triggerFileUpload()">
-                            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                            <p class="text-sm text-gray-500">Click to upload files or drag & drop</p>
-                            <input type="file" id="fpFileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event)">
-                        </div>
-
-                        <!-- Message Input -->
+                        <!-- Message Input with inline file upload -->
                         <div class="flex items-end space-x-2">
-                            <textarea id="fpChatInput" rows="1" placeholder="${translations[chatState.currentLanguage].placeholder}" class="flex-1 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm transition-all duration-200"></textarea>
+                            <div class="flex-1 relative">
+                                <textarea id="fpChatInput" rows="1" placeholder="${translations[chatState.currentLanguage].placeholder}" class="w-full resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 pr-10 text-sm transition-all duration-200"></textarea>
+                                <button id="fpFileUpload" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors" onclick="triggerFileUpload()" title="Upload file">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                    </svg>
+                                </button>
+                                <input type="file" id="fpFileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt" style="display: none;" onchange="handleFileUpload(event)">
+                            </div>
                             <button id="fpChatSend" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">Send</button>
                         </div>
                     </div>`;
@@ -8211,28 +8212,17 @@
                     });
                 });
 
-                // File upload drag & drop
+                // File upload functionality
                 const fileUpload = panel.querySelector('#fpFileUpload');
-                fileUpload.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileUpload.classList.add('border-blue-400', 'bg-blue-50');
-                });
+                const fileInput = panel.querySelector('#fpFileInput');
                 
-                fileUpload.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    fileUpload.classList.remove('border-blue-400', 'bg-blue-50');
-                });
-                
-                fileUpload.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileUpload.classList.remove('border-blue-400', 'bg-blue-50');
-                    const files = Array.from(e.dataTransfer.files);
-                    handleFileUpload({ target: { files } });
-                });
+                // Handle file input change
+                fileInput.addEventListener('change', handleFileUpload);
 
                 // Load chat state
                 loadChatState();
                 loadChatHistory();
+                loadUploadedFiles();
                 
                 // Show welcome message if first time
                 if (chatState.messages.length === 0) {
@@ -8324,6 +8314,7 @@
                     ${avatar}
                     <div class="${messageClass} rounded-lg p-3 max-w-xs shadow-sm">
                         <p class="text-sm">${escapeHTML(message.text)}</p>
+                        ${message.filePreview || ''}
                         ${message.timestamp ? `<p class="text-xs opacity-70 mt-1">${message.timestamp}</p>` : ''}
                     </div>
                 `;
@@ -8565,23 +8556,85 @@
             }
 
             function generateGeneralResponse(message, agent) {
-                if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+                const msg = message.toLowerCase();
+                
+                // Greetings
+                if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey') || msg.includes('good morning') || msg.includes('good afternoon') || msg.includes('good evening') || msg.includes('greetings') || msg.includes('welcome')) {
                     return `Hello! I'm ${agent} from FreightPro support. Welcome! 🚛 How can I help you today?`;
                 }
                 
-                if (message.includes('help') || message.includes('support')) {
+                // Help and Support
+                if (msg.includes('help') || msg.includes('support') || msg.includes('assist') || msg.includes('guide') || msg.includes('how to') || msg.includes('tutorial') || msg.includes('instructions')) {
                     return `I'm here to help! I can assist you with finding loads, posting loads, registration, login, pricing, and general navigation. What specific help do you need? 🚛`;
                 }
                 
-                if (message.includes('loads') || message.includes('load board')) {
+                // Load Board and Finding Loads
+                if (msg.includes('loads') || msg.includes('load board') || msg.includes('find loads') || msg.includes('search loads') || msg.includes('available loads') || msg.includes('freight') || msg.includes('shipment') || msg.includes('cargo') || msg.includes('hauling') || msg.includes('transport')) {
                     return `Great! You can find loads on our Load Board. Click "Load Board" in the navigation to browse available loads. You can filter by origin, destination, equipment type, and rate. Need help with the search? 🔍`;
                 }
                 
-                if (message.includes('post') || message.includes('create')) {
+                // Posting Loads
+                if (msg.includes('post') || msg.includes('create') || msg.includes('add load') || msg.includes('new load') || msg.includes('list load') || msg.includes('publish load') || msg.includes('submit load')) {
                     return `To post a load, click "Post Load" in the navigation. You'll need to provide details like origin, destination, equipment type, pickup date, and rate. Need help with the posting process? 📝`;
                 }
                 
-                return `I'm here to help! Could you be more specific about what you need? I can assist with loads, registration, login, pricing, or general navigation. Use the quick action buttons for common tasks! 🚛`;
+                // Registration and Account
+                if (msg.includes('register') || msg.includes('sign up') || msg.includes('create account') || msg.includes('new account') || msg.includes('join') || msg.includes('membership') || msg.includes('account')) {
+                    return `To register, click "Register" in the navigation. You can choose to be a Carrier, Broker, or Shipper. The process is quick and free! Need help with registration? 📝`;
+                }
+                
+                // Login and Authentication
+                if (msg.includes('login') || msg.includes('sign in') || msg.includes('log in') || msg.includes('access') || msg.includes('password') || msg.includes('forgot password') || msg.includes('reset password')) {
+                    return `To login, click "Login" in the navigation. If you forgot your password, there's a reset option. Need help with login issues? 🔐`;
+                }
+                
+                // Pricing and Plans
+                if (msg.includes('pricing') || msg.includes('price') || msg.includes('cost') || msg.includes('fee') || msg.includes('subscription') || msg.includes('plan') || msg.includes('billing') || msg.includes('payment') || msg.includes('money') || msg.includes('rate')) {
+                    return `Our pricing is competitive and transparent! Click "Pricing" to see our plans. We offer different options for Carriers, Brokers, and Shippers. Need help understanding our pricing? 💰`;
+                }
+                
+                // Equipment and Trucks
+                if (msg.includes('equipment') || msg.includes('truck') || msg.includes('trailer') || msg.includes('vehicle') || msg.includes('flatbed') || msg.includes('dry van') || msg.includes('reefer') || msg.includes('container') || msg.includes('tanker')) {
+                    return `We support all types of equipment! You can filter loads by equipment type on our Load Board. Need help finding loads for your specific equipment? 🚛`;
+                }
+                
+                // Location and Routes
+                if (msg.includes('location') || msg.includes('route') || msg.includes('origin') || msg.includes('destination') || msg.includes('pickup') || msg.includes('delivery') || msg.includes('address') || msg.includes('city') || msg.includes('state') || msg.includes('zip')) {
+                    return `You can search loads by origin and destination! Use our advanced filters to find loads on your preferred routes. Need help with location-based searches? 🗺️`;
+                }
+                
+                // Booking and Contact
+                if (msg.includes('book') || msg.includes('contact') || msg.includes('call') || msg.includes('phone') || msg.includes('email') || msg.includes('message') || msg.includes('reach out') || msg.includes('get in touch')) {
+                    return `To book a load or contact someone, use the contact information provided in the load details. You can also use our messaging system. Need help with booking? 📞`;
+                }
+                
+                // Features and Functionality
+                if (msg.includes('feature') || msg.includes('function') || msg.includes('how does') || msg.includes('what can') || msg.includes('capabilities') || msg.includes('options') || msg.includes('tools')) {
+                    return `FreightPro offers many features: real-time load board, advanced search, load posting, user profiles, and more! What specific feature are you interested in? ⚡`;
+                }
+                
+                // Technical Issues
+                if (msg.includes('error') || msg.includes('problem') || msg.includes('issue') || msg.includes('bug') || msg.includes('not working') || msg.includes('broken') || msg.includes('trouble') || msg.includes('fix')) {
+                    return `I'm sorry you're experiencing issues! Please describe the problem and I'll help you resolve it. You can also try refreshing the page or clearing your browser cache. 🔧`;
+                }
+                
+                // About and Information
+                if (msg.includes('about') || msg.includes('what is') || msg.includes('tell me') || msg.includes('information') || msg.includes('details') || msg.includes('explain')) {
+                    return `FreightPro is a comprehensive freight matching platform connecting Carriers, Brokers, and Shippers. We make freight transportation efficient and profitable for everyone! 🚛✨`;
+                }
+                
+                // Thank you and Appreciation
+                if (msg.includes('thank') || msg.includes('thanks') || msg.includes('appreciate') || msg.includes('great') || msg.includes('awesome') || msg.includes('excellent') || msg.includes('good job')) {
+                    return `You're very welcome! I'm glad I could help. Is there anything else you'd like to know about FreightPro? 😊`;
+                }
+                
+                // Goodbye and Farewell
+                if (msg.includes('bye') || msg.includes('goodbye') || msg.includes('see you') || msg.includes('farewell') || msg.includes('later') || msg.includes('take care')) {
+                    return `Goodbye! Thanks for using FreightPro. Feel free to come back anytime if you need help! Have a great day! 👋`;
+                }
+                
+                // Default response with more context
+                return `I'm here to help! I can assist you with loads, registration, login, pricing, equipment, routes, booking, or any other FreightPro questions. Could you be more specific about what you need? Use the quick action buttons for common tasks! 🚛`;
             }
 
             // File upload functionality
@@ -8597,12 +8650,128 @@
                         return;
                     }
                     
+                    // Store file in chatState
+                    const fileData = {
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: file.lastModified,
+                        data: null // Will store base64 data for images
+                    };
+                    
+                    // For images, convert to base64 for display
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            fileData.data = e.target.result;
+                            chatState.uploadedFiles.push(fileData);
+                            saveUploadedFiles();
+                            displayFileInChat(fileData);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        chatState.uploadedFiles.push(fileData);
+                        saveUploadedFiles();
+                        displayFileInChat(fileData);
+                    }
+                });
+                
+                // Clear the input
+                event.target.value = '';
+            }
+            
+            function displayFileInChat(fileData) {
+                let messageText = `📎 Uploaded: ${fileData.name} (${(fileData.size / 1024 / 1024).toFixed(2)} MB)`;
+                let filePreview = '';
+                
+                // Display image preview
+                if (fileData.type.startsWith('image/') && fileData.data) {
+                    filePreview = `<div class="mt-2 max-w-xs"><img src="${fileData.data}" alt="${fileData.name}" class="rounded-lg border border-gray-200 max-w-full h-auto cursor-pointer" onclick="openFileViewer('${fileData.id}')"></div>`;
+                }
+                
+                addMessage({
+                    role: 'user',
+                    text: messageText,
+                    timestamp: new Date().toLocaleTimeString(),
+                    filePreview: filePreview,
+                    fileId: fileData.id
+                });
+                
+                // Generate AI response about the file
+                setTimeout(() => {
+                    const response = generateFileResponse(fileData);
                     addMessage({
-                        role: 'user',
-                        text: `📎 Uploaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
+                        role: 'assistant',
+                        text: response,
                         timestamp: new Date().toLocaleTimeString()
                     });
-                });
+                }, 1000);
+            }
+            
+            function generateFileResponse(fileData) {
+                const agent = getSupportAgentName();
+                const fileType = fileData.type.split('/')[0];
+                const fileName = fileData.name.toLowerCase();
+                
+                if (fileType === 'image') {
+                    return `Thanks for sharing the image "${fileData.name}"! 📸 I can see this file. How can I help you with this image? Are you looking for help with documentation, load details, or something else?`;
+                } else if (fileName.includes('invoice') || fileName.includes('bill')) {
+                    return `I see you've uploaded "${fileData.name}" - looks like an invoice or billing document! 💰 I can help you with payment questions, billing issues, or invoice processing. What do you need assistance with?`;
+                } else if (fileName.includes('contract') || fileName.includes('agreement')) {
+                    return `Thanks for sharing "${fileData.name}" - appears to be a contract or agreement! 📋 I can help you understand terms, rates, or any questions about this document. What would you like to know?`;
+                } else if (fileName.includes('load') || fileName.includes('shipment')) {
+                    return `I can see you've uploaded "${fileData.name}" - looks like load or shipment information! 🚛 I can help you with load details, tracking, or any questions about this shipment. What do you need help with?`;
+                } else {
+                    return `Thanks for uploading "${fileData.name}"! 📄 I can see this document. How can I help you with this file? Are you looking for assistance with its contents, processing, or something specific?`;
+                }
+            }
+            
+            function openFileViewer(fileId) {
+                const file = chatState.uploadedFiles.find(f => f.id == fileId);
+                if (!file) return;
+                
+                // Create modal for file viewing
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg p-4 max-w-4xl max-h-4xl overflow-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">${file.name}</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+                        </div>
+                        <div class="text-center">
+                            ${file.type.startsWith('image/') ? 
+                                `<img src="${file.data}" alt="${file.name}" class="max-w-full h-auto rounded-lg">` :
+                                `<div class="p-8 text-gray-500">
+                                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p>File: ${file.name}</p>
+                                    <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    <p>Type: ${file.type}</p>
+                                </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            function saveUploadedFiles() {
+                try {
+                    localStorage.setItem('fp_uploaded_files', JSON.stringify(chatState.uploadedFiles));
+                } catch(e) {
+                    console.log('Could not save uploaded files');
+                }
+            }
+            
+            function loadUploadedFiles() {
+                try {
+                    chatState.uploadedFiles = JSON.parse(localStorage.getItem('fp_uploaded_files') || '[]') || [];
+                } catch(e) {
+                    chatState.uploadedFiles = [];
+                }
             }
 
             // Language change
