@@ -732,8 +732,38 @@
                     font-weight: 700 !important; /* font-bold */
                     line-height: 1rem !important; /* mt-1 */
                 }
-            </style>
-            <script>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.8), 0 0 40px rgba(236, 72, 153, 0.6); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        .shadow-3xl {
+            box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+    <script>
             // Pricing guest banner: show a 6-hour promo window for visitors who are not logged in
             (function pricingGuestOffer(){
                 const OFFER_KEY = 'pricingGuestOfferStart_v1';
@@ -7983,6 +8013,408 @@
                 initializeLiveFeatures();
             }
         });
+
+        // =====================
+        // Live Chat: UI + Logic
+        // =====================
+        (function initLiveChat() {
+            function createChatUI() {
+                if (document.getElementById('fpChatLauncher')) return;
+
+                const launcher = document.createElement('button');
+                launcher.id = 'fpChatLauncher';
+                launcher.setAttribute('aria-label', 'Open chat');
+                launcher.className = 'fixed z-50 bottom-6 right-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-full shadow-2xl w-20 h-20 flex items-center justify-center focus:outline-none transform transition-all duration-300 hover:scale-110 hover:shadow-3xl animate-float';
+                launcher.innerHTML = `
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 animate-pulse">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75c0 2.904 2.42 5.25 5.4 5.25h.9c.373 0 .738.074 1.08.217l3.487 1.41a.75.75 0 001.033-.7l-.004-1.086c0-.463.188-.907.522-1.235A5.19 5.19 0 0019.35 12.75c0-2.904-2.42-5.25-5.4-5.25H7.65c-2.98 0-5.4 2.346-5.4 5.25z"/>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
+                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"></div>
+                    </div>
+                `;
+
+                const panel = document.createElement('div');
+                panel.id = 'fpChatPanel';
+                panel.className = 'fixed z-50 bottom-32 right-6 w-96 max-w-[92vw] bg-white rounded-xl shadow-2xl border border-gray-200 hidden transform transition-all duration-300';
+                panel.innerHTML = `
+                    <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            <span id="fpChatAgentName" class="font-semibold">Alex • Support</span>
+                            <span class="text-xs bg-green-500 px-2 py-1 rounded-full">Online</span>
+                        </div>
+                        <button id="fpChatClose" class="text-white/90 hover:text-white focus:outline-none hover:bg-white/20 rounded-full p-1">✕</button>
+                    </div>
+                    <div id="fpChatMessages" class="px-4 py-4 space-y-4 max-h-96 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"></div>
+                    <div class="p-3 border-t bg-white">
+                        <div class="flex items-end space-x-2">
+                            <textarea id="fpChatInput" rows="1" placeholder="Type your message..." class="flex-1 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm transition-all duration-200"></textarea>
+                            <button id="fpChatSend" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">Send</button>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 px-3 py-2 rounded-full transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm" data-text="How do I register?">📝 Register</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 px-3 py-2 rounded-full transition-all duration-200 border border-green-200 hover:border-green-300 hover:shadow-sm" data-text="Find loads">🔍 Find Loads</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-orange-700 px-3 py-2 rounded-full transition-all duration-200 border border-orange-200 hover:border-orange-300 hover:shadow-sm" data-text="Post load">📋 Post Load</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 px-3 py-2 rounded-full transition-all duration-200 border border-purple-200 hover:border-purple-300 hover:shadow-sm" data-text="Pricing plans">💰 Pricing</button>
+                        </div>
+                    </div>`;
+
+                document.body.appendChild(launcher);
+                document.body.appendChild(panel);
+
+                launcher.addEventListener('click', toggleChatOpen);
+                panel.querySelector('#fpChatClose').addEventListener('click', toggleChatOpen);
+                panel.querySelector('#fpChatSend').addEventListener('click', handleChatSend);
+                panel.querySelector('#fpChatInput').addEventListener('keydown', function(e){
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
+                });
+                
+                // Quick reply buttons
+                panel.querySelectorAll('.quick-reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const text = this.getAttribute('data-text');
+                        document.getElementById('fpChatInput').value = text;
+                        handleChatSend();
+                    });
+                });
+
+                loadChatHistory();
+                const wasOpen = localStorage.getItem('fp_chat_open') === '1';
+                if (wasOpen) openChat(); else closeChat();
+
+                const hasHistory = (chatState.messages || []).length > 0;
+                if (!hasHistory) addAssistantMessage(`Hi! I'm ${getSupportAgentName()}. How can I help you with FreightPro today?`);
+            }
+
+            const chatState = { messages: [] };
+            function getSupportAgentName(){ return 'Alex from Support'; }
+
+            function openChat(){ const p = document.getElementById('fpChatPanel'); if (p) p.classList.remove('hidden'); localStorage.setItem('fp_chat_open','1'); }
+            function closeChat(){ const p = document.getElementById('fpChatPanel'); if (p) p.classList.add('hidden'); localStorage.setItem('fp_chat_open','0'); }
+            function toggleChatOpen(){ const p = document.getElementById('fpChatPanel'); if (!p) return; p.classList.contains('hidden') ? openChat() : closeChat(); }
+
+            function addMessage(role, text){
+                chatState.messages.push({ role, text, ts: Date.now() });
+                const list = document.getElementById('fpChatMessages');
+                if (!list) return;
+                const item = document.createElement('div');
+                if (role === 'user') { 
+                    item.className = 'flex justify-end animate-fadeIn'; 
+                    item.innerHTML = `<div class="max-w-[85%] bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg px-3 py-2 text-sm shadow-md">${escapeHTML(text)}</div>`; 
+                } else { 
+                    item.className = 'flex justify-start animate-fadeIn'; 
+                    item.innerHTML = `<div class="max-w-[85%] bg-white border border-gray-200 text-gray-800 rounded-lg px-3 py-2 text-sm shadow-sm hover:shadow-md transition-shadow">${escapeHTML(text)}</div>`; 
+                }
+                list.appendChild(item); 
+                list.scrollTop = list.scrollHeight; 
+                saveChatHistory();
+            }
+            function addAssistantMessage(text){ addMessage('assistant', text); }
+            function addUserMessage(text){ addMessage('user', text); }
+            function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+
+            function handleChatSend(){
+                const input = document.getElementById('fpChatInput'); if (!input) return;
+                const text = input.value.trim(); if (!text) return; input.value = '';
+                addUserMessage(text);
+                
+                // Add realistic delay with typing indicator
+                setTimeout(() => { 
+                    hideTypingIndicator();
+                    addAssistantMessage(generateAssistantResponse(text)); 
+                }, 800 + Math.random() * 1200); // 0.8-2 second delay
+            }
+
+            // Built-in AI Assistant (no external API needed)
+            function generateAssistantResponse(q){
+                const agent = getSupportAgentName();
+                const question = (q || '').trim();
+                
+                // AI Context: FreightPro is a freight matching platform
+                const context = {
+                    platform: 'FreightPro',
+                    features: ['load board', 'post loads', 'book loads', 'user registration', 'pricing plans', 'profile management'],
+                    userTypes: ['carriers', 'brokers', 'shippers'],
+                    pages: ['home', 'register', 'login', 'loadboard', 'postload', 'profile', 'pricing']
+                };
+
+                // AI Intent Analysis
+                const intent = analyzeIntent(question, context);
+                
+                // Generate contextual response
+                return generateContextualResponse(intent, question, agent, context);
+            }
+
+            function analyzeIntent(question, context) {
+                const q = question.toLowerCase();
+                const words = q.split(/\s+/);
+                
+                // AI scoring system for intent detection
+                const intents = {
+                    greeting: 0,
+                    registration: 0,
+                    login: 0,
+                    loadSearch: 0,
+                    loadPost: 0,
+                    loadBook: 0,
+                    pricing: 0,
+                    profile: 0,
+                    navigation: 0,
+                    help: 0
+                };
+
+                // Greeting patterns
+                if (/^(hi|hello|hey|good morning|good evening|howdy)/.test(q)) intents.greeting += 10;
+                if (/how are you|what's up|how's it going/.test(q)) intents.greeting += 5;
+
+                // Registration patterns
+                if (/sign up|register|create account|new account|join/.test(q)) intents.registration += 10;
+                if (/account|signup|registration/.test(q)) intents.registration += 5;
+
+                // Login patterns
+                if (/log in|login|sign in|signin|access account/.test(q)) intents.login += 10;
+                if (/password|forgot|reset|can't login/.test(q)) intents.login += 5;
+
+                // Load search patterns
+                if (/find loads|search loads|load board|browse loads|available loads/.test(q)) intents.loadSearch += 10;
+                if (/loads from|loads to|loads near|freight|shipping/.test(q)) intents.loadSearch += 8;
+                if (/origin|destination|pickup|delivery/.test(q)) intents.loadSearch += 5;
+
+                // Load posting patterns
+                if (/post load|create load|new load|add load|list load/.test(q)) intents.loadPost += 10;
+                if (/broker|shipper|posting|listing/.test(q)) intents.loadPost += 5;
+
+                // Load booking patterns
+                if (/book load|accept load|take load|claim load/.test(q)) intents.loadBook += 10;
+                if (/carrier|booking|accepting/.test(q)) intents.loadBook += 5;
+
+                // Pricing patterns
+                if (/price|pricing|plan|subscription|billing|cost/.test(q)) intents.pricing += 10;
+                if (/monthly|yearly|payment|upgrade/.test(q)) intents.pricing += 5;
+
+                // Profile patterns
+                if (/profile|settings|account details|company info/.test(q)) intents.profile += 10;
+                if (/update|change|edit|modify/.test(q)) intents.profile += 5;
+
+                // Navigation patterns
+                if (/go to|open|navigate|show me/.test(q)) intents.navigation += 10;
+                if (/page|section|menu/.test(q)) intents.navigation += 5;
+
+                // Help patterns
+                if (/help|how to|what is|explain|tutorial/.test(q)) intents.help += 10;
+                if (/don't know|confused|stuck/.test(q)) intents.help += 5;
+
+                // Find highest scoring intent
+                const topIntent = Object.keys(intents).reduce((a, b) => intents[a] > intents[b] ? a : b);
+                const confidence = intents[topIntent];
+
+                return {
+                    intent: topIntent,
+                    confidence: confidence,
+                    originalQuestion: question,
+                    extractedInfo: extractInfo(question)
+                };
+            }
+
+            function extractInfo(question) {
+                const q = question.toLowerCase();
+                const info = {};
+
+                // Extract cities
+                const cities = ['chicago', 'atlanta', 'dallas', 'houston', 'los angeles', 'new york', 'miami', 'denver', 'phoenix', 'seattle'];
+                cities.forEach(city => {
+                    if (q.includes(city)) {
+                        if (!info.cities) info.cities = [];
+                        info.cities.push(city);
+                    }
+                });
+
+                // Extract equipment
+                const equipment = ['van', 'reefer', 'flatbed', 'container', 'tanker'];
+                equipment.forEach(eq => {
+                    if (q.includes(eq)) {
+                        if (!info.equipment) info.equipment = [];
+                        info.equipment.push(eq);
+                    }
+                });
+
+                // Extract user type
+                if (q.includes('carrier')) info.userType = 'carrier';
+                if (q.includes('broker')) info.userType = 'broker';
+                if (q.includes('shipper')) info.userType = 'shipper';
+
+                return info;
+            }
+
+            function generateContextualResponse(intent, question, agent, context) {
+                const { intent: intentType, confidence, extractedInfo } = intent;
+
+                // Add typing indicator for more realistic feel
+                showTypingIndicator();
+
+                // High confidence responses with personality and emojis
+                if (confidence >= 8) {
+                    switch (intentType) {
+                        case 'greeting':
+                            const greetings = [
+                                `Hey there! 👋 ${agent} here. Ready to help you with FreightPro! What can I do for you today?`,
+                                `Hello! 😊 ${agent} at your service. How can I make your FreightPro experience better?`,
+                                `Hi! 🚛 ${agent} here. Let's get you moving with freight! What do you need help with?`,
+                                `Good to see you! ✨ ${agent} here. What brings you to FreightPro today?`
+                            ];
+                            return greetings[Math.floor(Math.random() * greetings.length)];
+                        
+                        case 'registration':
+                            const regResponses = [
+                                `Great choice! 🎉 To get started, click "Register" in the top navigation. Choose your role (Carrier 🚛, Broker 📋, or Shipper 📦), fill out the form, and verify your email. What type of account are you looking to create?`,
+                                `Welcome aboard! 🚀 Registration is super easy. Click "Register" → pick your role → fill the form → verify email. Are you a Carrier, Broker, or Shipper?`,
+                                `Let's get you signed up! 📝 Click "Register" in the header, choose your role, complete the form, and check your email for verification. What's your business type?`
+                            ];
+                            return regResponses[Math.floor(Math.random() * regResponses.length)];
+                        
+                        case 'login':
+                            const loginResponses = [
+                                `No problem! 🔑 Use the "Login" button in the header. Enter your email and password. Having trouble? I can help with password reset!`,
+                                `Easy peasy! 😊 Click "Login" in the top navigation, enter your credentials, and you're in! Need help with password recovery?`,
+                                `Let's get you logged in! 🚀 Use the "Login" button, enter your email and password. Forgot your password? I can guide you through reset!`
+                            ];
+                            return loginResponses[Math.floor(Math.random() * loginResponses.length)];
+                        
+                        case 'loadSearch':
+                            let searchResponse = `Perfect! 🔍 Let's find you some loads. Open the Load Board and `;
+                            if (extractedInfo.cities && extractedInfo.cities.length > 0) {
+                                searchResponse += `I see you're interested in loads involving ${extractedInfo.cities.join(' and ')}. `;
+                            }
+                            if (extractedInfo.equipment && extractedInfo.equipment.length > 0) {
+                                searchResponse += `For ${extractedInfo.equipment.join(' or ')} equipment, `;
+                            }
+                            searchResponse += `set your filters and click Search. You can sort by rate 💰, miles 📍, or pickup date 📅. Need help with specific filters?`;
+                            return searchResponse;
+                        
+                        case 'loadPost':
+                            const postResponses = [
+                                `Awesome! 📋 To post a load, you need to be a Broker or Shipper. Go to "Post Load" and provide origin, destination, equipment type, weight, pickup date, and rate. Your load will appear on the board for carriers to book! 🚛`,
+                                `Let's get that load posted! ✍️ Head to "Post Load" (Broker/Shipper only), fill in all the details (origin, destination, equipment, weight, pickup date, rate), and submit. Carriers will see it immediately!`,
+                                `Perfect! 📝 Go to "Post Load" and enter your load details. Make sure to include origin, destination, equipment type, weight, pickup date, and rate. The more details, the better matches you'll get!`
+                            ];
+                            return postResponses[Math.floor(Math.random() * postResponses.length)];
+                        
+                        case 'loadBook':
+                            const bookResponses = [
+                                `Excellent choice! 🎯 Browse the Load Board, click on a load for details, then hit "Book". Confirm your booking and the load status changes to "Booked" ✅. You're all set!`,
+                                `Let's book that load! 🚛 Find your perfect load on the board, click for details, then "Book". Confirm and you're ready to roll! 🎉`,
+                                `Great! 📋 Click on any load in the board to see details, then "Book" it. Confirm your booking and you're officially on the job! 💪`
+                            ];
+                            return bookResponses[Math.floor(Math.random() * bookResponses.length)];
+                        
+                        case 'pricing':
+                            const pricingResponses = [
+                                `Check out our amazing plans! 💎 Go to the Pricing section, toggle between Monthly and Yearly billing (save money with yearly! 💰), choose your plan, and proceed to checkout. Any questions about the plans?`,
+                                `Let's find the perfect plan for you! 🎯 Head to Pricing, toggle Monthly/Yearly, pick what fits your business, and checkout. Need help choosing between plans?`,
+                                `Great question! 💰 Our Pricing section has all the details. Toggle Monthly/Yearly to see savings, choose your plan, and you're ready to go! Want to know which plan is best for you?`
+                            ];
+                            return pricingResponses[Math.floor(Math.random() * pricingResponses.length)];
+                        
+                        case 'profile':
+                            const profileResponses = [
+                                `Sure thing! 👤 Access your profile from the top-right menu. You can update company info, contact details, and change your password there. Everything in one place! 🎯`,
+                                `Easy! ⚙️ Click your profile in the top-right corner. Update company details, contacts, password - whatever you need! All your settings in one spot.`,
+                                `No problem! 🔧 Go to your profile (top-right menu) to update company information, contact details, and password. Keep everything current! ✨`
+                            ];
+                            return profileResponses[Math.floor(Math.random() * profileResponses.length)];
+                        
+                        case 'navigation':
+                            const navMatch = question.match(/go to|open|navigate to|show me/i);
+                            if (navMatch) {
+                                const target = question.replace(/go to|open|navigate to|show me/i, '').trim();
+                                try {
+                                    if (target.includes('load board')) showPage('loadboard');
+                                    else if (target.includes('post load')) showPage('postload');
+                                    else if (target.includes('profile')) showPage('profile');
+                                    else if (target.includes('pricing')) showPage('pricing');
+                                } catch(e) {}
+                                return `Taking you to ${target} right now! 🚀`;
+                            }
+                            return `I can help you navigate anywhere! 🗺️ Just tell me where you'd like to go - Load Board, Post Load, Profile, Pricing, or anywhere else!`;
+                        
+                        case 'help':
+                            const helpResponses = [
+                                `I'm your FreightPro expert! 🎓 I can help with registration, finding loads, posting loads, booking, pricing, profile management, and more! What specific area needs attention?`,
+                                `Happy to help! 🤝 I know everything about FreightPro - registration, load management, pricing, profiles, navigation. What would you like to master today?`,
+                                `I'm here for you! 💪 Whether it's registration, load search, posting, booking, pricing, or account settings - I've got you covered! What can I help you with?`
+                            ];
+                            return helpResponses[Math.floor(Math.random() * helpResponses.length)];
+                    }
+                }
+
+                // Medium confidence - ask for clarification with personality
+                if (confidence >= 5) {
+                    const clarifications = [
+                        `I think you're asking about ${intentType.replace(/([A-Z])/g, ' $1').toLowerCase()}, but I want to make sure I give you the perfect answer! 😊 Could you be more specific?`,
+                        `Hmm, sounds like you need help with ${intentType.replace(/([A-Z])/g, ' $1').toLowerCase()} 🤔. Can you give me a bit more detail so I can help you better?`,
+                        `I'm picking up on ${intentType.replace(/([A-Z])/g, ' $1').toLowerCase()} vibes! 🎯 Help me understand exactly what you need so I can give you the best guidance.`
+                    ];
+                    return clarifications[Math.floor(Math.random() * clarifications.length)];
+                }
+
+                // Low confidence - general help with personality
+                const generalHelps = [
+                    `I'm ${agent}, your FreightPro support superstar! ⭐ I can help with registration, load management, pricing, account settings, and more! What would you like to explore?`,
+                    `Hey! 👋 ${agent} here, your FreightPro guide! I'm here to help with everything - registration, loads, pricing, profiles. What adventure shall we go on? 🚀`,
+                    `Hi there! 😊 ${agent} at your service! I know FreightPro inside and out. Whether it's loads, accounts, pricing, or anything else - I'm your go-to person! What can I help you with?`
+                ];
+                return generalHelps[Math.floor(Math.random() * generalHelps.length)];
+            }
+
+            // Add typing indicator for realistic chat experience
+            function showTypingIndicator() {
+                const messagesList = document.getElementById('fpChatMessages');
+                if (!messagesList) return;
+                
+                // Remove any existing typing indicator first
+                hideTypingIndicator();
+                
+                const typingEl = document.createElement('div');
+                typingEl.id = 'typingIndicator';
+                typingEl.className = 'flex justify-start animate-fadeIn';
+                typingEl.innerHTML = `
+                    <div class="max-w-[85%] bg-white border border-gray-200 text-gray-500 rounded-lg px-3 py-2 text-sm shadow-sm">
+                        <div class="flex items-center space-x-1">
+                            <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <span class="ml-2 text-xs font-medium">${getSupportAgentName()} is typing...</span>
+                        </div>
+                    </div>
+                `;
+                messagesList.appendChild(typingEl);
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+
+            function hideTypingIndicator() {
+                const typingEl = document.getElementById('typingIndicator');
+                if (typingEl) {
+                    typingEl.style.opacity = '0';
+                    typingEl.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        if (typingEl && typingEl.parentNode) {
+                            typingEl.parentNode.removeChild(typingEl);
+                        }
+                    }, 200);
+                }
+            }
+
+            function saveChatHistory(){ try { localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages)); } catch(e){} }
+            function loadChatHistory(){
+                try { chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || []; } catch(e){ chatState.messages = []; }
+                const list = document.getElementById('fpChatMessages'); if (!list) return;
+                chatState.messages.forEach(m => addMessage(m.role, m.text));
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', createChatUI); else createChatUI();
+        })();
         
         // Live Features - Multi-User Optimized
         function initializeLiveFeatures() {
