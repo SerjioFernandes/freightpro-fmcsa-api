@@ -885,7 +885,19 @@
                     if (!s || s <= 0) { s = now(); setStart(s); }
                     // start the ticking loop regardless of login state so guests will always have the timer available
                     updateForTiming();
-                    const interval = setInterval(updateForTiming, 1000);
+                    // Ensure visibility flag exists before first use
+                    if (typeof window.isPageVisible === 'undefined') {
+                        window.isPageVisible = !document.hidden;
+                        document.addEventListener('visibilitychange', function(){
+                            window.isPageVisible = !document.hidden;
+                        });
+                    }
+                    // Optimized timer - only update every 2 seconds instead of every second
+                    const interval = setInterval(() => {
+                        if (window.isPageVisible) {
+                            updateForTiming();
+                        }
+                    }, 2000);
 
                     // Ensure plan buttons redirect guests to register as well
                     ['chooseBasic','chooseAdvanced','chooseUltima'].forEach(function(id){
@@ -1889,6 +1901,33 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Posted Loads Section -->
+                <div class="mt-12">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800" id="postedLoadsTitle">
+                                <i class="fas fa-truck mr-2 text-blue-600"></i>Your Posted Loads
+                            </h3>
+                            <button onclick="showPage('postload')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Post New Load
+                            </button>
+                        </div>
+                        
+                        <div id="postedLoadsContainer">
+                            <!-- Posted loads will be populated here -->
+                        </div>
+                        
+                        <div id="noPostedLoads" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-truck text-4xl mb-4 text-gray-300"></i>
+                            <p class="text-lg mb-2">No loads posted yet</p>
+                            <p class="text-sm">Start by posting your first load to get carriers interested</p>
+                            <button onclick="showPage('postload')" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Post Your First Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2848,7 +2887,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Max Miles</label>
-                        <input type="number" id="maxMiles" placeholder="500" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="searchLoads()">
+                        <input type="number" id="maxMiles" placeholder="" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="searchLoads()">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Load Type</label>
@@ -3034,160 +3073,318 @@
             </div>
         </div>
         
-        <!-- Post Load Form (only visible to authorized users) -->
-        <div id="postLoadForm" class="max-w-4xl mx-auto px-4 py-8 hidden">
-            <div class="text-center mb-8">
-                <i class="fas fa-plus-circle text-4xl text-blue-600 mb-4"></i>
-                <h1 class="text-3xl font-bold">Post a Load</h1>
-                <p class="text-gray-600">Reach thousands of qualified carriers instantly</p>
+        <!-- Professional Post Load Form -->
+        <div id="postLoadForm" class="max-w-7xl mx-auto px-8 py-12 pb-20 hidden">
+            <!-- Professional Header Section -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-12 mb-12 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-2">Post a Load</h1>
+                        <p class="text-blue-100 text-lg">Reach thousands of qualified carriers instantly with our professional load board</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <i class="fas fa-truck-loading text-6xl text-blue-200"></i>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center space-x-6 text-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-users mr-2"></i>
+                        <span>2,500+ Active Carriers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span>Average Response: 15 min</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        <span>Verified Carriers Only</span>
+                    </div>
+                </div>
             </div>
             
-            <form class="bg-white rounded-lg shadow-lg p-8 space-y-8" onsubmit="handlePostLoad(event)">
-                <!-- Load Information -->
-                <div class="border-b pb-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>Load Information
-                    </h2>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Load Type *</label>
-                            <select name="loadType" required class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Select Load Type</option>
-                                <option value="Full Truckload">Full Truckload</option>
-                                <option value="LTL">Less Than Truckload</option>
-                                <option value="Partial">Partial Load</option>
-                                <option value="Expedited">Expedited</option>
-                            </select>
+            <!-- Progress Indicator -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-12">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                            <span class="ml-2 text-sm font-medium">Load Details</span>
+                        </div>
+                        <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                            <span class="ml-2 text-sm text-gray-500">Route & Timing</span>
+                        </div>
+                        <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                            <span class="ml-2 text-sm text-gray-500">Rate & Terms</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-save mr-1"></i>
+                        Auto-save enabled
+                    </div>
+                </div>
+            </div>
+            
+            <form class="bg-white rounded-lg shadow-lg overflow-hidden" onsubmit="handlePostLoad(event)" id="loadPostForm">
+                <!-- Step 1: Load Information -->
+                <div class="p-12 border-b border-gray-200">
+                    <div class="flex items-center mb-10">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-6">
+                            <i class="fas fa-box text-blue-600 text-xl"></i>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Equipment Type *</label>
-                            <select name="equipmentType" required class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <h2 class="text-3xl font-bold text-gray-900">Load Information</h2>
+                            <p class="text-gray-600 text-lg">Tell us about your freight and requirements</p>
+                        </div>
+                    </div>
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <!-- Load Type -->
+                        <div class="lg:col-span-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Load Type <span class="text-red-500">*</span>
+                            </label>
+                            <select name="loadType" required class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
+                                <option value="">Select Load Type</option>
+                                <option value="Full Truckload">🚛 Full Truckload (FTL)</option>
+                                <option value="Less Than Truckload">📦 Less Than Truckload (LTL)</option>
+                                <option value="Partial">🔀 Partial Load</option>
+                                <option value="Expedited">⚡ Expedited</option>
+                                <option value="Hot Shot">🔥 Hot Shot</option>
+                            </select>
+                        </div>
+
+                        <!-- Equipment Type -->
+                        <div class="lg:col-span-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Equipment Type <span class="text-red-500">*</span>
+                            </label>
+                            <select name="equipmentType" required class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                                 <option value="">Select Equipment</option>
-                                <option value="Van">🚐 Van</option>
+                                <option value="Van">🚐 Dry Van</option>
                                 <option value="Flatbed">🚛 Flatbed</option>
-                                <option value="Reefer">❄️ Reefer</option>
+                                <option value="Reefer">❄️ Refrigerated</option>
                                 <option value="Step Deck">📐 Step Deck</option>
                                 <option value="Lowboy">⬇️ Lowboy</option>
                                 <option value="Tanker">🛢️ Tanker</option>
                                 <option value="Container">📦 Container</option>
                                 <option value="Car Carrier">🚗 Car Carrier</option>
+                                <option value="Power Only">🔌 Power Only</option>
                             </select>
                         </div>
+
+                        <!-- Commodity -->
+                        <div class="lg:col-span-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Commodity</label>
+                            <select name="commodity" id="commoditySelect" onchange="handleCommodityChange()" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
+                                <option value="">Select Commodity</option>
+                                <option value="General Freight">📦 General Freight</option>
+                                <option value="Electronics">📱 Electronics</option>
+                                <option value="Food & Beverage">🍎 Food & Beverage</option>
+                                <option value="Automotive">🚗 Automotive</option>
+                                <option value="Construction">🏗️ Construction Materials</option>
+                                <option value="Machinery">⚙️ Machinery</option>
+                                <option value="Textiles">👕 Textiles</option>
+                                <option value="Chemicals">🧪 Chemicals</option>
+                                <option value="Other">📋 Other</option>
+                                <option value="manual">✏️ Manual Entry (Custom)</option>
+                            </select>
+                            
+                            <!-- Manual Commodity Input (Hidden by default) -->
+                            <div id="manualCommodityContainer" class="mt-3 hidden">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Custom Commodity <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="customCommodity" id="customCommodityInput" 
+                                       placeholder="Enter your commodity type (e.g., Medical Supplies, Furniture, etc.)"
+                                       class="w-full px-5 py-4 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-blue-50 hover:bg-white text-base">
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Be specific about your commodity type for better carrier matching
+                        </div>
+                            </div>
+                        </div>
+                        <!-- Weight -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Weight (lbs)</label>
-                            <input type="number" name="weight" placeholder="45000" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Weight (lbs) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="weight" placeholder="45,000" min="1" max="80000" required
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
+                        </div>
+
+                        <!-- Length -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Length (ft) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="length" placeholder="48" min="1" max="53" required
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
+                        </div>
+
+
+                        <!-- Load Title -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Load Title <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="title" required placeholder="e.g., General Freight - Electronics" 
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Length (ft)</label>
-                            <input type="number" name="length" placeholder="48" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Load Title *</label>
-                            <input type="text" name="title" required placeholder="High Priority Electronics Load" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Distance (miles)</label>
-                            <input type="number" name="distance" placeholder="500" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Distance (miles)</label>
+                            <input type="number" name="distance" placeholder="" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                         </div>
                     </div>
                 </div>
 
                 <!-- Pickup Information -->
-                <div class="border-b pb-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-map-marker-alt mr-2 text-green-600"></i>Pickup Information
+                <div class="p-12 border-b border-gray-200">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-6">
+                            <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                        </div>
+                        Pickup Information
                     </h2>
-                    <div class="grid md:grid-cols-2 gap-6">
+                    <div class="grid md:grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Pickup City, State *</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Pickup City, State <span class="text-red-500">*</span></label>
                             <input type="text" required placeholder="Chicago, IL" name="originLocation" 
-                                   class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Pickup ZIP Code</label>
-                            <input type="text" placeholder="60601" name="originZip" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Pickup ZIP Code</label>
+                            <input type="text" placeholder="60601" name="originZip" id="originZip" 
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base"
+                                   onblur="validateZipCode('originZip', 'originLocation')" oninput="validateZipCode('originZip', 'originLocation')">
+                            <div id="originZipError" class="mt-2 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                This ZIP code does not match the city/state entered
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Date *</label>
-                            <input type="date" name="pickupDate" required class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Pickup Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="pickupDate" id="pickupDate" required 
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base"
+                                   onchange="validatePickupDate()" oninput="validatePickupDate()">
+                            <div id="pickupDateError" class="mt-2 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Please enter a valid date (cannot be earlier than today)
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Time</label>
-                            <select name="pickupTime" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Pickup Time</label>
+                            <select name="pickupTime" id="pickupTimeSelect" onchange="handlePickupTimeChange()" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                                 <option value="">Anytime</option>
                                 <option value="morning">Morning (6AM-12PM)</option>
                                 <option value="afternoon">Afternoon (12PM-6PM)</option>
                                 <option value="evening">Evening (6PM-12AM)</option>
+                                <option value="manual">✏️ Manual Entry (Custom Time)</option>
                             </select>
+                            
+                            <!-- Manual Pickup Time Input (Hidden by default) -->
+                            <div id="manualPickupTimeContainer" class="mt-3 hidden">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Custom Pickup Time <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time" name="customPickupTime" id="customPickupTimeInput" 
+                                       class="w-full px-5 py-4 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-blue-50 hover:bg-white text-base">
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Enter specific pickup time (e.g., 2:30 PM)
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Delivery Information -->
-                <div class="border-b pb-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-flag-checkered mr-2 text-red-600"></i>Delivery Information
+                <div class="p-12 border-b border-gray-200">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-6">
+                            <i class="fas fa-flag-checkered text-red-600 text-xl"></i>
+                        </div>
+                        Delivery Information
                     </h2>
-                    <div class="grid md:grid-cols-2 gap-6">
+                    <div class="grid md:grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery City, State *</label>
-                            <input type="text" required placeholder="Atlanta, GA" name="destinationLocation"
-                                   class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Delivery City, State <span class="text-red-500">*</span></label>
+                            <input type="text" required placeholder="Atlanta, GA" name="destinationLocation" id="destinationLocation"
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery ZIP Code</label>
-                            <input type="text" placeholder="30301" name="destinationZip" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Delivery ZIP Code</label>
+                            <input type="text" placeholder="30301" name="destinationZip" id="destinationZip" 
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base"
+                                   onblur="validateZipCode('destinationZip', 'destinationLocation')" oninput="validateZipCode('destinationZip', 'destinationLocation')">
+                            <div id="destinationZipError" class="mt-2 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                This ZIP code does not match the city/state entered
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Date</label>
-                            <input type="date" name="deliveryDate" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Delivery Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="deliveryDate" id="deliveryDate" required 
+                                   class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base"
+                                   onchange="validateDeliveryDate()" oninput="validateDeliveryDate()">
+                            <div id="deliveryDateError" class="mt-2 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Please enter a valid date (cannot be earlier than pickup date)
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Time</label>
-                            <select name="deliveryTime" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Delivery Time</label>
+                            <select name="deliveryTime" id="deliveryTimeSelect" onchange="handleDeliveryTimeChange()" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                                 <option value="">Anytime</option>
                                 <option value="morning">Morning (6AM-12PM)</option>
                                 <option value="afternoon">Afternoon (12PM-6PM)</option>
                                 <option value="evening">Evening (6PM-12AM)</option>
+                                <option value="manual">✏️ Manual Entry (Custom Time)</option>
                             </select>
+                            
+                            <!-- Manual Delivery Time Input (Hidden by default) -->
+                            <div id="manualDeliveryTimeContainer" class="mt-3 hidden">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Custom Delivery Time <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time" name="customDeliveryTime" id="customDeliveryTimeInput" 
+                                       class="w-full px-5 py-4 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-blue-50 hover:bg-white text-base">
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Enter specific delivery time (e.g., 4:30 PM)
+                        </div>
+                    </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Route Preview Map -->
-                <div class="border-b pb-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-route mr-2 text-purple-600"></i>Route Preview
-                    </h2>
-                    <div id="routeMap" class="map-container bg-gray-100 flex items-center justify-center">
-                        <div class="text-center text-gray-500">
-                            <i class="fas fa-map text-4xl mb-2"></i>
-                            <div>Enter pickup and delivery locations to see route preview</div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Rate Information -->
-                <div class="border-b pb-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-dollar-sign mr-2 text-green-600"></i>Rate Information
+                <div class="p-12 border-b border-gray-200">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-6">
+                            <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                        </div>
+                        Rate Information
                     </h2>
-                    <div class="grid md:grid-cols-3 gap-6">
+                    <div class="grid md:grid-cols-3 gap-8">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rate Type</label>
-                            <select name="rateType" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Rate Type</label>
+                            <select name="rateType" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                                 <option value="flat">Flat Rate</option>
                                 <option value="per_mile">Per Mile</option>
                                 <option value="negotiable">Negotiable</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rate Amount ($) *</label>
-                            <input type="number" name="rate" required placeholder="2500" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Rate Amount ($) <span class="text-red-500">*</span></label>
+                            <input type="number" name="rate" required placeholder="2500" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
-                            <select name="paymentTerms" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus-border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Terms</label>
+                            <select name="paymentTerms" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base">
                                 <option value="net30">Net 30</option>
                                 <option value="net15">Net 15</option>
                                 <option value="quick_pay">Quick Pay</option>
@@ -3198,59 +3395,73 @@
                 </div>
 
                 <!-- Additional Information -->
-                <div>
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-clipboard-list mr-2 text-orange-600"></i>Additional Information
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Load Description</label>
-                            <textarea name="description" rows="3" placeholder="Describe the load, special requirements, etc." 
-                                      class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus-border-blue-500"></textarea>
+                <div class="p-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-6">
+                            <i class="fas fa-clipboard-list text-orange-600 text-xl"></i>
                         </div>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Hazmat Required</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Team Driver Required</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Expedited Service</span>
-                                </label>
+                        Additional Information
+                    </h2>
+                    <div class="space-y-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Load Description</label>
+                            <textarea name="description" rows="4" placeholder="Describe the load, special requirements, etc." 
+                                      class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white text-base resize-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="hazmat" id="hazmat" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="hazmat" class="text-base font-medium text-gray-700 cursor-pointer">🚨 Hazmat Required</label>
                             </div>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Temperature Controlled</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Liftgate Required</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Inside Delivery</span>
-                                </label>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="tempControl" id="tempControl" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="tempControl" class="text-base font-medium text-gray-700 cursor-pointer">❄️ Temperature Controlled</label>
+                            </div>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="teamDriver" id="teamDriver" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="teamDriver" class="text-base font-medium text-gray-700 cursor-pointer">👥 Team Driver Required</label>
+                        </div>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="liftgate" id="liftgate" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="liftgate" class="text-base font-medium text-gray-700 cursor-pointer">🔧 Liftgate Required</label>
+                            </div>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="expedited" id="expedited" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="expedited" class="text-base font-medium text-gray-700 cursor-pointer">⚡ Expedited Service</label>
+                            </div>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="insideDelivery" id="insideDelivery" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="insideDelivery" class="text-base font-medium text-gray-700 cursor-pointer">🏢 Inside Delivery</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-4 pt-6">
+                <!-- Form Navigation -->
+                <div class="flex justify-between items-center pt-12 pb-16 px-12 border-t border-gray-200">
+                    <div class="flex items-center text-base text-gray-500">
+                        <i class="fas fa-shield-alt mr-3 text-green-500 text-lg"></i>
+                        <span>Your load will be posted to verified carriers only</span>
+                    </div>
+                    <div class="flex space-x-6">
                     <button type="button" onclick="showPage('loadboard')" 
-                            class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                                class="px-8 py-4 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold text-base">
                         <i class="fas fa-times mr-2"></i>Cancel
                     </button>
-                    <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+                        <button type="button" onclick="saveDraft()" 
+                                class="px-8 py-4 border-2 border-blue-300 text-blue-600 rounded-xl hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 font-semibold text-base">
+                            <i class="fas fa-save mr-2"></i>Save Draft
+                        </button>
+                        <button type="submit" 
+                                class="px-10 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-base">
                         <i class="fas fa-paper-plane mr-2"></i>Post Load
                     </button>
+                    </div>
                 </div>
             </form>
+            
+            <!-- Extra bottom spacing -->
+            <div class="h-16"></div>
         </div>
     </div>
 
@@ -4158,8 +4369,8 @@
         // Global variables
         let currentUser = null;
         // Dynamic Load System - Generate 1000+ realistic loads
-        function generateDynamicLoads() {
-            const cities = [
+        // Optimized load generation with memory efficiency
+        const CITY_POOL = [
                 { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
                 { name: 'Atlanta, GA', lat: 33.7490, lng: -84.3880 },
                 { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
@@ -4206,146 +4417,7 @@
                 { name: 'Boise, ID', lat: 43.6150, lng: -116.2023 }
             ];
 
-            const companies = [
-                'ABC Logistics', 'West Coast Freight', 'Fresh Transport', 'Lone Star Logistics', 'Pacific Northwest Carriers',
-                'Texas Cold Chain', 'Mountain Peak Transport', 'Northeast Express', 'Midwest Haulers', 'Music City Cold',
-                'Great Lakes Transport', 'Bay Area Logistics', 'Rust Belt Freight', 'Florida Fresh Transport', 'Desert Transport Co',
-                'Keystone Freight', 'Pacific Northwest Cold', 'Carolina Transport', 'Heartland Haulers', 'Sooner State Logistics',
-                'Southwest Cold Chain', 'Bluegrass Transport', 'Crimson Tide Freight', 'Virginia Transport', 'Inland Northwest Cold',
-                'Golden State Transport', 'Sunshine Logistics', 'Northwest Freight', 'Elite Freight Solutions', 'Premier Transport',
-                'Express Logistics', 'Reliable Haulers', 'Swift Transport', 'United Freight', 'National Carriers',
-                'Interstate Logistics', 'Cross Country Transport', 'Regional Freight', 'Metro Logistics', 'Coastal Transport',
-                'Mountain View Freight', 'Desert Express', 'Valley Transport', 'Riverside Logistics', 'Summit Carriers'
-            ];
-
-            const equipmentTypes = ['Van', 'Reefer', 'Flatbed', 'Container', 'Tanker'];
-            const commodities = [
-                'Electronics', 'Construction Materials', 'Frozen Foods', 'Consumer Goods', 'Retail Merchandise',
-                'Dairy Products', 'Steel Beams', 'Pharmaceuticals', 'Automotive Parts', 'Fresh Produce',
-                'Machinery', 'Technology Equipment', 'Manufacturing Parts', 'Building Materials', 'Textiles',
-                'Steel Coils', 'Oil Field Equipment', 'Fresh Vegetables', 'Frozen Seafood', 'Military Equipment',
-                'Frozen Potatoes', 'Paper Products', 'Chemicals', 'Plastics', 'Furniture'
-            ];
-
-            const requirements = [
-                'Temperature controlled, inside delivery required',
-                'Tarp required, securement needed',
-                'Temperature -10°F, continuous operation',
-                'Inside delivery, appointment required',
-                'Inside delivery, liftgate required',
-                'Temperature 38°F, continuous operation',
-                'Tarp required, chains and binders',
-                'Temperature controlled, security seal',
-                'Inside delivery, appointment required',
-                'Temperature 34°F, continuous operation',
-                'Tarp required, securement needed',
-                'Inside delivery, white glove service',
-                'Inside delivery, appointment required',
-                'Temperature 38°F, continuous operation',
-                'Tarp required, securement needed',
-                'Inside delivery, liftgate required',
-                'Inside delivery, appointment required',
-                'Temperature -20°F, continuous operation',
-                'Inside delivery, clean trailer required',
-                'Tarp required, chains and binders',
-                'Security clearance required, appointment only',
-                'Temperature -10°F, continuous operation'
-            ];
-
-            const loads = [];
-            const totalLoads = 1000;
-
-            for (let i = 1; i <= totalLoads; i++) {
-                const origin = cities[Math.floor(Math.random() * cities.length)];
-                let destination;
-                do {
-                    destination = cities[Math.floor(Math.random() * cities.length)];
-                } while (destination.name === origin.name);
-
-                const equipment = equipmentTypes[Math.floor(Math.random() * equipmentTypes.length)];
-                const commodity = commodities[Math.floor(Math.random() * commodities.length)];
-                const company = companies[Math.floor(Math.random() * companies.length)];
-                const requirement = requirements[Math.floor(Math.random() * requirements.length)];
-
-                // Calculate realistic miles and rates
-                const miles = Math.floor(Math.random() * 2000) + 100; // 100-2100 miles
-                const baseRatePerMile = equipment === 'Reefer' ? 3.5 + Math.random() * 2 : 
-                                       equipment === 'Flatbed' ? 2.8 + Math.random() * 1.5 :
-                                       equipment === 'Tanker' ? 4.0 + Math.random() * 2 :
-                                       2.5 + Math.random() * 1.5; // Van/Container
-                const rate = Math.floor(miles * baseRatePerMile);
-                const ratePerMile = (rate / miles).toFixed(2);
-
-                // Generate realistic dates
-                const pickupDate = new Date();
-                pickupDate.setDate(pickupDate.getDate() + Math.floor(Math.random() * 7) + 1);
-                const deliveryDate = new Date(pickupDate);
-                deliveryDate.setDate(deliveryDate.getDate() + Math.ceil(miles / 500) + Math.floor(Math.random() * 2));
-
-                // Generate realistic weight
-                const weight = equipment === 'Tanker' ? 80000 :
-                              equipment === 'Flatbed' ? 45000 + Math.floor(Math.random() * 10000) :
-                              equipment === 'Reefer' ? 40000 + Math.floor(Math.random() * 5000) :
-                              35000 + Math.floor(Math.random() * 10000);
-
-                // Generate realistic posting time
-                const hoursAgo = Math.floor(Math.random() * 48); // 0-48 hours ago
-                const posted = hoursAgo === 0 ? 'Just now' :
-                              hoursAgo === 1 ? '1 hour ago' :
-                              hoursAgo < 24 ? `${hoursAgo} hours ago` :
-                              `${Math.floor(hoursAgo / 24)} day${Math.floor(hoursAgo / 24) > 1 ? 's' : ''} ago`;
-
-                // Generate contact info
-                const firstNames = ['John', 'Mike', 'Sarah', 'Lisa', 'David', 'Jennifer', 'Robert', 'Amanda', 'Thomas', 'Maria', 'James', 'Nancy', 'Brian', 'Lisa', 'Christopher', 'Angela', 'Mark', 'Jennifer', 'Daniel', 'Patricia'];
-                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
-                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-                const phone = `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
-                const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${company.toLowerCase().replace(/\s+/g, '')}.com`;
-
-                // Determine status - most loads should be available, some booked
-                const statusRandom = Math.random();
-                const status = statusRandom < 0.85 ? 'available' : 
-                              statusRandom < 0.95 ? 'booked' : 'in_transit';
-
-                const load = {
-                    id: `FCP-${i.toString().padStart(3, '0')}`,
-                    origin: origin.name,
-                    destination: destination.name,
-                    equipment: equipment,
-                    miles: miles,
-                    rate: rate,
-                    ratePerMile: parseFloat(ratePerMile),
-                    pickupDate: pickupDate.toISOString().split('T')[0],
-                    deliveryDate: deliveryDate.toISOString().split('T')[0],
-                    weight: weight,
-                    loadType: Math.random() > 0.1 ? 'Full Truckload' : 'Partial',
-                    company: company,
-                    contact: `${firstName} ${lastName}`,
-                    phone: phone,
-                    email: email,
-                    commodity: commodity,
-                    requirements: requirement,
-                    posted: posted,
-                    priority: Math.random() > 0.8 ? (Math.random() > 0.5 ? 'high' : 'urgent') : 'normal',
-                    status: status,
-                    postedBy: 'system',
-                    coordinates: { 
-                        pickup: { lat: origin.lat, lng: origin.lng }, 
-                        delivery: { lat: destination.lat, lng: destination.lng } 
-                    },
-                    // Add metadata for smart filtering
-                    region: getRegion(origin.name),
-                    equipmentCategory: getEquipmentCategory(equipment),
-                    rateCategory: getRateCategory(ratePerMile),
-                    distanceCategory: getDistanceCategory(miles)
-                };
-
-                loads.push(load);
-            }
-
-            return loads;
-        }
+        // (Old inlined generateDynamicLoads implementation removed in favor of optimized version below)
 
         // Helper functions for smart filtering
         function getRegion(city) {
@@ -4391,15 +4463,93 @@
             return 'Cross-Country';
         }
 
-        // Generate the dynamic loads
-        const sampleLoads = generateDynamicLoads();
+        // Advanced memory cleanup function
+        function cleanupMemory() {
+            // Clear old data that's no longer needed
+            if (loads.length > MAX_LOADS) {
+                loads = loads.slice(-MAX_LOADS);
+                filteredLoads = [...loads];
+                window.loads = loads;
+            }
+            
+            // Clear old performance data
+            if (performanceMonitor.responseTimes.length > 20) {
+                performanceMonitor.responseTimes = performanceMonitor.responseTimes.slice(-10);
+            }
+            
+            // Clear DOM element cache if it gets too large
+            if (Object.keys(liveStatsCache).length > 20) {
+                Object.keys(liveStatsCache).forEach(key => {
+                    if (liveStatsCache[key] && !document.contains(liveStatsCache[key])) {
+                        liveStatsCache[key] = null;
+                    }
+                });
+            }
+            
+            // Clear old API cache data
+            Object.keys(apiCache).forEach(key => {
+                if (apiCache[key] && apiCache[key].data) {
+                    const age = Date.now() - apiCache[key].timestamp;
+                    if (age > apiCache[key].ttl * 2) { // Clear if 2x older than TTL
+                        apiCache[key].data = null;
+                    }
+                }
+            });
+            
+            // Force garbage collection hint (if available)
+            if (window.gc) {
+                window.gc();
+            }
+        }
+        
+        // Optimized load generation function
+        function generateDynamicLoads(count = 100) {
+            const loads = [];
+            const startTime = Date.now();
+            
+            for (let i = 0; i < count; i++) {
+                const origin = CITY_POOL[Math.floor(Math.random() * CITY_POOL.length)];
+                let destination;
+                do {
+                    destination = CITY_POOL[Math.floor(Math.random() * CITY_POOL.length)];
+                } while (destination.name === origin.name);
+                
+                const miles = Math.floor(Math.random() * 2000) + 50;
+                const rate = Math.floor(Math.random() * 3000) + 800;
+                
+                loads.push({
+                    id: `FCP-${(i + 1).toString().padStart(3, '0')}`,
+                    origin: origin.name,
+                    destination: destination.name,
+                    miles: miles,
+                    rate: rate,
+                    equipment: ['Dry Van', 'Reefer', 'Flatbed', 'Container'][Math.floor(Math.random() * 4)],
+                    weight: Math.floor(Math.random() * 40000) + 10000,
+                    pickupDate: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    status: 'available'
+                });
+            }
+            
+            const generationTime = Date.now() - startTime;
+            console.log(`Generated ${count} loads in ${generationTime}ms`);
+            return loads;
+        }
+        
+        // Load management with memory optimization
+        const MAX_LOADS = 500; // Maximum loads to prevent memory issues
+
+        // Generate the dynamic loads (optimized for memory)
+        const sampleLoads = generateDynamicLoads(MAX_LOADS);
 
         const normalizedSampleLoads = Array.isArray(sampleLoads)
             ? sampleLoads.map(normalizeLoad).filter(Boolean)
             : [];
-        let loads = [...normalizedSampleLoads];
-        let filteredLoads = [...normalizedSampleLoads];
+        
+        // Initialize with limited loads
+        let loads = [...normalizedSampleLoads.slice(0, MAX_LOADS)];
+        let filteredLoads = [...loads];
         let bookedLoads = [];
+        let loadRefreshCounter = 0; // Track refresh cycles
         let users = JSON.parse(localStorage.getItem('users') || '[]');
         let savedSearches = [];
         let currentPage = 1;
@@ -4549,8 +4699,70 @@
 
         let isLoadingLoads = false;
 
+        // Advanced API caching mechanism for multiple users
+        const apiCache = {
+            loads: {
+                data: null,
+                timestamp: 0,
+                ttl: 30000, // 30 seconds cache
+                requestCount: 0,
+                lastAccess: 0,
+                userCount: 0
+            },
+            users: {
+                data: null,
+                timestamp: 0,
+                ttl: 60000, // 1 minute cache
+                requestCount: 0
+            },
+            statistics: {
+                data: null,
+                timestamp: 0,
+                ttl: 10000, // 10 seconds cache
+                requestCount: 0
+            }
+        };
+        
+        // Smart cache management
+        function getCacheTTL(cacheKey) {
+            const profile = performanceProfiles[userActivityLevel];
+            return apiCache[cacheKey] ? profile.cacheTime : 30000;
+        }
+        
+        function updateCacheStats(cacheKey) {
+            if (apiCache[cacheKey]) {
+                apiCache[cacheKey].requestCount++;
+                apiCache[cacheKey].lastAccess = Date.now();
+                apiCache[cacheKey].userCount = concurrentUsers;
+            }
+        }
+
         async function fetchLoadsFromBackend(query = {}) {
-            const params = new URLSearchParams({ limit: 50, status: 'available', ...query });
+            const startTime = Date.now();
+            const now = Date.now();
+            
+            // Dynamic cache TTL based on system load
+            const cacheTTL = getCacheTTL('loads');
+            
+            // Check cache first (unless force refresh is requested)
+            if (apiCache.loads.data && 
+                (now - apiCache.loads.timestamp) < cacheTTL &&
+                !query.forceRefresh) {
+                updateCacheStats('loads');
+                trackResponseTime(startTime);
+                return apiCache.loads.data;
+            }
+
+            // Adjust request parameters based on system load
+            const limit = userActivityLevel === 'critical' ? 25 : 
+                         userActivityLevel === 'high' ? 35 : 50;
+            
+            const params = new URLSearchParams({ 
+                limit: limit, 
+                status: 'available', 
+                ...query 
+            });
+            
             const url = `${window.API_BASE_URL}/loads?${params.toString()}`;
             const token = getAuthToken();
             const headers = { 'Content-Type': 'application/json' };
@@ -4558,21 +4770,46 @@
 
             try {
                 const response = await safeFetch(url, { method: 'GET', headers });
-                if (!response) return null;
+                if (!response) {
+                    updateCacheStats('loads');
+                    trackResponseTime(startTime);
+                    return apiCache.loads.data; // Return cached data if available
+                }
+                
                 if (response.status === 401) {
                     showNotification('Please log in to view live loads.', 'warning');
-                    return null;
+                    updateCacheStats('loads');
+                    trackResponseTime(startTime);
+                    return apiCache.loads.data; // Return cached data if available
                 }
+                
                 if (!response.ok) {
                     const errText = await response.text();
                     throw new Error(errText || 'Failed to fetch loads');
                 }
+                
                 const data = await response.json();
-                if (!data || !Array.isArray(data.loads)) return null;
-                return data.loads.map(normalizeLoad).filter(Boolean);
+                if (!data || !Array.isArray(data.loads)) {
+                    updateCacheStats('loads');
+                    trackResponseTime(startTime);
+                    return apiCache.loads.data;
+                }
+                
+                const processedData = data.loads.map(normalizeLoad).filter(Boolean);
+                
+                // Update cache with new TTL
+                apiCache.loads.data = processedData;
+                apiCache.loads.timestamp = now;
+                apiCache.loads.ttl = cacheTTL;
+                updateCacheStats('loads');
+                
+                trackResponseTime(startTime);
+                return processedData;
             } catch (error) {
-                console.warn('Falling back to sample loads:', error.message || error);
-                return null;
+                console.warn('Falling back to cached/sample loads:', error.message || error);
+                updateCacheStats('loads');
+                trackResponseTime(startTime);
+                return apiCache.loads.data; // Return cached data if available
             }
         }
 
@@ -4925,17 +5162,53 @@
             }
         }
 
+        // Debounced refresh function to prevent overlapping calls
+        let refreshDebounceTimer = null;
+        let lastRefreshTime = 0;
+        const MIN_REFRESH_INTERVAL = 30000; // Minimum 30 seconds between refreshes
+
+        function debouncedRefreshLoads() {
+            if (refreshDebounceTimer) {
+                clearTimeout(refreshDebounceTimer);
+            }
+            
+            refreshDebounceTimer = setTimeout(() => {
+                const now = Date.now();
+                if (now - lastRefreshTime > MIN_REFRESH_INTERVAL) {
+                    refreshLoads();
+                    lastRefreshTime = now;
+                }
+            }, 1000); // 1 second debounce
+        }
+
         function enableAutoRefresh() {
             if (autoRefreshEnabled) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
                 autoRefreshEnabled = false;
-                // showNotification('Auto refresh disabled.', 'info');
+                showNotification('Auto refresh disabled.', 'info');
             } else {
-                refreshLoads();
-                autoRefreshInterval = setInterval(refreshLoads, 60000);
+                // Only start auto-refresh if page is visible
+                if (isPageVisible) {
+                    debouncedRefreshLoads();
+                    
+                    // Dynamic refresh interval based on system load
+                    const refreshInterval = userActivityLevel === 'critical' ? 120000 : // 2 minutes
+                                          userActivityLevel === 'high' ? 90000 :      // 1.5 minutes
+                                          userActivityLevel === 'normal' ? 60000 :    // 1 minute
+                                          45000; // 45 seconds for low load
+                    
+                    autoRefreshInterval = setInterval(() => {
+                        if (isPageVisible) {
+                            debouncedRefreshLoads();
+                        }
+                    }, refreshInterval);
+                    
                 autoRefreshEnabled = true;
-                showNotification('Auto refresh enabled (refreshes every 60 seconds).', 'success');
+                    showNotification(`Auto refresh enabled (refreshes every ${Math.round(refreshInterval/1000)} seconds).`, 'success');
+                } else {
+                    showNotification('Auto refresh will start when page becomes visible.', 'info');
+                }
             }
             updateAutoRefreshButton();
         }
@@ -5049,19 +5322,82 @@
 
         async function initializeLoadBoard(forceRefresh = false) {
             if (isLoadingLoads && !forceRefresh) return;
+            if (!isPageVisible && !forceRefresh) return; // Don't load if page is not visible
+            
             buildEquipmentDropdown();
             setLoadingState(true);
-            const liveLoads = await fetchLoadsFromBackend();
-            loads = Array.isArray(liveLoads) && liveLoads.length ? liveLoads : normalizedSampleLoads;
+            
+            try {
+                // Load from backend with caching
+                const liveLoads = await fetchLoadsFromBackend({ forceRefresh });
+            let backendLoads = Array.isArray(liveLoads) && liveLoads.length ? liveLoads : normalizedSampleLoads;
+            
+            // Load posted loads from localStorage
+            const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+            
+            // Combine backend loads with posted loads (posted loads first)
+                const allLoads = [...postedLoads, ...backendLoads];
+                
+                // Limit total loads to prevent memory issues
+                loads = allLoads.slice(0, MAX_LOADS);
+            
+            // Update window.loads for consistency
+            window.loads = loads;
+            
             filteredLoads = [...loads];
+                
+                // Only render if page is still visible
+                if (isPageVisible) {
             renderLoads(filteredLoads);
+                }
+            } catch (error) {
+                console.warn('Error initializing load board:', error);
+                // Fallback to sample loads
+                loads = normalizedSampleLoads;
+                filteredLoads = [...loads];
+                if (isPageVisible) {
+                    renderLoads(filteredLoads);
+                }
+            } finally {
             setLoadingState(false);
             updateAutoRefreshButton();
             checkPostLoadAccess();
+            }
         }
 
+        // Smart load refresh that maintains memory limits
         function refreshLoads() {
-            initializeLoadBoard(true);
+            loadRefreshCounter++;
+            console.log(`Load refresh cycle #${loadRefreshCounter} - Managing ${loads.length} loads`);
+            
+            // Generate new loads to replace old ones
+            const newLoads = generateDynamicLoads();
+            const replacementCount = Math.min(100, Math.floor(loads.length * 0.2)); // Replace 20% or 100 loads max
+            
+            // Remove old loads (keep the most recent ones)
+            loads = loads.slice(replacementCount);
+            
+            // Add new loads
+            const loadsToAdd = newLoads.slice(0, replacementCount);
+            loads = [...loads, ...loadsToAdd];
+            
+            // Ensure we don't exceed MAX_LOADS
+            if (loads.length > MAX_LOADS) {
+                loads = loads.slice(-MAX_LOADS); // Keep only the last MAX_LOADS
+            }
+            
+            // Update filtered loads
+            filteredLoads = [...loads];
+            
+            // Re-render if page is visible
+            if (isPageVisible) {
+                renderLoads(filteredLoads);
+            }
+            
+            // Update window.loads for consistency
+            window.loads = loads;
+            
+            console.log(`Load refresh complete - Now managing ${loads.length} loads`);
         }
 
         function checkPostLoadAccess() {
@@ -5092,26 +5428,58 @@
                 showPage('login');
                 return;
             }
+            
+            // Clear any editing state when navigating to post load page
+            window.editingLoadId = null;
+            
+            // Reset form to default state
+            const form = document.getElementById('loadPostForm');
+            if (form) {
+                form.reset();
+                
+                // Clear manual input containers
+                const manualCommodityContainer = document.getElementById('manualCommodityContainer');
+                const manualPickupTimeContainer = document.getElementById('manualPickupTimeContainer');
+                const manualDeliveryTimeContainer = document.getElementById('manualDeliveryTimeContainer');
+                
+                if (manualCommodityContainer) manualCommodityContainer.classList.add('hidden');
+                if (manualPickupTimeContainer) manualPickupTimeContainer.classList.add('hidden');
+                if (manualDeliveryTimeContainer) manualDeliveryTimeContainer.classList.add('hidden');
+                
+                // Reset form title and button
+                const formTitle = document.querySelector('#postLoadForm h1');
+                if (formTitle) {
+                    formTitle.textContent = 'Post a Load';
+                }
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Post Load';
+                }
+            }
+            
             showPage('postload');
             checkPostLoadAccess();
         }
         async function handlePostLoad(event) {
             event.preventDefault();
+            
+            // Check if user is logged in
             const user = getCurrentUser();
             if (!user) {
                 showNotification('Please log in to post loads.', 'warning');
                 showPage('login');
                 return;
             }
-            const token = getAuthToken();
-            if (!token) {
-                showNotification('Your session expired. Please log in again.', 'warning');
-                showPage('login');
+
+            // Validate all required fields before submission
+            if (!validateForm()) {
+                showNotification('Please fill in all required fields correctly.', 'error');
                 return;
             }
 
             const form = event.target;
             const formData = new FormData(form);
+            
             const parseLocation = value => {
                 const parts = (value || '').split(',').map(part => part.trim()).filter(Boolean);
                 return {
@@ -5123,10 +5491,32 @@
             const pickupLocation = parseLocation(formData.get('originLocation'));
             const deliveryLocation = parseLocation(formData.get('destinationLocation'));
 
-            const payload = {
+            // Handle commodity (either from dropdown or manual entry)
+            let commodity = formData.get('commodity') || '';
+            if (commodity === 'manual') {
+                commodity = formData.get('customCommodity') || '';
+            }
+
+            // Handle time (either from dropdown or manual entry)
+            let pickupTime = formData.get('pickupTime') || '';
+            if (pickupTime === 'manual') {
+                pickupTime = formData.get('customPickupTime') || '';
+            }
+
+            let deliveryTime = formData.get('deliveryTime') || '';
+            if (deliveryTime === 'manual') {
+                deliveryTime = formData.get('customDeliveryTime') || '';
+            }
+
+            // Check if we're editing an existing load
+            const isEditing = window.editingLoadId;
+            
+            // Create the load object
+            const loadData = {
                 title: formData.get('title') || `${pickupLocation.city || 'Pickup'} to ${deliveryLocation.city || 'Delivery'}`,
                 description: formData.get('description') || 'FreightPro load posting',
                 loadType: formData.get('loadType') || 'Full Truckload',
+                commodity: commodity,
                 origin: {
                     city: pickupLocation.city,
                     state: pickupLocation.state,
@@ -5137,34 +5527,175 @@
                     state: deliveryLocation.state,
                     zip: formData.get('destinationZip') || ''
                 },
-                pickupDate: formData.get('pickupDate') || new Date().toISOString(),
-                deliveryDate: formData.get('deliveryDate') || formData.get('pickupDate') || new Date().toISOString(),
+                pickupDate: formData.get('pickupDate') || new Date().toISOString().split('T')[0],
+                deliveryDate: formData.get('deliveryDate') || formData.get('pickupDate') || new Date().toISOString().split('T')[0],
+                pickupTime: pickupTime,
+                deliveryTime: deliveryTime,
                 equipmentType: formData.get('equipmentType') || 'Van',
                 weight: Number(formData.get('weight')) || 0,
+                length: Number(formData.get('length')) || 0,
                 rate: Number(formData.get('rate')) || 0,
-                rateType: formData.get('rateType') || 'flat_rate',
-                distance: Number(formData.get('distance')) || Number(formData.get('milesDistance')) || 0,
-                status: 'available'
+                rateType: formData.get('rateType') || 'flat',
+                distance: Number(formData.get('distance')) || 0,
+                status: 'available',
+                // Add special requirements
+                requirements: {
+                    hazmat: formData.get('hazmat') === 'on',
+                    teamDriver: formData.get('teamDriver') === 'on',
+                    expedited: formData.get('expedited') === 'on',
+                    tempControl: formData.get('tempControl') === 'on',
+                    liftgate: formData.get('liftgate') === 'on',
+                    insideDelivery: formData.get('insideDelivery') === 'on'
+                }
             };
 
+            // Add ID and posting info based on whether we're creating or editing
+            if (isEditing) {
+                // Editing existing load - preserve original ID and posting info
+                const existingLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+                const existingLoad = existingLoads.find(load => load.id === isEditing);
+                if (existingLoad) {
+                    loadData.id = existingLoad.id;
+                    loadData.postedBy = existingLoad.postedBy;
+                    loadData.posted = existingLoad.posted;
+                    loadData.postedTime = existingLoad.postedTime;
+                    loadData.updated = new Date().toLocaleDateString();
+                    loadData.updatedTime = new Date().toLocaleTimeString();
+                }
+            } else {
+                // Creating new load
+                loadData.id = Date.now().toString();
+                loadData.postedBy = user.email || user.name || 'Unknown';
+                loadData.posted = new Date().toLocaleDateString();
+                loadData.postedTime = new Date().toLocaleTimeString();
+            }
+
             try {
-                const response = await fetch(`${window.API_BASE_URL}/loads`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.message || 'Failed to post load');
-                showNotification('Load posted successfully!', 'success');
+                // Get existing posted loads
+                const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+                
+                if (isEditing) {
+                    // Update existing load
+                    const loadIndex = postedLoads.findIndex(load => load.id === isEditing);
+                    if (loadIndex !== -1) {
+                        postedLoads[loadIndex] = loadData;
+                        localStorage.setItem('postedLoads', JSON.stringify(postedLoads));
+                        showNotification('Load updated successfully!', 'success');
+                    } else {
+                        showNotification('Load not found for updating', 'error');
+                        return;
+                    }
+                } else {
+                    // Add new load
+                    postedLoads.unshift(loadData); // Add to beginning of array
+                    localStorage.setItem('postedLoads', JSON.stringify(postedLoads));
+                    showNotification('Load posted successfully! It is now available for booking.', 'success');
+                }
+                
+                // Update window.loads for consistency
+                if (!window.loads) {
+                    window.loads = [];
+                }
+                window.loads = postedLoads;
+                
+                // Reset form and clear editing state
                 form.reset();
-                refreshLoads();
+                window.editingLoadId = null;
+                
+                // Clear any manual input containers
+                document.getElementById('manualCommodityContainer').classList.add('hidden');
+                document.getElementById('manualPickupTimeContainer').classList.add('hidden');
+                document.getElementById('manualDeliveryTimeContainer').classList.add('hidden');
+                
+                // Reset form title and button
+                const formTitle = document.querySelector('#postLoadForm h1');
+                if (formTitle) {
+                    formTitle.textContent = 'Post a Load';
+                }
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Post Load';
+                }
+                
+                // Update user's loads posted count (only for new loads)
+                if (!isEditing) {
+                    const user = getCurrentUser();
+                    if (user) {
+                        user.loadsPosted = (parseInt(user.loadsPosted) || 0) + 1;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                    }
+                }
+                
+                // Redirect to home page to see the posted/updated load in dashboard
+                setTimeout(() => {
+                    showPage('home');
+                    // Refresh the dashboard to show the updated load
+                    populateUserDashboard();
+                }, 1500);
+                
             } catch (error) {
                 console.error('Post load error:', error);
-                showNotification(error.message || 'Unable to post load. Please try again.', 'error');
+                showNotification('Unable to post load. Please try again.', 'error');
             }
+        }
+
+        // Form validation function
+        function validateForm() {
+            const requiredFields = [
+                'loadType', 'equipmentType', 'title', 'weight', 'length',
+                'originLocation', 'pickupDate', 'destinationLocation', 'deliveryDate', 'rate'
+            ];
+            
+            let isValid = true;
+            
+            // Check required fields
+            requiredFields.forEach(fieldName => {
+                const field = document.querySelector(`[name="${fieldName}"]`);
+                if (!field || !field.value.trim()) {
+                    isValid = false;
+                    if (field) {
+                        field.style.borderColor = '#ef4444';
+                        field.focus();
+                    }
+                } else {
+                    if (field) {
+                        field.style.borderColor = '#d1d5db';
+                    }
+                }
+            });
+            
+            // Check commodity (either dropdown or manual)
+            const commoditySelect = document.getElementById('commoditySelect');
+            const customCommodity = document.getElementById('customCommodityInput');
+            if (commoditySelect.value === 'manual' && (!customCommodity.value.trim())) {
+                isValid = false;
+                customCommodity.style.borderColor = '#ef4444';
+                customCommodity.focus();
+            }
+            
+            // Check manual time inputs
+            const pickupTimeSelect = document.getElementById('pickupTimeSelect');
+            const customPickupTime = document.getElementById('customPickupTimeInput');
+            if (pickupTimeSelect.value === 'manual' && (!customPickupTime.value.trim())) {
+                isValid = false;
+                customPickupTime.style.borderColor = '#ef4444';
+                customPickupTime.focus();
+            }
+            
+            const deliveryTimeSelect = document.getElementById('deliveryTimeSelect');
+            const customDeliveryTime = document.getElementById('customDeliveryTimeInput');
+            if (deliveryTimeSelect.value === 'manual' && (!customDeliveryTime.value.trim())) {
+                isValid = false;
+                customDeliveryTime.style.borderColor = '#ef4444';
+                customDeliveryTime.focus();
+            }
+            
+            // Validate dates
+            if (!validatePickupDate() || !validateDeliveryDate()) {
+                isValid = false;
+            }
+            
+            return isValid;
         }
 
         // Smart search suggestions
@@ -5303,6 +5834,524 @@
             showPageAsync(pageId);
         }
 
+        // Save draft functionality
+        function saveDraft() {
+            const form = document.getElementById('loadPostForm');
+            if (!form) {
+                showNotification('Form not found', 'error');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const draftData = {};
+            
+            // Collect all form data
+            for (let [key, value] of formData.entries()) {
+                draftData[key] = value;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('loadDraft', JSON.stringify(draftData));
+            showNotification('Draft saved successfully!', 'success');
+        }
+
+        // Load draft functionality
+        function loadDraft() {
+            const draftData = localStorage.getItem('loadDraft');
+            if (!draftData) return;
+            
+            try {
+                const data = JSON.parse(draftData);
+                const form = document.getElementById('loadPostForm');
+                if (!form) return;
+                
+                // Populate form fields
+                Object.keys(data).forEach(key => {
+                    const field = form.querySelector(`[name="${key}"]`);
+                    if (field) {
+                        if (field.type === 'checkbox') {
+                            field.checked = data[key] === 'on';
+                        } else {
+                            field.value = data[key];
+                        }
+                    }
+                });
+                
+                // Handle commodity selection if it was manual
+                if (data.commodity === 'manual' && data.customCommodity) {
+                    document.getElementById('commoditySelect').value = 'manual';
+                    document.getElementById('customCommodityInput').value = data.customCommodity;
+                    document.getElementById('manualCommodityContainer').classList.remove('hidden');
+                }
+                
+                showNotification('Draft loaded successfully!', 'info');
+            } catch (error) {
+                console.error('Error loading draft:', error);
+                showNotification('Error loading draft', 'error');
+            }
+        }
+
+        // Handle commodity dropdown change
+        function handleCommodityChange() {
+            const commoditySelect = document.getElementById('commoditySelect');
+            const manualContainer = document.getElementById('manualCommodityContainer');
+            const customInput = document.getElementById('customCommodityInput');
+            
+            if (commoditySelect.value === 'manual') {
+                // Show manual input field
+                manualContainer.classList.remove('hidden');
+                customInput.focus();
+                customInput.required = true;
+            } else {
+                // Hide manual input field
+                manualContainer.classList.add('hidden');
+                customInput.value = '';
+                customInput.required = false;
+            }
+        }
+
+        // Date validation functions
+        function validatePickupDate() {
+            const pickupDate = document.getElementById('pickupDate');
+            const errorDiv = document.getElementById('pickupDateError');
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (pickupDate.value && pickupDate.value < today) {
+                errorDiv.classList.remove('hidden');
+                pickupDate.style.borderColor = '#ef4444';
+                return false;
+            } else {
+                errorDiv.classList.add('hidden');
+                pickupDate.style.borderColor = '#d1d5db';
+                return true;
+            }
+        }
+
+        function validateDeliveryDate() {
+            const pickupDate = document.getElementById('pickupDate').value;
+            const deliveryDate = document.getElementById('deliveryDate');
+            const errorDiv = document.getElementById('deliveryDateError');
+            
+            if (deliveryDate.value && pickupDate && deliveryDate.value < pickupDate) {
+                errorDiv.classList.remove('hidden');
+                deliveryDate.style.borderColor = '#ef4444';
+                return false;
+            } else {
+                errorDiv.classList.add('hidden');
+                deliveryDate.style.borderColor = '#d1d5db';
+                return true;
+            }
+        }
+
+        // Time input handlers
+        function handlePickupTimeChange() {
+            const timeSelect = document.getElementById('pickupTimeSelect');
+            const manualContainer = document.getElementById('manualPickupTimeContainer');
+            const customInput = document.getElementById('customPickupTimeInput');
+            
+            if (timeSelect.value === 'manual') {
+                manualContainer.classList.remove('hidden');
+                customInput.focus();
+                customInput.required = true;
+            } else {
+                manualContainer.classList.add('hidden');
+                customInput.value = '';
+                customInput.required = false;
+            }
+        }
+
+        function handleDeliveryTimeChange() {
+            const timeSelect = document.getElementById('deliveryTimeSelect');
+            const manualContainer = document.getElementById('manualDeliveryTimeContainer');
+            const customInput = document.getElementById('customDeliveryTimeInput');
+            
+            if (timeSelect.value === 'manual') {
+                manualContainer.classList.remove('hidden');
+                customInput.focus();
+                customInput.required = true;
+            } else {
+                manualContainer.classList.add('hidden');
+                customInput.value = '';
+                customInput.required = false;
+            }
+        }
+
+        // ZIP code validation with city/state matching
+        function validateZipCode(zipFieldId, locationFieldId) {
+            const zipField = document.getElementById(zipFieldId);
+            const locationField = document.getElementById(locationFieldId);
+            const errorDiv = document.getElementById(zipFieldId + 'Error');
+            
+            if (!zipField.value || !locationField.value) {
+                // Clear error if fields are empty
+                errorDiv.classList.add('hidden');
+                zipField.style.borderColor = '#d1d5db';
+                return true;
+            }
+            
+            const zipCode = zipField.value.trim();
+            const location = locationField.value.trim().toLowerCase();
+            
+            // Check if ZIP code format is valid
+            if (zipCode.length !== 5 || !/^\d{5}$/.test(zipCode)) {
+                errorDiv.textContent = 'Please enter a valid 5-digit ZIP code';
+                errorDiv.classList.remove('hidden');
+                zipField.style.borderColor = '#ef4444';
+                return false;
+            }
+            
+            // ZIP code to city/state mapping (common ZIP codes)
+            const zipCodeMap = {
+                // Los Angeles, CA
+                '90210': 'beverly hills, ca',
+                '90211': 'beverly hills, ca',
+                '90001': 'los angeles, ca',
+                '90002': 'los angeles, ca',
+                '90003': 'los angeles, ca',
+                '90004': 'los angeles, ca',
+                '90005': 'los angeles, ca',
+                '90006': 'los angeles, ca',
+                '90007': 'los angeles, ca',
+                '90008': 'los angeles, ca',
+                '90009': 'los angeles, ca',
+                '90010': 'los angeles, ca',
+                '90011': 'los angeles, ca',
+                '90012': 'los angeles, ca',
+                '90013': 'los angeles, ca',
+                '90014': 'los angeles, ca',
+                '90015': 'los angeles, ca',
+                '90016': 'los angeles, ca',
+                '90017': 'los angeles, ca',
+                '90018': 'los angeles, ca',
+                '90019': 'los angeles, ca',
+                '90020': 'los angeles, ca',
+                '90021': 'los angeles, ca',
+                '90022': 'los angeles, ca',
+                '90023': 'los angeles, ca',
+                '90024': 'los angeles, ca',
+                '90025': 'los angeles, ca',
+                '90026': 'los angeles, ca',
+                '90027': 'los angeles, ca',
+                '90028': 'los angeles, ca',
+                '90029': 'los angeles, ca',
+                '90030': 'los angeles, ca',
+                '90031': 'los angeles, ca',
+                '90032': 'los angeles, ca',
+                '90033': 'los angeles, ca',
+                '90034': 'los angeles, ca',
+                '90035': 'los angeles, ca',
+                '90036': 'los angeles, ca',
+                '90037': 'los angeles, ca',
+                '90038': 'los angeles, ca',
+                '90039': 'los angeles, ca',
+                '90040': 'los angeles, ca',
+                '90041': 'los angeles, ca',
+                '90042': 'los angeles, ca',
+                '90043': 'los angeles, ca',
+                '90044': 'los angeles, ca',
+                '90045': 'los angeles, ca',
+                '90046': 'los angeles, ca',
+                '90047': 'los angeles, ca',
+                '90048': 'los angeles, ca',
+                '90049': 'los angeles, ca',
+                '90050': 'los angeles, ca',
+                '90051': 'los angeles, ca',
+                '90052': 'los angeles, ca',
+                '90053': 'los angeles, ca',
+                '90054': 'los angeles, ca',
+                '90055': 'los angeles, ca',
+                '90056': 'los angeles, ca',
+                '90057': 'los angeles, ca',
+                '90058': 'los angeles, ca',
+                '90059': 'los angeles, ca',
+                '90060': 'los angeles, ca',
+                '90061': 'los angeles, ca',
+                '90062': 'los angeles, ca',
+                '90063': 'los angeles, ca',
+                '90064': 'los angeles, ca',
+                '90065': 'los angeles, ca',
+                '90066': 'los angeles, ca',
+                '90067': 'los angeles, ca',
+                '90068': 'los angeles, ca',
+                '90069': 'los angeles, ca',
+                '90070': 'los angeles, ca',
+                '90071': 'los angeles, ca',
+                '90072': 'los angeles, ca',
+                '90073': 'los angeles, ca',
+                '90074': 'los angeles, ca',
+                '90075': 'los angeles, ca',
+                '90076': 'los angeles, ca',
+                '90077': 'los angeles, ca',
+                '90078': 'los angeles, ca',
+                '90079': 'los angeles, ca',
+                '90080': 'los angeles, ca',
+                '90081': 'los angeles, ca',
+                '90082': 'los angeles, ca',
+                '90083': 'los angeles, ca',
+                '90084': 'los angeles, ca',
+                '90085': 'los angeles, ca',
+                '90086': 'los angeles, ca',
+                '90087': 'los angeles, ca',
+                '90088': 'los angeles, ca',
+                '90089': 'los angeles, ca',
+                '90090': 'los angeles, ca',
+                '90091': 'los angeles, ca',
+                '90092': 'los angeles, ca',
+                '90093': 'los angeles, ca',
+                '90094': 'los angeles, ca',
+                '90095': 'los angeles, ca',
+                '90096': 'los angeles, ca',
+                '90097': 'los angeles, ca',
+                '90098': 'los angeles, ca',
+                '90099': 'los angeles, ca',
+                
+                // Phoenix, AZ
+                '85001': 'phoenix, az',
+                '85002': 'phoenix, az',
+                '85003': 'phoenix, az',
+                '85004': 'phoenix, az',
+                '85005': 'phoenix, az',
+                '85006': 'phoenix, az',
+                '85007': 'phoenix, az',
+                '85008': 'phoenix, az',
+                '85009': 'phoenix, az',
+                '85010': 'phoenix, az',
+                '85011': 'phoenix, az',
+                '85012': 'phoenix, az',
+                '85013': 'phoenix, az',
+                '85014': 'phoenix, az',
+                '85015': 'phoenix, az',
+                '85016': 'phoenix, az',
+                '85017': 'phoenix, az',
+                '85018': 'phoenix, az',
+                '85019': 'phoenix, az',
+                '85020': 'phoenix, az',
+                '85021': 'phoenix, az',
+                '85022': 'phoenix, az',
+                '85023': 'phoenix, az',
+                '85024': 'phoenix, az',
+                '85025': 'phoenix, az',
+                '85026': 'phoenix, az',
+                '85027': 'phoenix, az',
+                '85028': 'phoenix, az',
+                '85029': 'phoenix, az',
+                '85030': 'phoenix, az',
+                '85031': 'phoenix, az',
+                '85032': 'phoenix, az',
+                '85033': 'phoenix, az',
+                '85034': 'phoenix, az',
+                '85035': 'phoenix, az',
+                '85036': 'phoenix, az',
+                '85037': 'phoenix, az',
+                '85038': 'phoenix, az',
+                '85039': 'phoenix, az',
+                '85040': 'phoenix, az',
+                '85041': 'phoenix, az',
+                '85042': 'phoenix, az',
+                '85043': 'phoenix, az',
+                '85044': 'phoenix, az',
+                '85045': 'phoenix, az',
+                '85046': 'phoenix, az',
+                '85048': 'phoenix, az',
+                '85050': 'phoenix, az',
+                '85051': 'phoenix, az',
+                '85053': 'phoenix, az',
+                '85054': 'phoenix, az',
+                '85083': 'phoenix, az',
+                '85085': 'phoenix, az',
+                '85086': 'phoenix, az',
+                '85087': 'phoenix, az',
+                
+                // Chicago, IL
+                '60601': 'chicago, il',
+                '60602': 'chicago, il',
+                '60603': 'chicago, il',
+                '60604': 'chicago, il',
+                '60605': 'chicago, il',
+                '60606': 'chicago, il',
+                '60607': 'chicago, il',
+                '60608': 'chicago, il',
+                '60609': 'chicago, il',
+                '60610': 'chicago, il',
+                '60611': 'chicago, il',
+                '60612': 'chicago, il',
+                '60613': 'chicago, il',
+                '60614': 'chicago, il',
+                '60615': 'chicago, il',
+                '60616': 'chicago, il',
+                '60617': 'chicago, il',
+                '60618': 'chicago, il',
+                '60619': 'chicago, il',
+                '60620': 'chicago, il',
+                '60621': 'chicago, il',
+                '60622': 'chicago, il',
+                '60623': 'chicago, il',
+                '60624': 'chicago, il',
+                '60625': 'chicago, il',
+                '60626': 'chicago, il',
+                '60628': 'chicago, il',
+                '60629': 'chicago, il',
+                '60630': 'chicago, il',
+                '60631': 'chicago, il',
+                '60632': 'chicago, il',
+                '60633': 'chicago, il',
+                '60634': 'chicago, il',
+                '60636': 'chicago, il',
+                '60637': 'chicago, il',
+                '60638': 'chicago, il',
+                '60639': 'chicago, il',
+                '60640': 'chicago, il',
+                '60641': 'chicago, il',
+                '60642': 'chicago, il',
+                '60643': 'chicago, il',
+                '60644': 'chicago, il',
+                '60645': 'chicago, il',
+                '60646': 'chicago, il',
+                '60647': 'chicago, il',
+                '60649': 'chicago, il',
+                '60651': 'chicago, il',
+                '60652': 'chicago, il',
+                '60653': 'chicago, il',
+                '60654': 'chicago, il',
+                '60655': 'chicago, il',
+                '60656': 'chicago, il',
+                '60657': 'chicago, il',
+                '60659': 'chicago, il',
+                '60660': 'chicago, il',
+                '60661': 'chicago, il',
+                '60664': 'chicago, il',
+                '60666': 'chicago, il',
+                '60668': 'chicago, il',
+                '60669': 'chicago, il',
+                '60670': 'chicago, il',
+                '60673': 'chicago, il',
+                '60674': 'chicago, il',
+                '60675': 'chicago, il',
+                '60677': 'chicago, il',
+                '60678': 'chicago, il',
+                '60680': 'chicago, il',
+                '60681': 'chicago, il',
+                '60682': 'chicago, il',
+                '60684': 'chicago, il',
+                '60685': 'chicago, il',
+                '60686': 'chicago, il',
+                '60687': 'chicago, il',
+                '60688': 'chicago, il',
+                '60689': 'chicago, il',
+                '60690': 'chicago, il',
+                '60691': 'chicago, il',
+                '60693': 'chicago, il',
+                '60694': 'chicago, il',
+                '60695': 'chicago, il',
+                '60696': 'chicago, il',
+                '60697': 'chicago, il',
+                '60699': 'chicago, il',
+                '60701': 'chicago, il',
+                
+                // Atlanta, GA
+                '30301': 'atlanta, ga',
+                '30302': 'atlanta, ga',
+                '30303': 'atlanta, ga',
+                '30304': 'atlanta, ga',
+                '30305': 'atlanta, ga',
+                '30306': 'atlanta, ga',
+                '30307': 'atlanta, ga',
+                '30308': 'atlanta, ga',
+                '30309': 'atlanta, ga',
+                '30310': 'atlanta, ga',
+                '30311': 'atlanta, ga',
+                '30312': 'atlanta, ga',
+                '30313': 'atlanta, ga',
+                '30314': 'atlanta, ga',
+                '30315': 'atlanta, ga',
+                '30316': 'atlanta, ga',
+                '30317': 'atlanta, ga',
+                '30318': 'atlanta, ga',
+                '30319': 'atlanta, ga',
+                '30320': 'atlanta, ga',
+                '30321': 'atlanta, ga',
+                '30322': 'atlanta, ga',
+                '30324': 'atlanta, ga',
+                '30325': 'atlanta, ga',
+                '30326': 'atlanta, ga',
+                '30327': 'atlanta, ga',
+                '30328': 'atlanta, ga',
+                '30329': 'atlanta, ga',
+                '30330': 'atlanta, ga',
+                '30331': 'atlanta, ga',
+                '30332': 'atlanta, ga',
+                '30333': 'atlanta, ga',
+                '30334': 'atlanta, ga',
+                '30336': 'atlanta, ga',
+                '30337': 'atlanta, ga',
+                '30338': 'atlanta, ga',
+                '30339': 'atlanta, ga',
+                '30340': 'atlanta, ga',
+                '30341': 'atlanta, ga',
+                '30342': 'atlanta, ga',
+                '30343': 'atlanta, ga',
+                '30344': 'atlanta, ga',
+                '30345': 'atlanta, ga',
+                '30346': 'atlanta, ga',
+                '30348': 'atlanta, ga',
+                '30349': 'atlanta, ga',
+                '30350': 'atlanta, ga',
+                '30353': 'atlanta, ga',
+                '30354': 'atlanta, ga',
+                '30355': 'atlanta, ga',
+                '30356': 'atlanta, ga',
+                '30357': 'atlanta, ga',
+                '30358': 'atlanta, ga',
+                '30359': 'atlanta, ga',
+                '30360': 'atlanta, ga',
+                '30361': 'atlanta, ga',
+                '30362': 'atlanta, ga',
+                '30363': 'atlanta, ga',
+                '30364': 'atlanta, ga',
+                '30366': 'atlanta, ga',
+                '30368': 'atlanta, ga',
+                '30369': 'atlanta, ga',
+                '30370': 'atlanta, ga',
+                '30371': 'atlanta, ga',
+                '30374': 'atlanta, ga',
+                '30375': 'atlanta, ga',
+                '30376': 'atlanta, ga',
+                '30377': 'atlanta, ga',
+                '30378': 'atlanta, ga',
+                '30380': 'atlanta, ga',
+                '30384': 'atlanta, ga',
+                '30385': 'atlanta, ga',
+                '30388': 'atlanta, ga',
+                '30392': 'atlanta, ga',
+                '30394': 'atlanta, ga',
+                '30396': 'atlanta, ga',
+                '30398': 'atlanta, ga',
+                '30399': 'atlanta, ga'
+            };
+            
+            // Check if ZIP code matches the entered city/state
+            const expectedLocation = zipCodeMap[zipCode];
+            if (expectedLocation && !location.includes(expectedLocation.split(',')[0]) && !location.includes(expectedLocation.split(',')[1].trim())) {
+                errorDiv.textContent = `This ZIP code (${zipCode}) does not match ${locationField.value}. Expected: ${expectedLocation}`;
+                errorDiv.classList.remove('hidden');
+                zipField.style.borderColor = '#ef4444';
+                return false;
+            }
+            
+            // If ZIP code is not in our database, we'll allow it but show a warning
+            if (!expectedLocation) {
+                errorDiv.textContent = 'ZIP code not recognized. Please verify it matches the city/state.';
+                errorDiv.classList.remove('hidden');
+                zipField.style.borderColor = '#f59e0b'; // Orange warning instead of red error
+                return false;
+            }
+            
+            // ZIP code matches city/state
+            errorDiv.classList.add('hidden');
+            zipField.style.borderColor = '#d1d5db';
+            return true;
+        }
+
         async function showPageAsync(pageId) {
             // Check if user is already logged in and trying to access auth pages
             if ((pageId === 'login' || pageId === 'register') && window.currentUser) {
@@ -5388,6 +6437,9 @@
             } else if (pageId === 'register') {
                 // Reset all registration form state
                 resetRegistrationForm();
+            } else if (pageId === 'postload') {
+                // Load draft when accessing post load page
+                loadDraft();
             }
             
             // Navigation system will handle history tracking automatically
@@ -6029,7 +7081,426 @@
             if (dashboardRevenue) dashboardRevenue.textContent = user.totalRevenue ? `$${user.totalRevenue}` : '$0';
             if (dashboardRating) dashboardRating.textContent = user.rating || '5.0';
 
+            // Populate posted loads section
+            populatePostedLoadsSection(user);
+
             console.log('User dashboard populated successfully');
+        }
+
+        // Function to populate posted loads section
+        function populatePostedLoadsSection(user) {
+            const postedLoadsContainer = document.getElementById('postedLoadsContainer');
+            const noPostedLoads = document.getElementById('noPostedLoads');
+            
+            if (!postedLoadsContainer || !noPostedLoads) return;
+
+            // Get posted loads from localStorage
+            const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+            
+            // Check if user is admin - admins can see all loads
+            const isAdmin = user.role === 'admin' || user.accountType === 'admin';
+            
+            // Update section title for admins
+            const postedLoadsTitle = document.getElementById('postedLoadsTitle');
+            if (postedLoadsTitle) {
+                if (isAdmin) {
+                    postedLoadsTitle.innerHTML = '<i class="fas fa-truck mr-2 text-blue-600"></i>All Posted Loads (Admin View)';
+                } else {
+                    postedLoadsTitle.innerHTML = '<i class="fas fa-truck mr-2 text-blue-600"></i>Your Posted Loads';
+                }
+            }
+            
+            // Filter loads - admins see all loads, regular users see only their own
+            const userPostedLoads = isAdmin ? postedLoads : postedLoads.filter(load => 
+                load.postedBy === user.email || load.postedBy === user.name
+            );
+
+            if (userPostedLoads.length === 0) {
+                // Show "no loads" message
+                postedLoadsContainer.innerHTML = '';
+                noPostedLoads.classList.remove('hidden');
+                
+                // Update empty state message for admins
+                if (isAdmin) {
+                    noPostedLoads.innerHTML = `
+                        <i class="fas fa-truck text-4xl mb-4 text-gray-300"></i>
+                        <p class="text-lg mb-2">No loads posted yet</p>
+                        <p class="text-sm">No users have posted any loads on the platform</p>
+                    `;
+                } else {
+                    noPostedLoads.innerHTML = `
+                        <i class="fas fa-truck text-4xl mb-4 text-gray-300"></i>
+                        <p class="text-lg mb-2">No loads posted yet</p>
+                        <p class="text-sm">Start by posting your first load to get carriers interested</p>
+                        <button onclick="showPage('postload')" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Post Your First Load
+                        </button>
+                    `;
+                }
+            } else {
+                // Hide "no loads" message
+                noPostedLoads.classList.add('hidden');
+                
+                // Display user's posted loads
+                postedLoadsContainer.innerHTML = userPostedLoads.map(load => `
+                    <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <h4 class="text-lg font-semibold text-gray-800 mr-3">${load.title}</h4>
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+                                        load.status === 'available' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }">
+                                        ${load.status === 'available' ? 'Available' : 'Booked'}
+                                    </span>
+                                    ${isAdmin ? `<span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Posted by: ${load.postedBy}</span>` : ''}
+                                </div>
+                                
+                                <div class="grid md:grid-cols-2 gap-4 mb-3">
+                                    <div class="text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt mr-2 text-green-600"></i>
+                                        <strong>From:</strong> ${load.origin.city}, ${load.origin.state}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <i class="fas fa-flag-checkered mr-2 text-red-600"></i>
+                                        <strong>To:</strong> ${load.destination.city}, ${load.destination.state}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <i class="fas fa-calendar mr-2 text-blue-600"></i>
+                                        <strong>Pickup:</strong> ${load.pickupDate}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <i class="fas fa-calendar mr-2 text-purple-600"></i>
+                                        <strong>Delivery:</strong> ${load.deliveryDate}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-weight-hanging mr-1"></i>${load.weight} lbs
+                                        </span>
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-ruler mr-1"></i>${load.length} ft
+                                        </span>
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-truck mr-1"></i>${load.equipmentType}
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-green-600">$${load.rate.toLocaleString()}</div>
+                                        <div class="text-xs text-gray-500">Posted ${load.posted} at ${load.postedTime}</div>
+                                    </div>
+                                </div>
+                                
+                                ${load.requirements && Object.values(load.requirements).some(req => req) ? `
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        ${load.requirements.hazmat ? '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">🚨 Hazmat</span>' : ''}
+                                        ${load.requirements.teamDriver ? '<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">👥 Team Driver</span>' : ''}
+                                        ${load.requirements.expedited ? '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">⚡ Expedited</span>' : ''}
+                                        ${load.requirements.tempControl ? '<span class="px-2 py-1 bg-cyan-100 text-cyan-800 text-xs rounded-full">❄️ Temp Control</span>' : ''}
+                                        ${load.requirements.liftgate ? '<span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">🔧 Liftgate</span>' : ''}
+                                        ${load.requirements.insideDelivery ? '<span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">🏢 Inside Delivery</span>' : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="flex flex-col space-y-2 ml-4">
+                                <button onclick="viewLoadDetails('${load.id}')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                ${!isAdmin || load.postedBy === user.email || load.postedBy === user.name ? `
+                                    <button onclick="editLoad('${load.id}')" class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteLoad('${load.id}')" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors">
+                                    <i class="fas fa-trash mr-1"></i>${isAdmin ? 'Admin Delete' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Function to view load details
+        function viewLoadDetails(loadId) {
+            const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+            const load = postedLoads.find(l => l.id === loadId);
+            
+            if (!load) {
+                showNotification('Load not found', 'error');
+                return;
+            }
+            
+            // Create modal content
+            const modalContent = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">${load.title}</h3>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Route Information -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">Route Information</h4>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Pickup Location</div>
+                                    <div class="font-medium">${load.origin.city}, ${load.origin.state} ${load.origin.zip}</div>
+                                    <div class="text-sm text-gray-500">${load.pickupDate} ${load.pickupTime ? `at ${load.pickupTime}` : ''}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Delivery Location</div>
+                                    <div class="font-medium">${load.destination.city}, ${load.destination.state} ${load.destination.zip}</div>
+                                    <div class="text-sm text-gray-500">${load.deliveryDate} ${load.deliveryTime ? `at ${load.deliveryTime}` : ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Load Details -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">Load Details</h4>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Load Type</div>
+                                    <div class="font-medium">${load.loadType}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Equipment</div>
+                                    <div class="font-medium">${load.equipmentType}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Commodity</div>
+                                    <div class="font-medium">${load.commodity}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Weight</div>
+                                    <div class="font-medium">${load.weight.toLocaleString()} lbs</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Length</div>
+                                    <div class="font-medium">${load.length} ft</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Distance</div>
+                                    <div class="font-medium">${load.distance} miles</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rate Information -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">Rate Information</h4>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-3xl font-bold text-green-600">$${load.rate.toLocaleString()}</div>
+                                    <div class="text-sm text-gray-600">${load.rateType === 'flat' ? 'Flat Rate' : load.rateType}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-600">Posted by</div>
+                                    <div class="font-medium">${load.postedBy}</div>
+                                    <div class="text-xs text-gray-500">${load.posted} at ${load.postedTime}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${load.description ? `
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3">Description</h4>
+                                <p class="text-gray-700">${load.description}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${load.requirements && Object.values(load.requirements).some(req => req) ? `
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3">Special Requirements</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${load.requirements.hazmat ? '<span class="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">🚨 Hazmat Required</span>' : ''}
+                                    ${load.requirements.teamDriver ? '<span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">👥 Team Driver Required</span>' : ''}
+                                    ${load.requirements.expedited ? '<span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">⚡ Expedited Service</span>' : ''}
+                                    ${load.requirements.tempControl ? '<span class="px-3 py-1 bg-cyan-100 text-cyan-800 text-sm rounded-full">❄️ Temperature Controlled</span>' : ''}
+                                    ${load.requirements.liftgate ? '<span class="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">🔧 Liftgate Required</span>' : ''}
+                                    ${load.requirements.insideDelivery ? '<span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full">🏢 Inside Delivery</span>' : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            showModal(modalContent);
+        }
+
+        // Function to edit load
+        function editLoad(loadId) {
+            const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+            const load = postedLoads.find(l => l.id === loadId);
+            
+            if (!load) {
+                showNotification('Load not found', 'error');
+                return;
+            }
+            
+            // Store the load ID for updating
+            window.editingLoadId = loadId;
+            
+            // Navigate to post load page
+            showPage('postload');
+            
+            // Pre-populate the form with existing load data
+            setTimeout(() => {
+                populateEditForm(load);
+            }, 100);
+        }
+
+        // Function to populate edit form with existing load data
+        function populateEditForm(load) {
+            const form = document.getElementById('loadPostForm');
+            if (!form) return;
+            
+            // Basic load information
+            if (load.loadType) form.querySelector('[name="loadType"]').value = load.loadType;
+            if (load.equipmentType) form.querySelector('[name="equipmentType"]').value = load.equipmentType;
+            if (load.title) form.querySelector('[name="title"]').value = load.title;
+            if (load.weight) form.querySelector('[name="weight"]').value = load.weight;
+            if (load.length) form.querySelector('[name="length"]').value = load.length;
+            if (load.distance) form.querySelector('[name="distance"]').value = load.distance;
+            
+            // Commodity handling
+            if (load.commodity) {
+                const commoditySelect = document.getElementById('commoditySelect');
+                const customCommodityInput = document.getElementById('customCommodityInput');
+                const manualCommodityContainer = document.getElementById('manualCommodityContainer');
+                
+                // Check if it's a custom commodity (not in dropdown)
+                const dropdownOptions = Array.from(commoditySelect.options).map(opt => opt.value);
+                if (!dropdownOptions.includes(load.commodity)) {
+                    // It's a custom commodity
+                    commoditySelect.value = 'manual';
+                    customCommodityInput.value = load.commodity;
+                    manualCommodityContainer.classList.remove('hidden');
+                } else {
+                    // It's a standard commodity
+                    commoditySelect.value = load.commodity;
+                    manualCommodityContainer.classList.add('hidden');
+                }
+            }
+            
+            // Location information
+            if (load.origin) {
+                form.querySelector('[name="originLocation"]').value = `${load.origin.city}, ${load.origin.state}`;
+                if (load.origin.zip) form.querySelector('[name="originZip"]').value = load.origin.zip;
+            }
+            if (load.destination) {
+                form.querySelector('[name="destinationLocation"]').value = `${load.destination.city}, ${load.destination.state}`;
+                if (load.destination.zip) form.querySelector('[name="destinationZip"]').value = load.destination.zip;
+            }
+            
+            // Date information
+            if (load.pickupDate) form.querySelector('[name="pickupDate"]').value = load.pickupDate;
+            if (load.deliveryDate) form.querySelector('[name="deliveryDate"]').value = load.deliveryDate;
+            
+            // Time handling
+            if (load.pickupTime) {
+                const pickupTimeSelect = document.getElementById('pickupTimeSelect');
+                const customPickupTimeInput = document.getElementById('customPickupTimeInput');
+                const manualPickupTimeContainer = document.getElementById('manualPickupTimeContainer');
+                
+                if (['morning', 'afternoon', 'evening'].includes(load.pickupTime)) {
+                    pickupTimeSelect.value = load.pickupTime;
+                    manualPickupTimeContainer.classList.add('hidden');
+                } else {
+                    pickupTimeSelect.value = 'manual';
+                    customPickupTimeInput.value = load.pickupTime;
+                    manualPickupTimeContainer.classList.remove('hidden');
+                }
+            }
+            
+            if (load.deliveryTime) {
+                const deliveryTimeSelect = document.getElementById('deliveryTimeSelect');
+                const customDeliveryTimeInput = document.getElementById('customDeliveryTimeInput');
+                const manualDeliveryTimeContainer = document.getElementById('manualDeliveryTimeContainer');
+                
+                if (['morning', 'afternoon', 'evening'].includes(load.deliveryTime)) {
+                    deliveryTimeSelect.value = load.deliveryTime;
+                    manualDeliveryTimeContainer.classList.add('hidden');
+                } else {
+                    deliveryTimeSelect.value = 'manual';
+                    customDeliveryTimeInput.value = load.deliveryTime;
+                    manualDeliveryTimeContainer.classList.remove('hidden');
+                }
+            }
+            
+            // Rate information
+            if (load.rate) form.querySelector('[name="rate"]').value = load.rate;
+            if (load.rateType) form.querySelector('[name="rateType"]').value = load.rateType;
+            
+            // Description
+            if (load.description) form.querySelector('[name="description"]').value = load.description;
+            
+            // Requirements checkboxes
+            if (load.requirements) {
+                if (load.requirements.hazmat) form.querySelector('[name="hazmat"]').checked = true;
+                if (load.requirements.teamDriver) form.querySelector('[name="teamDriver"]').checked = true;
+                if (load.requirements.expedited) form.querySelector('[name="expedited"]').checked = true;
+                if (load.requirements.tempControl) form.querySelector('[name="tempControl"]').checked = true;
+                if (load.requirements.liftgate) form.querySelector('[name="liftgate"]').checked = true;
+                if (load.requirements.insideDelivery) form.querySelector('[name="insideDelivery"]').checked = true;
+            }
+            
+            // Update form title to indicate editing
+            const formTitle = document.querySelector('#postLoadForm h1');
+            if (formTitle) {
+                formTitle.textContent = 'Edit Load';
+            }
+            
+            // Update submit button text
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.innerHTML = '<i class="fas fa-save mr-2"></i>Update Load';
+            }
+            
+            showNotification('Load data loaded for editing', 'info');
+        }
+
+        // Function to delete load
+        function deleteLoad(loadId) {
+            const user = getCurrentUser();
+            const isAdmin = user.role === 'admin' || user.accountType === 'admin';
+            const postedLoads = JSON.parse(localStorage.getItem('postedLoads') || '[]');
+            const load = postedLoads.find(l => l.id === loadId);
+            
+            let confirmMessage = 'Are you sure you want to delete this load? This action cannot be undone.';
+            if (isAdmin && load && (load.postedBy !== user.email && load.postedBy !== user.name)) {
+                confirmMessage = `Are you sure you want to delete this load posted by ${load.postedBy}? This admin action cannot be undone.`;
+            }
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            const updatedLoads = postedLoads.filter(load => load.id !== loadId);
+            
+            localStorage.setItem('postedLoads', JSON.stringify(updatedLoads));
+            
+            // Refresh the posted loads section
+            if (user) {
+                populatePostedLoadsSection(user);
+            }
+            
+            // Refresh the load board
+            if (typeof refreshLoads === 'function') {
+                refreshLoads();
+            }
+            
+            showNotification('Load deleted successfully', 'success');
         }
 
         // Password validation function
@@ -6321,16 +7792,245 @@
             return !!window.currentUser || !!localStorage.getItem('currentUser');
         }
 
-        // Live Features - Dynamic Statistics and Activity Feed
+        // Advanced Performance optimization for multiple users
+        // Use a single global visibility flag so early code can reference it safely
+        let isPageVisible = typeof window.isPageVisible !== 'undefined' ? window.isPageVisible : true;
+        window.isPageVisible = isPageVisible;
+        let lastUpdateTime = 0;
+        let updateThrottle = 1000; // Minimum time between updates (1 second)
+        let liveFeaturesInitialized = false;
+        let userActivityLevel = 'normal'; // normal, high, critical
+        let concurrentUsers = 1; // Estimated concurrent users
+        let systemLoad = 0; // System performance score (0-100)
+        
+        let performanceMonitor = {
+            violations: 0,
+            lastCheck: Date.now(),
+            maxViolations: 10,
+            responseTimes: [],
+            memoryUsage: 0,
+            activeConnections: 0
+        };
+        
+        // Multi-user optimization settings
+        const performanceProfiles = {
+            low: { throttle: 2000, updateInterval: 10000, cacheTime: 60000 },
+            normal: { throttle: 1000, updateInterval: 5000, cacheTime: 30000 },
+            high: { throttle: 500, updateInterval: 3000, cacheTime: 15000 },
+            critical: { throttle: 200, updateInterval: 1000, cacheTime: 5000 }
+        };
+        
+        // Advanced performance monitoring for multiple users
+        function checkPerformance() {
+            const now = Date.now();
+            if (now - performanceMonitor.lastCheck > 10000) { // Check every 10 seconds
+                
+                // Calculate system load based on violations and response times
+                const avgResponseTime = performanceMonitor.responseTimes.length > 0 
+                    ? performanceMonitor.responseTimes.reduce((a, b) => a + b, 0) / performanceMonitor.responseTimes.length 
+                    : 0;
+                
+                systemLoad = Math.min(100, (performanceMonitor.violations * 10) + (avgResponseTime / 10));
+                
+                // Adjust performance profile based on system load
+                if (systemLoad > 80) {
+                    userActivityLevel = 'critical';
+                    updateThrottle = performanceProfiles.critical.throttle;
+                } else if (systemLoad > 60) {
+                    userActivityLevel = 'high';
+                    updateThrottle = performanceProfiles.high.throttle;
+                } else if (systemLoad > 30) {
+                    userActivityLevel = 'normal';
+                    updateThrottle = performanceProfiles.normal.throttle;
+                } else {
+                    userActivityLevel = 'low';
+                    updateThrottle = performanceProfiles.low.throttle;
+                }
+                
+                // Estimate concurrent users based on activity
+                concurrentUsers = Math.max(1, Math.floor(systemLoad / 20));
+                
+                // Log performance status
+                if (systemLoad > 50) {
+                    console.warn(`High system load detected: ${systemLoad.toFixed(1)}% (${concurrentUsers} estimated users)`);
+                }
+                
+                // Reset counters
+                performanceMonitor.violations = 0;
+                performanceMonitor.responseTimes = [];
+                performanceMonitor.lastCheck = now;
+                
+                // Run memory cleanup every 30 seconds
+                if (loadRefreshCounter % 3 === 0) {
+                    cleanupMemory();
+                }
+            }
+        }
+        
+        // Track response times for performance monitoring
+        function trackResponseTime(startTime) {
+            const responseTime = Date.now() - startTime;
+            performanceMonitor.responseTimes.push(responseTime);
+            if (performanceMonitor.responseTimes.length > 10) {
+                performanceMonitor.responseTimes.shift(); // Keep only last 10 measurements
+            }
+        }
+        
+        // Performance dashboard for monitoring (development only)
+        function showPerformanceDashboard() {
+            if (window.location.hostname !== 'localhost') return; // Only show in development
+            
+            const dashboard = document.createElement('div');
+            dashboard.id = 'performanceDashboard';
+            dashboard.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-family: monospace;
+                font-size: 12px;
+                z-index: 10000;
+                min-width: 200px;
+            `;
+            
+            function updateDashboard() {
+                const avgResponse = performanceMonitor.responseTimes.length > 0 
+                    ? (performanceMonitor.responseTimes.reduce((a, b) => a + b, 0) / performanceMonitor.responseTimes.length).toFixed(1)
+                    : '0';
+                
+                dashboard.innerHTML = `
+                    <div><strong>FreightPro Performance</strong></div>
+                    <div>System Load: ${systemLoad.toFixed(1)}%</div>
+                    <div>Activity Level: ${userActivityLevel}</div>
+                    <div>Est. Users: ${concurrentUsers}</div>
+                    <div>Loads: ${loads.length}/${MAX_LOADS}</div>
+                    <div>Refresh Cycles: ${loadRefreshCounter}</div>
+                    <div>Avg Response: ${avgResponse}ms</div>
+                    <div>Cache Hits: ${apiCache.loads.requestCount}</div>
+                    <div>Violations: ${performanceMonitor.violations}</div>
+                `;
+            }
+            
+            updateDashboard();
+            setInterval(updateDashboard, 2000);
+            document.body.appendChild(dashboard);
+        }
+        
+        // Optimized localStorage operations
+        const storageCache = {
+            data: {},
+            lastSave: 0,
+            saveInterval: 5000 // Save every 5 seconds
+        };
+        
+        function getCachedStorage(key) {
+            if (storageCache.data[key] !== undefined) {
+                return storageCache.data[key];
+            }
+            try {
+                const value = localStorage.getItem(key);
+                storageCache.data[key] = value ? JSON.parse(value) : null;
+                return storageCache.data[key];
+            } catch (error) {
+                console.warn('Storage read error:', error);
+                return null;
+            }
+        }
+        
+        function setCachedStorage(key, value) {
+            storageCache.data[key] = value;
+            const now = Date.now();
+            
+            // Batch saves to reduce I/O operations
+            if (now - storageCache.lastSave > storageCache.saveInterval) {
+                saveStorageCache();
+            }
+        }
+        
+        function saveStorageCache() {
+            try {
+                Object.keys(storageCache.data).forEach(key => {
+                    localStorage.setItem(key, JSON.stringify(storageCache.data[key]));
+                });
+                storageCache.lastSave = Date.now();
+            } catch (error) {
+                console.warn('Storage save error:', error);
+            }
+        }
+        
+        // Save cache on page unload
+        window.addEventListener('beforeunload', saveStorageCache);
+        
+        // Initialize performance dashboard in development
+        if (window.location.hostname === 'localhost') {
+            setTimeout(showPerformanceDashboard, 3000);
+        }
+
+        // Page visibility API to pause updates when tab is not active
+        document.addEventListener('visibilitychange', function() {
+            isPageVisible = !document.hidden;
+            window.isPageVisible = isPageVisible;
+            if (isPageVisible && !liveFeaturesInitialized) {
+                initializeLiveFeatures();
+            }
+        });
+        
+        // Live Features - Multi-User Optimized
         function initializeLiveFeatures() {
-            // Update live statistics every 3 seconds
-            setInterval(updateLiveStatistics, 3000);
+            if (liveFeaturesInitialized) return;
+            liveFeaturesInitialized = true;
             
-            // Update activity feed every 5 seconds
-            setInterval(updateActivityFeed, 5000);
+            // Dynamic scheduling based on system load
+            function getUpdateInterval() {
+                const profile = performanceProfiles[userActivityLevel];
+                return profile.updateInterval;
+            }
             
-            // Dynamic load refresh every 30 seconds (intelligent refresh)
-            setInterval(refreshLoadsIntelligently, 30000);
+            // Use requestAnimationFrame for smoother updates
+            function scheduleUpdate() {
+                if (isPageVisible) {
+                    requestAnimationFrame(() => {
+                        checkPerformance(); // Monitor performance
+                        const now = Date.now();
+                        if (now - lastUpdateTime > updateThrottle) {
+                            updateLiveStatistics();
+                            lastUpdateTime = now;
+                        }
+                        setTimeout(scheduleUpdate, getUpdateInterval());
+                    });
+                } else {
+                    setTimeout(scheduleUpdate, getUpdateInterval() * 2); // Check less frequently when hidden
+                }
+            }
+            
+            // Update activity feed with dynamic frequency
+            function scheduleActivityUpdate() {
+                if (isPageVisible) {
+                    updateActivityFeed();
+                }
+                const interval = userActivityLevel === 'critical' ? 15000 : 
+                                userActivityLevel === 'high' ? 10000 : 8000;
+                setTimeout(scheduleActivityUpdate, interval);
+            }
+            
+            // Intelligent load refresh with adaptive throttling
+            function scheduleLoadRefresh() {
+                if (isPageVisible && document.getElementById('loadboard') && 
+                    !document.getElementById('loadboard').classList.contains('hidden')) {
+                    refreshLoadsIntelligently();
+                }
+                const interval = userActivityLevel === 'critical' ? 60000 : 
+                                userActivityLevel === 'high' ? 45000 : 30000;
+                setTimeout(scheduleLoadRefresh, interval);
+            }
+            
+            // Start the update cycles
+            scheduleUpdate();
+            scheduleActivityUpdate();
+            scheduleLoadRefresh();
             
             // Initial update
             updateLiveStatistics();
@@ -6339,91 +8039,166 @@
 
         function refreshLoadsIntelligently() {
             // Only refresh if user is on load board page and not actively searching
-            if (document.getElementById('loadboard') && !document.getElementById('loadboard').classList.contains('hidden')) {
+            if (!isPageVisible || !document.getElementById('loadboard') || 
+                document.getElementById('loadboard').classList.contains('hidden')) {
+                return;
+            }
+
+            try {
                 // Generate new loads to replace some existing ones
                 const newLoads = generateDynamicLoads();
                 
-                // Replace 10-20% of existing loads with new ones
-                const replacementCount = Math.floor(loads.length * 0.15);
-                const loadsToReplace = loads.slice(0, replacementCount);
+                // Replace 15% of existing loads with new ones (but max 50 loads)
+                const replacementCount = Math.min(50, Math.floor(loads.length * 0.15));
                 
-                // Update existing loads with new data
-                loadsToReplace.forEach((oldLoad, index) => {
-                    const newLoad = newLoads[index];
-                    if (newLoad && oldLoad.status === 'available') {
-                        // Update load data but keep the same ID
-                        Object.assign(oldLoad, {
-                            ...newLoad,
-                            id: oldLoad.id, // Keep original ID
-                            status: 'available' // Ensure it's available
-                        });
-                    }
-                });
+                // Remove old loads from the beginning
+                loads = loads.slice(replacementCount);
                 
-                // Add some completely new loads
-                const newLoadsToAdd = newLoads.slice(replacementCount, replacementCount + 10);
-                newLoadsToAdd.forEach(newLoad => {
-                    newLoad.id = `FCP-${(loads.length + 1).toString().padStart(3, '0')}`;
-                    loads.push(newLoad);
-                });
+                // Add new loads at the end
+                const loadsToAdd = newLoads.slice(0, replacementCount);
+                loads = [...loads, ...loadsToAdd];
                 
-                // Remove some old loads to keep total manageable
-                if (loads.length > 1200) {
-                    loads = loads.slice(0, 1000);
+                // Ensure we don't exceed MAX_LOADS
+                if (loads.length > MAX_LOADS) {
+                    loads = loads.slice(-MAX_LOADS); // Keep only the last MAX_LOADS
                 }
                 
-                // Re-apply current filters
-                if (filteredLoads.length > 0) {
+                // Update filtered loads
+                filteredLoads = [...loads];
+                
+                // Update window.loads for consistency
+                window.loads = loads;
+                
+                // Re-apply current filters only if page is still visible
+                if (filteredLoads.length > 0 && isPageVisible) {
                     applyFiltersAndRender();
+                }
+                
+                console.log(`Intelligent refresh complete - Managing ${loads.length} loads`);
+            } catch (error) {
+                console.warn('Error in intelligent load refresh:', error);
+                // Fallback to regular refresh if intelligent refresh fails
+                if (isPageVisible) {
+                    debouncedRefreshLoads();
                 }
             }
         }
 
+        // Advanced DOM element cache to reduce queries
+        const domCache = {
+            liveStats: {
+                carriers: null,
+                shippers: null,
+                freightValue: null,
+                loads: null,
+                totalLoads: null
+            },
+            loadBoard: {
+                container: null,
+                results: null,
+                filters: null,
+                pagination: null
+            },
+            modals: {
+                loadDetails: null,
+                postLoad: null,
+                login: null,
+                register: null
+            },
+            forms: {
+                search: null,
+                postLoad: null,
+                login: null,
+                register: null
+            }
+        };
+        
+        // Smart DOM element getter with caching
+        function getCachedElement(id, category = 'general') {
+            if (!domCache[category]) domCache[category] = {};
+            if (!domCache[category][id]) {
+                domCache[category][id] = document.getElementById(id);
+            }
+            return domCache[category][id];
+        }
+        
+        // Clear DOM cache when elements might be removed
+        function clearDOMCache(category = null) {
+            if (category) {
+                if (domCache[category]) {
+                    Object.keys(domCache[category]).forEach(key => {
+                        if (domCache[category][key] && !document.contains(domCache[category][key])) {
+                            domCache[category][key] = null;
+                        }
+                    });
+                }
+            } else {
+                Object.keys(domCache).forEach(cat => {
+                    Object.keys(domCache[cat]).forEach(key => {
+                        if (domCache[cat][key] && !document.contains(domCache[cat][key])) {
+                            domCache[cat][key] = null;
+                        }
+                    });
+                });
+            }
+        }
+
         function updateLiveStatistics() {
-            // Update carrier count with realistic fluctuations
-            const carriersElement = document.getElementById('liveCarriers');
-            if (carriersElement) {
+            // Only update if page is visible
+            if (!isPageVisible) return;
+            
+            // Use cached DOM elements
+            const carriersEl = getCachedElement('liveCarriers', 'liveStats');
+            const shippersEl = getCachedElement('liveShippers', 'liveStats');
+            const freightValueEl = getCachedElement('liveFreightValue', 'liveStats');
+            const loadsEl = getCachedElement('liveLoads', 'liveStats');
+            const totalLoadsEl = getCachedElement('totalLoads', 'liveStats');
+
+            // Batch DOM updates to reduce reflows
+            const updates = [];
+            
+            if (carriersEl) {
                 const baseValue = 1247892;
-                const variation = Math.floor(Math.random() * 100) - 50; // ±50 variation
+                const variation = Math.floor(Math.random() * 100) - 50;
                 const newValue = baseValue + variation;
-                carriersElement.textContent = newValue.toLocaleString();
+                updates.push({ element: carriersEl, value: newValue.toLocaleString() });
             }
 
-            // Update shipper count
-            const shippersElement = document.getElementById('liveShippers');
-            if (shippersElement) {
+            if (shippersEl) {
                 const baseValue = 85432;
-                const variation = Math.floor(Math.random() * 20) - 10; // ±10 variation
+                const variation = Math.floor(Math.random() * 20) - 10;
                 const newValue = baseValue + variation;
-                shippersElement.textContent = newValue.toLocaleString();
+                updates.push({ element: shippersEl, value: newValue.toLocaleString() });
             }
 
-            // Update freight value
-            const freightElement = document.getElementById('liveFreightValue');
-            if (freightElement) {
+            if (freightValueEl) {
                 const baseValue = 180.2;
-                const variation = (Math.random() * 0.4) - 0.2; // ±0.2B variation
+                const variation = (Math.random() * 0.4) - 0.2;
                 const newValue = (baseValue + variation).toFixed(1);
-                freightElement.textContent = `$${newValue}B`;
+                updates.push({ element: freightValueEl, value: `$${newValue}B` });
             }
 
-            // Update available loads (now showing 1000+ loads)
-            const loadsElement = document.getElementById('liveLoads');
-            if (loadsElement) {
-                const availableLoads = loads.filter(load => load.status === 'available').length;
-                const variation = Math.floor(Math.random() * 100) - 50; // ±50 variation
+            // Calculate available loads once and reuse
+            const availableLoads = loads ? loads.filter(load => load.status === 'available').length : 0;
+            
+            if (loadsEl) {
+                const variation = Math.floor(Math.random() * 100) - 50;
                 const newValue = Math.max(800, availableLoads + variation);
-                loadsElement.textContent = newValue.toLocaleString();
+                updates.push({ element: loadsEl, value: newValue.toLocaleString() });
             }
 
-            // Update load board statistics
-            const totalLoadsElement = document.getElementById('totalLoads');
-            if (totalLoadsElement) {
-                const availableLoads = loads.filter(load => load.status === 'available').length;
-                const variation = Math.floor(Math.random() * 50) - 25; // ±25 variation
+            if (totalLoadsEl) {
+                const variation = Math.floor(Math.random() * 50) - 25;
                 const newValue = Math.max(800, availableLoads + variation);
-                totalLoadsElement.textContent = newValue.toLocaleString();
+                updates.push({ element: totalLoadsEl, value: newValue.toLocaleString() });
             }
+
+            // Apply all updates in a single batch
+            updates.forEach(update => {
+                if (update.element && update.element.textContent !== update.value) {
+                    update.element.textContent = update.value;
+                }
+            });
         }
 
         function updateActivityFeed() {
