@@ -91,49 +91,6 @@
         </script>
         
         <style>
-                /* Dark Theme Styles */
-                .dark-theme {
-                    background-color: #1a1a1a !important;
-                    color: #e5e5e5 !important;
-                }
-                
-                .dark-theme .bg-white {
-                    background-color: #2d2d2d !important;
-                    color: #e5e5e5 !important;
-                }
-                
-                .dark-theme .text-gray-800 {
-                    color: #e5e5e5 !important;
-                }
-                
-                .dark-theme .text-gray-600 {
-                    color: #a0a0a0 !important;
-                }
-                
-                .dark-theme .border-gray-200 {
-                    border-color: #404040 !important;
-                }
-                
-                .dark-theme .bg-gray-50 {
-                    background-color: #2d2d2d !important;
-                }
-                
-                .dark-theme .bg-gray-100 {
-                    background-color: #404040 !important;
-                }
-                
-                .dark-theme input,
-                .dark-theme textarea,
-                .dark-theme select {
-                    background-color: #2d2d2d !important;
-                    color: #e5e5e5 !important;
-                    border-color: #404040 !important;
-                }
-                
-                .dark-theme .bg-gradient-to-b.from-gray-50.to-gray-100 {
-                    background: linear-gradient(to bottom, #2d2d2d, #404040) !important;
-                }
-                
                 /* Inline load details: taller and scrollable so more info fits (mini-details panel) */
                 .load-details {
                     max-height: 340px;
@@ -1898,14 +1855,7 @@
         <div id="userDashboardSection" class="py-16 bg-gradient-to-br from-blue-50 to-indigo-100 hidden">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="text-center mb-12">
-                    <div class="flex justify-center items-center mb-4">
-                        <h2 class="text-3xl font-bold text-gray-800">Welcome to Your Dashboard</h2>
-                        <button id="dashboardThemeToggle" class="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors" onclick="toggleTheme()" title="Toggle theme">
-                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
                     <p class="text-lg text-gray-600">Manage your freight operations and view your account information</p>
                 </div>
                 
@@ -8055,58 +8005,6 @@
             setTimeout(showPerformanceDashboard, 3000);
         }
 
-        // Global Theme Management
-        let currentTheme = localStorage.getItem('fp_theme') || 'light';
-        
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            localStorage.setItem('fp_theme', currentTheme);
-            applyTheme();
-        }
-        
-        function applyTheme() {
-            const body = document.body;
-            const chatPanel = document.getElementById('fpChatPanel');
-            const chatMessages = document.getElementById('fpChatMessages');
-            const dashboardThemeToggle = document.getElementById('dashboardThemeToggle');
-            
-            if (currentTheme === 'dark') {
-                body.classList.add('dark-theme');
-                if (chatPanel) {
-                    chatPanel.classList.add('dark-theme');
-                }
-                if (chatMessages) {
-                    chatMessages.classList.remove('bg-gradient-to-b', 'from-gray-50', 'to-gray-100');
-                    chatMessages.classList.add('bg-gradient-to-b', 'from-gray-800', 'to-gray-900');
-                }
-                if (dashboardThemeToggle) {
-                    dashboardThemeToggle.innerHTML = `
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                    `;
-                }
-            } else {
-                body.classList.remove('dark-theme');
-                if (chatPanel) {
-                    chatPanel.classList.remove('dark-theme');
-                }
-                if (chatMessages) {
-                    chatMessages.classList.remove('bg-gradient-to-b', 'from-gray-800', 'to-gray-900');
-                    chatMessages.classList.add('bg-gradient-to-b', 'from-gray-50', 'to-gray-100');
-                }
-                if (dashboardThemeToggle) {
-                    dashboardThemeToggle.innerHTML = `
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                        </svg>
-                    `;
-                }
-            }
-        }
-        
-        // Apply theme on page load
-        document.addEventListener('DOMContentLoaded', applyTheme);
 
         // Page visibility API to pause updates when tab is not active
         document.addEventListener('visibilitychange', function() {

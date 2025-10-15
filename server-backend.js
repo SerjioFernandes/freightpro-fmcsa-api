@@ -28,35 +28,67 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freight-pro.netlify.app').trim();
 const EMAIL_VERIFICATION_TTL_MS = Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000;
 
+// Lightweight structured logger and helpers
+function log(level, message, meta = {}) {
+    try {
+        const entry = { timestamp: new Date().toISOString(), level, message, ...meta };
+        const text = JSON.stringify(entry, (_key, value) => {
+            if (value instanceof Error) {
+                return { message: value.message, stack: value.stack };
+            }
+            return value;
+        });
+        if (level === 'error') console.error(text);
+        else if (level === 'warn') console.warn(text);
+        else console.log(text);
+    } catch (e) {
+        // Fallback to plain console on logger failure
+        console.error('Logger failure:', e);
+    }
+}
+
+const logger = {
+    info: (message, meta) => log('info', message, meta),
+    warn: (message, meta) => log('warn', message, meta),
+    error: (message, meta) => log('error', message, meta)
+};
+
+// Async handler wrapper for routes
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
 async function ensureDefaultAdminUser() {
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-        console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
-        return;
+    try {
+        if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+            console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
+            return;
+        }
+
+        const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+        if (existing) {
+            return;
+        }
+
+        const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
+
+        const adminUser = new User({
+            email: ADMIN_EMAIL.toLowerCase(),
+            password: hashedPassword,
+            passwordPlain: ADMIN_PASSWORD,
+            company: 'FreightPro',
+            phone: '+1-000-000-0000',
+            accountType: 'broker',
+            role: 'admin',
+            isEmailVerified: true,
+            emailVerificationToken: '',
+            emailVerificationCodeHash: '',
+            emailVerificationExpires: null
+        });
+
+        await adminUser.save();
+        console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
+    } catch (error) {
+        console.error('Failed to ensure default admin user:', error);
     }
-
-    const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
-    if (existing) {
-        return;
-    }
-
-    const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
-
-    const adminUser = new User({
-        email: ADMIN_EMAIL.toLowerCase(),
-        password: hashedPassword,
-        passwordPlain: ADMIN_PASSWORD,
-        company: 'FreightPro',
-        phone: '+1-000-000-0000',
-        accountType: 'broker',
-        role: 'admin',
-        isEmailVerified: true,
-        emailVerificationToken: '',
-        emailVerificationCodeHash: '',
-        emailVerificationExpires: null
-    });
-
-    await adminUser.save();
-    console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
 }
 
 // MongoDB Connection
@@ -214,6 +246,33 @@ app.use(cors({
 
 console.log('🔐 CORS allowed origins:', JSON.stringify(allowedOrigins));
 
+// Request ID + logging middleware (after security, before routes)
+app.use((req, res, next) => {
+    const start = Date.now();
+    // Prefer incoming header, else generate simple unique ID
+    const incomingId = req.headers['x-request-id'];
+    const requestId = typeof incomingId === 'string' && incomingId.trim() ? incomingId.trim() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    res.setHeader('X-Request-Id', requestId);
+    req.requestId = requestId;
+
+    const { method, originalUrl } = req;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    logger.info('http_request_started', { requestId, method, url: originalUrl, ip });
+
+    res.on('finish', () => {
+        const durationMs = Date.now() - start;
+        logger.info('http_request_completed', {
+            requestId,
+            method,
+            url: originalUrl,
+            status: res.statusCode,
+            durationMs,
+            ip
+        });
+    });
+    next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -283,6 +342,7 @@ const authenticateToken = (req, res, next) => {
             return res.status(403).json({ error: 'Invalid or expired token' });
         }
         req.user = user;
+        req.userContext = { userId: user?.userId, email: user?.email, role: user?.role };
         next();
     });
 };
@@ -336,9 +396,28 @@ app.get(['/', '/home', '/loadboard', '/post', '/pricing', '/profile', '/rates', 
     res.sendFile(path.join(staticRoot, 'index.html'));
 });
 
+// Global error handler (last middleware)
+// Ensures consistent JSON errors and prevents unhandled promise rejections from crashing the server
+app.use((err, req, res, next) => {
+    logger.error('unhandled_error', {
+        message: err?.message || 'Unknown error',
+        stack: err?.stack,
+        route: req.originalUrl,
+        method: req.method,
+        requestId: req.requestId,
+        user: req.userContext || null
+    });
+    if (res.headersSent) {
+        return next(err);
+    }
+    res.status(err.status || 500).json({
+        error: 'Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? (err.message || 'Unknown error') : 'An unexpected error occurred',
+    });
+});
+
 // User Registration
-app.post('/api/auth/register', validateRegistration, async (req, res) => {
-    try {
+app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.error('Registration validation failed:', errors.array());
@@ -477,21 +556,10 @@ app.post('/api/auth/register', validateRegistration, async (req, res) => {
                 isEmailVerified: user.isEmailVerified
             }
         });
-
-    } catch (error) {
-        console.error('Registration error:', error);
-        console.error('Error stack:', error.stack);
-        res.status(500).json({
-            error: 'Registration failed',
-            message: 'An error occurred during registration',
-            details: process.env.NODE_ENV === 'development' ? error.message : 'Contact support for assistance'
-        });
-    }
-});
+}));
 
 // User Login
-app.post('/api/auth/login', async (req, res) => {
-    try {
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -561,18 +629,10 @@ app.post('/api/auth/login', async (req, res) => {
             }
         });
 
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({
-            error: 'Login failed',
-            message: 'An error occurred during login'
-        });
-    }
-});
+}));
 
 // Get Loads
-app.get('/api/loads', async (req, res) => {
-    try {
+app.get('/api/loads', asyncHandler(async (req, res) => {
         const { page = 1, limit = 20, status = 'available', accountType } = req.query;
         const skip = (page - 1) * limit;
 
@@ -602,18 +662,10 @@ app.get('/api/loads', async (req, res) => {
             }
         });
 
-    } catch (error) {
-        console.error('Loads fetch error:', error);
-        res.status(500).json({
-            error: 'Loads fetch failed',
-            message: 'An error occurred while fetching loads'
-        });
-    }
-});
+}));
 
 // Post a Load
-app.post('/api/loads', authenticateToken, async (req, res) => {
-    try {
+app.post('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
         const loadData = {
             ...req.body,
             postedBy: req.user.userId
@@ -628,18 +680,10 @@ app.post('/api/loads', authenticateToken, async (req, res) => {
             load
         });
 
-    } catch (error) {
-        console.error('Load posting error:', error);
-        res.status(500).json({
-            error: 'Load posting failed',
-            message: 'An error occurred while posting the load'
-        });
-    }
-});
+}));
 
 // Book a Load
-app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
-    try {
+app.post('/api/loads/:id/book', authenticateToken, asyncHandler(async (req, res) => {
         console.log('Load booking request for ID:', req.params.id);
         console.log('User ID:', req.user.userId);
         
@@ -676,15 +720,7 @@ app.post('/api/loads/:id/book', authenticateToken, async (req, res) => {
             load
         });
 
-    } catch (error) {
-        console.error('Load booking error:', error);
-        console.error('Error stack:', error.stack);
-        res.status(500).json({
-            error: 'Load booking failed',
-            message: 'An error occurred while booking the load'
-        });
-    }
-});
+}));
 
 // Initialize server
 async function startServer() {
