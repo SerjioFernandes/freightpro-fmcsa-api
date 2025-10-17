@@ -159,6 +159,28 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 // Load Board Schemas
+// Shipment Schema (created by shippers; browsed by brokers; referenced by loads optionally)
+const shipmentSchema = new mongoose.Schema({
+    shipmentId: { type: String, required: true, unique: true }, // e.g., SHP-YYYYMMDD-XXXXXX
+    title: { type: String, required: true },
+    description: { type: String, default: '' },
+    pickup: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    delivery: {
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true }
+    },
+    status: { type: String, enum: ['open', 'closed'], default: 'open' },
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // shipper id
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+const Shipment = mongoose.model('Shipment', shipmentSchema);
 const loadSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -186,6 +208,7 @@ const loadSchema = new mongoose.Schema({
     // Relationships
     postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     bookedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    shipment: { type: mongoose.Schema.Types.ObjectId, ref: 'Shipment' },
     
     // Timestamps
     createdAt: { type: Date, default: Date.now },
@@ -504,24 +527,31 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
             console.log('📧 From:', process.env.EMAIL_USER);
             
             // Send email asynchronously without waiting
+            const html = `
+                <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
+                  <div style="background:#1a2238; color:#fff; padding:16px 24px">
+                    <h1 style="margin:0; font-size:20px;">FreightPro</h1>
+                    <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+                  </div>
+                  <div style="padding:24px">
+                    <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
+                    <p style="margin:0 0 16px; color:#374151;">Thanks for registering. Use this code to finish setting up your account:</p>
+                    <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
+                      <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${emailVerificationCode}</div>
+                    </div>
+                    <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
+                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open FreightPro</a>
+                  </div>
+                  <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
+                    <p style="margin:0 0 4px;">If you didn’t create this account, you can safely ignore this email.</p>
+                    <p style="margin:0;">© ${new Date().getFullYear()} FreightPro. All rights reserved.</p>
+                  </div>
+                </div>`;
             transporter.sendMail({
                 from: `"FreightPro" <${process.env.EMAIL_USER}>`,
                 to: normalizedEmail,
-                subject: 'FreightPro - Verify Your Email',
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h2 style="color: #1a2238;">Welcome to FreightPro!</h2>
-                        <p>Thank you for registering with FreightPro Load Board.</p>
-                        <p>Please enter the following verification code on the FreightPro website to activate your account:</p>
-                        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                            <div style="font-size: 32px; letter-spacing: 10px; font-weight: bold; color: #2563eb;">${emailVerificationCode}</div>
-                        </div>
-                        <p style="margin-top: 12px; color: #666;">This code will expire in 24 hours.</p>
-                        <p style="color: #666;">If you didn't create this account, please ignore this email.</p>
-                        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-                        <p style="font-size: 12px; color: #999;">This email was sent from FreightPro Load Board System</p>
-                    </div>
-                `
+                subject: 'Verify your email for FreightPro',
+                html
             }).then((info) => {
                 console.log('✅ Email sent successfully to:', normalizedEmail);
                 console.log('📧 Email info:', info.messageId);
@@ -631,6 +661,39 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 }));
 
+// Verify email by code (submitted from frontend form)
+app.post('/api/auth/verify', asyncHandler(async (req, res) => {
+        const { email, code } = req.body;
+        if (!email || !code) {
+            return res.status(400).json({ error: 'Email and code are required' });
+        }
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+        if (!user) return res.status(400).json({ error: 'Invalid email or code' });
+        if (user.isEmailVerified) {
+            return res.json({ success: true, message: 'Email already verified' });
+        }
+        if (!user.emailVerificationCodeHash || !user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
+            return res.status(400).json({ error: 'Verification code expired. Please request a new code.' });
+        }
+        const match = await bcryptjs.compare(String(code), user.emailVerificationCodeHash);
+        if (!match) {
+            return res.status(400).json({ error: 'Invalid verification code' });
+        }
+        user.isEmailVerified = true;
+        user.emailVerificationToken = '';
+        user.emailVerificationCodeHash = '';
+        user.emailVerificationExpires = null;
+        await user.save();
+        res.json({ success: true, message: 'Email verified successfully' });
+}));
+
+// Current user context (for chat role auto-detect)
+app.get('/api/auth/me', authenticateToken, asyncHandler(async (req, res) => {
+        const user = await User.findById(req.user.userId).select('email company accountType role isEmailVerified');
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json({ success: true, user });
+}));
+
 // Get Loads
 app.get('/api/loads', asyncHandler(async (req, res) => {
         const { page = 1, limit = 20, status = 'available', accountType } = req.query;
@@ -666,8 +729,26 @@ app.get('/api/loads', asyncHandler(async (req, res) => {
 
 // Post a Load
 app.post('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
+        // Only brokers can post loads (business rule)
+        if (req.user.accountType !== 'broker' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only brokers can post loads' });
+        }
+
+        const { shipmentId } = req.body;
+
+        let shipmentRef = null;
+        if (shipmentId) {
+            // Validate shipmentId exists and is open
+            const shipment = await Shipment.findOne({ shipmentId, status: 'open' });
+            if (!shipment) {
+                return res.status(400).json({ error: 'Invalid or closed shipmentId' });
+            }
+            shipmentRef = shipment._id;
+        }
+
         const loadData = {
             ...req.body,
+            shipment: shipmentRef,
             postedBy: req.user.userId
         };
 
@@ -682,37 +763,21 @@ app.post('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
 
 }));
 
-// Book a Load
+// Book a Load (only carriers; atomic)
 app.post('/api/loads/:id/book', authenticateToken, asyncHandler(async (req, res) => {
-        console.log('Load booking request for ID:', req.params.id);
-        console.log('User ID:', req.user.userId);
-        
-        const load = await Load.findById(req.params.id);
-        
+        if (req.user.accountType !== 'carrier' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only carriers can book loads' });
+        }
+
+        const load = await Load.findOneAndUpdate(
+            { _id: req.params.id, status: 'available' },
+            { $set: { status: 'booked', bookedBy: req.user.userId, updatedAt: new Date() } },
+            { new: true }
+        );
+
         if (!load) {
-            console.log('Load not found for ID:', req.params.id);
-            return res.status(404).json({
-                error: 'Load not found',
-                message: 'The requested load does not exist'
-            });
+            return res.status(409).json({ error: 'Load already booked or not available' });
         }
-
-        console.log('Found load:', load.title, 'Status:', load.status);
-
-        if (load.status !== 'available') {
-            console.log('Load not available, current status:', load.status);
-            return res.status(400).json({
-                error: 'Load not available',
-                message: 'This load is no longer available'
-            });
-        }
-
-        load.status = 'booked';
-        load.bookedBy = req.user.userId;
-        load.updatedAt = new Date();
-        
-        await load.save();
-        console.log('Load booked successfully by user:', req.user.userId);
 
         res.json({
             success: true,
@@ -720,6 +785,49 @@ app.post('/api/loads/:id/book', authenticateToken, asyncHandler(async (req, res)
             load
         });
 
+}));
+
+// Shipments: create (shipper only), list, and detail
+app.post('/api/shipments', authenticateToken, asyncHandler(async (req, res) => {
+        if (req.user.accountType !== 'shipper' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only shippers can create shipments' });
+        }
+
+        const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+        const datePart = new Date().toISOString().slice(0,10).replace(/-/g, '');
+        const shipmentId = `SHP-${datePart}-${random}`;
+
+        const shipment = new Shipment({
+            shipmentId,
+            title: req.body.title,
+            description: req.body.description || '',
+            pickup: req.body.pickup,
+            delivery: req.body.delivery,
+            postedBy: req.user.userId
+        });
+
+        await shipment.save();
+        res.status(201).json({ success: true, shipment });
+}));
+
+// List shipments (brokers browse; shippers see own by default)
+app.get('/api/shipments', authenticateToken, asyncHandler(async (req, res) => {
+        const { scope = 'all', page = 1, limit = 20 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        let query = { status: 'open' };
+        if (req.user.accountType === 'shipper' && scope !== 'all') {
+            query.postedBy = req.user.userId;
+        }
+        const shipments = await Shipment.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit));
+        const total = await Shipment.countDocuments(query);
+        res.json({ success: true, shipments, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } });
+}));
+
+// Get shipment by shipmentId
+app.get('/api/shipments/:shipmentId', authenticateToken, asyncHandler(async (req, res) => {
+        const shipment = await Shipment.findOne({ shipmentId: req.params.shipmentId });
+        if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
+        res.json({ success: true, shipment });
 }));
 
 // Initialize server

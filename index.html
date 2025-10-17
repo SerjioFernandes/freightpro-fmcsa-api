@@ -12,13 +12,23 @@
             // Backend API Configuration (auto-detect environment)
             (function configureApiBaseUrl(){
                 const LOCAL_API = 'http://localhost:4000/api';
-                const DEFAULT_PROD_API = 'https://freightpro-load-board.onrender.com/api';
+                // Primary production API on Render for Netlify
+                const DEFAULT_PROD_API = 'https://freightpro-fmcsa-api.onrender.com/api';
                 const storedValue = (typeof localStorage !== 'undefined') ? localStorage.getItem('FP_API_BASE_URL') : null;
 
                 let selectedBaseUrl = storedValue && storedValue.trim();
 
                 if (!selectedBaseUrl) {
-                    const { hostname } = window.location;
+                    const { hostname, search } = window.location;
+                    // Allow quick override via URL: ?api=https://your-api
+                    try {
+                        const params = new URLSearchParams(search || '');
+                        const apiOverride = params.get('api');
+                        if (apiOverride && /^https?:\/\//i.test(apiOverride)) {
+                            selectedBaseUrl = apiOverride.trim();
+                        }
+                    } catch(e) {}
+
                     if (hostname && hostname.indexOf('localhost') === 0) {
                         selectedBaseUrl = LOCAL_API;
                     } else if (hostname && hostname.includes('netlify.app')) {
@@ -761,6 +771,14 @@
         
         .shadow-3xl {
             box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+        }
+        /* Chat panel border */
+        div#fpChatPanel {
+            border: 1px;
+        }
+        /* Chat send button offset */
+        #fpChatSend{
+            margin-bottom: 6.1px;
         }
     </style>
     <script>
@@ -4507,14 +4525,14 @@
                 performanceMonitor.responseTimes = performanceMonitor.responseTimes.slice(-10);
             }
             
-            // Clear DOM element cache if it gets too large (use new domCache structure)
-            if (typeof domCache === 'object' && domCache.liveStats) {
-                const keys = Object.keys(domCache.liveStats);
+            // Clear DOM element cache if it gets too large (safe global reference)
+            if (globalThis.domCache && globalThis.domCache.liveStats) {
+                const keys = Object.keys(globalThis.domCache.liveStats);
                 if (keys.length > 0) {
                     keys.forEach(key => {
-                        const el = domCache.liveStats[key];
+                        const el = globalThis.domCache.liveStats[key];
                         if (el && !document.contains(el)) {
-                            domCache.liveStats[key] = null;
+                            globalThis.domCache.liveStats[key] = null;
                         }
                     });
                 }
@@ -8029,7 +8047,33 @@
                 uploadedFiles: [] // Store uploaded files
             };
 
-            // Multi-language support
+            // Inactivity auto-clear (15 minutes)
+            const INACTIVITY_DURATION_MS = 15 * 60 * 1000;
+            let inactivityTimerId = null;
+
+            function resetInactivityTimer() {
+                try { if (inactivityTimerId) clearTimeout(inactivityTimerId); } catch(e) {}
+                inactivityTimerId = setTimeout(handleInactivityTimeout, INACTIVITY_DURATION_MS);
+            }
+
+            function handleInactivityTimeout() {
+                try {
+                    clearChatImmediately();
+                } finally {
+                    // Start counting again
+                    inactivityTimerId = setTimeout(handleInactivityTimeout, INACTIVITY_DURATION_MS);
+                }
+            }
+
+            function clearChatImmediately() {
+                // Clear messages in memory and UI, and remove persisted history
+                chatState.messages = [];
+                try { localStorage.removeItem('fp_chat_history'); } catch(e) {}
+                const list = document.getElementById('fpChatMessages');
+                if (list) list.innerHTML = '';
+            }
+
+            // Language: English only
             const translations = {
                 en: {
                     welcome: "👋 Hello! I'm your FreightPro assistant. Please choose who you are:",
@@ -8043,20 +8087,6 @@
                     needHelp: "Need help?",
                     wasHelpful: "Was this helpful?",
                     yes: "👍 Yes",
-                    no: "👎 No"
-                },
-                es: {
-                    welcome: "👋 ¡Hola! Soy tu asistente de FreightPro. Por favor elige quién eres:",
-                    carrier: "🚛 Transportista",
-                    broker: "🤝 Agente",
-                    shipper: "📦 Remitente",
-                    browsing: "ℹ️ Solo navegando",
-                    online: "En línea ahora",
-                    typing: "El agente está escribiendo...",
-                    placeholder: "Escribe tu mensaje...",
-                    needHelp: "¿Necesitas ayuda?",
-                    wasHelpful: "¿Fue útil?",
-                    yes: "👍 Sí",
                     no: "👎 No"
                 }
             };
@@ -8127,12 +8157,6 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <div class="relative">
-                                <select id="fpLanguageSelect" class="bg-white bg-opacity-20 text-white text-sm rounded px-2 py-1 border-0 focus:outline-none cursor-pointer" onchange="changeLanguage(this.value)">
-                                    <option value="en" class="text-gray-800">🇺🇸 English</option>
-                                    <option value="es" class="text-gray-800">🇪🇸 Español</option>
-                                </select>
-                            </div>
                             <button id="fpChatClose" class="text-white hover:text-gray-200 focus:outline-none hover:bg-white/20 rounded-full p-1">✕</button>
                         </div>
                     </div>
@@ -8143,13 +8167,15 @@
                         <!-- Quick Actions -->
                         <div class="flex flex-wrap gap-2 mb-3">
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 px-3 py-2 rounded-full transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm" data-text="How do I register?">📝 Register</button>
-                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 px-3 py-2 rounded-full transition-all duration-200 border border-green-200 hover:border-green-300 hover:shadow-sm" data-text="Find loads">🔍 Find Loads</button>
-                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-orange-700 px-3 py-2 rounded-full transition-all duration-200 border border-orange-200 hover:border-orange-300 hover:shadow-sm" data-text="Post load">📋 Post Load</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 px-3 py-2 rounded-full transition-all duration-200 border border-green-200 hover:border-green-300 hover:shadow-sm" data-text="Find loads near me">🔍 Find Loads</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-orange-700 px-3 py-2 rounded-full transition-all duration-200 border border-orange-200 hover:border-orange-300 hover:shadow-sm" data-text="Post a broker load">📋 Post Load</button>
                             <button class="quick-reply-btn text-xs bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 px-3 py-2 rounded-full transition-all duration-200 border border-purple-200 hover:border-purple-300 hover:shadow-sm" data-text="Pricing plans">💰 Pricing</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-yellow-50 to-amber-50 hover:from-yellow-100 hover:to-amber-100 text-yellow-700 px-3 py-2 rounded-full transition-all duration-200 border border-yellow-200 hover:border-yellow-300 hover:shadow-sm" data-text="How to book a load as a carrier?">✅ Book Load</button>
+                            <button class="quick-reply-btn text-xs bg-gradient-to-r from-sky-50 to-blue-50 hover:from-sky-100 hover:to-blue-100 text-sky-700 px-3 py-2 rounded-full transition-all duration-200 border border-sky-200 hover:border-sky-300 hover:shadow-sm" data-text="How to create a shipment as shipper?">📦 Shipment</button>
                         </div>
                         
                         <!-- Message Input with inline file upload -->
-                        <div class="flex items-end space-x-2">
+                        <div class="flex items-center space-x-2">
                             <div class="flex-1 relative">
                                 <textarea id="fpChatInput" rows="1" placeholder="${translations[chatState.currentLanguage].placeholder}" class="w-full resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 pr-10 text-sm transition-all duration-200"></textarea>
                                 <button id="fpFileUpload" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors" onclick="triggerFileUpload()" title="Upload file">
@@ -8169,10 +8195,14 @@
                 // Event listeners
                 launcher.addEventListener('click', toggleChatOpen);
                 panel.querySelector('#fpChatClose').addEventListener('click', toggleChatOpen);
-                panel.querySelector('#fpChatSend').addEventListener('click', handleChatSend);
-                panel.querySelector('#fpChatInput').addEventListener('keydown', function(e){
+                panel.querySelector('#fpChatSend').addEventListener('click', function(){ resetInactivityTimer(); handleChatSend(); });
+                const inputEl = panel.querySelector('#fpChatInput');
+                inputEl.addEventListener('keydown', function(e){
+                    resetInactivityTimer();
                     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
                 });
+                inputEl.addEventListener('input', resetInactivityTimer);
+                inputEl.addEventListener('focus', resetInactivityTimer);
                 
                 // Quick reply buttons
                 panel.querySelectorAll('.quick-reply-btn').forEach(btn => {
@@ -8190,14 +8220,17 @@
                 // Handle file upload button click
                 fileUpload.addEventListener('click', function(e) {
                     e.preventDefault();
+                    resetInactivityTimer();
                     fileInput.click();
                 });
                 
                 // Handle file input change
-                fileInput.addEventListener('change', handleFileUpload);
+                fileInput.addEventListener('change', function(ev){ resetInactivityTimer(); handleFileUpload(ev); });
 
                 // Load chat state
                 loadChatState();
+                // Start inactivity timer once UI is ready
+                resetInactivityTimer();
                 loadChatHistory();
                 loadUploadedFiles();
                 
@@ -8205,6 +8238,14 @@
                 if (chatState.messages.length === 0) {
                     showWelcomeMessage();
                 }
+            }
+
+            // Expose for external readiness checks and ensure initialization timing
+            if (typeof window !== 'undefined') { window.createChatUI = createChatUI; }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', createChatUI);
+            } else {
+                try { createChatUI(); } catch(e) { console.error('createChatUI init error:', e); }
             }
 
             // Chat functions
@@ -8550,9 +8591,9 @@
                     return `Great! You can find loads on our Load Board. Click "Load Board" in the navigation to browse available loads. You can filter by origin, destination, equipment type, and rate. Need help with the search? 🔍`;
                 }
                 
-                // Posting Loads
+                // Posting Loads (broker only)
                 if (msg.includes('post') || msg.includes('create') || msg.includes('add load') || msg.includes('new load') || msg.includes('list load') || msg.includes('publish load') || msg.includes('submit load')) {
-                    return `To post a load, click "Post Load" in the navigation. You'll need to provide details like origin, destination, equipment type, pickup date, and rate. Need help with the posting process? 📝`;
+                    return `Only brokers can post loads. If your load is tied to a shipment, include the Shipment ID from the shipper. Otherwise, you can post a standalone load. Need help with broker posting? 📝`;
                 }
                 
                 // Registration and Account
@@ -8580,9 +8621,9 @@
                     return `You can search loads by origin and destination! Use our advanced filters to find loads on your preferred routes. Need help with location-based searches? 🗺️`;
                 }
                 
-                // Booking and Contact
+                // Booking and Contact (carrier)
                 if (msg.includes('book') || msg.includes('contact') || msg.includes('call') || msg.includes('phone') || msg.includes('email') || msg.includes('message') || msg.includes('reach out') || msg.includes('get in touch')) {
-                    return `To book a load or contact someone, use the contact information provided in the load details. You can also use our messaging system. Need help with booking? 📞`;
+                    return `Carriers can book available loads directly. If a load is already taken, you'll get a conflict message. For contact, use the details in the load or our messaging. Need help with booking? 📞`;
                 }
                 
                 // Features and Functionality
@@ -8611,7 +8652,7 @@
                 }
                 
                 // Default response with more context
-                return `I'm here to help! I can assist you with loads, registration, login, pricing, equipment, routes, booking, or any other FreightPro questions. Could you be more specific about what you need? Use the quick action buttons for common tasks! 🚛`;
+                return `I'm here to help! I can assist with shipments (shipper), posting loads (broker), booking loads (carrier), registration, login, pricing, equipment, and routes. What do you need? Use the quick action buttons for common tasks! 🚛`;
             }
 
             // File upload functionality
@@ -8751,29 +8792,13 @@
                 }
             }
 
-            // Language change
-            function changeLanguage(lang) {
-                chatState.currentLanguage = lang;
-                localStorage.setItem('fpChatLanguage', lang);
-                updateChatLanguage();
-            }
-
+            // Language fixed to English; helpers kept for future expansion
+            function changeLanguage() { /* no-op: English only */ }
             function updateChatLanguage() {
-                const elements = {
-                    'fpChatStatus': translations[chatState.currentLanguage].online,
-                    'fpChatInput': translations[chatState.currentLanguage].placeholder
-                };
-                
-                for (const [id, text] of Object.entries(elements)) {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        if (id === 'fpChatInput') {
-                            element.placeholder = text;
-                        } else {
-                            element.textContent = text;
-                        }
-                    }
-                }
+                const elementStatus = document.getElementById('fpChatStatus');
+                if (elementStatus) elementStatus.textContent = translations.en.online;
+                const input = document.getElementById('fpChatInput');
+                if (input) input.placeholder = translations.en.placeholder;
             }
 
             // State management
@@ -8788,16 +8813,27 @@
                 
                 if (savedRole) {
                     chatState.currentUserRole = savedRole;
+                } else {
+                    try {
+                        const token = localStorage.getItem('fp_token') || '';
+                        if (token) {
+                            fetch(`${window.API_BASE_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+                                .then(r => r.ok ? r.json() : null)
+                                .then(data => {
+                                    const role = data?.user?.accountType || data?.user?.role;
+                                    if (role) {
+                                        chatState.currentUserRole = role;
+                                        localStorage.setItem('fpUserRole', role);
+                                    }
+                                })
+                                .catch(() => {});
+                        }
+                    } catch(e) {}
                 }
                 
-                if (savedLanguage) {
-                    chatState.currentLanguage = savedLanguage;
-                    const select = document.getElementById('fpLanguageSelect');
-                    if (select) {
-                        select.value = savedLanguage;
-                    }
-                    updateChatLanguage();
-                }
+                // Force English only
+                chatState.currentLanguage = 'en';
+                updateChatLanguage();
             }
 
             function saveChatHistory() {
