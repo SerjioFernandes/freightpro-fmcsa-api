@@ -9008,7 +9008,10 @@
                 // Filtering Options
                 filteringOptions: {
                     rate: 'Minimum rate filtering',
-                    miles: 'Maximum miles filtering'
+                    miles: 'Maximum miles filtering',
+                    equipment: 'Equipment type filtering',
+                    state: 'State/province filtering',
+                    date: 'Pickup date filtering'
                 },
                 
                 // Sorting Options
@@ -9031,7 +9034,8 @@
                     loadboard: 'Main load board with search and filters',
                     postload: 'Post new loads (Broker/Shipper only)',
                     profile: 'User profile and account management',
-                    pricing: 'Subscription plans and billing'
+                    pricing: 'Subscription plans and billing',
+                    dashboard: 'User dashboard with activity and settings'
                 },
                 
                 // Features
@@ -9045,8 +9049,117 @@
                     'Auto-refresh system',
                     'Performance optimization',
                     'Mobile responsive design',
-                    'Live chat support'
+                    'Live chat support',
+                    'Shipment tracking',
+                    'Authority validation',
+                    'EIN management',
+                    'MC/USDOT verification'
                 ],
+                
+                // Freight Industry Terms
+                freightTerms: {
+                    // Equipment Types
+                    equipment: [
+                        'Dry Van', 'Refrigerated', 'Flatbed', 'Step Deck', 'Lowboy',
+                        'Car Carrier', 'Tanker', 'Container', 'Box Truck', 'Sprinter Van',
+                        'Hotshot', 'Power Only', 'Intermodal', 'LTL', 'FTL'
+                    ],
+                    
+                    // Load Types
+                    loadTypes: [
+                        'General Freight', 'Hazmat', 'Oversized', 'Heavy Haul',
+                        'Expedited', 'Team Load', 'Solo Load', 'Local', 'Regional',
+                        'Long Haul', 'Cross Border', 'Interstate', 'Intrastate'
+                    ],
+                    
+                    // Business Terms
+                    businessTerms: [
+                        'Rate per Mile', 'Flat Rate', 'Fuel Surcharge', 'Layover',
+                        'Detention', 'Tarping', 'Lumper', 'Lumper Fee', 'Scale Ticket',
+                        'Bill of Lading', 'Proof of Delivery', 'POD', 'BOL',
+                        'Pickup Number', 'Reference Number', 'Pro Number'
+                    ],
+                    
+                    // Authority & Compliance
+                    authority: [
+                        'MC Number', 'USDOT Number', 'EIN', 'Operating Authority',
+                        'Insurance', 'Bond', 'IFTA', 'IRP', 'UCR', 'HVUT',
+                        'CSA Score', 'Safety Rating', 'Out of Service'
+                    ],
+                    
+                    // Negotiation Terms
+                    negotiation: [
+                        'Rate Negotiation', 'Counter Offer', 'Best Rate', 'Market Rate',
+                        'All In Rate', 'Line Haul', 'Accessorial Charges', 'Deadhead',
+                        'Backhaul', 'Round Trip', 'One Way', 'Multi Stop'
+                    ]
+                },
+                
+                // User Roles & Responsibilities
+                userRoles: {
+                    shipper: {
+                        description: 'Companies that need to ship freight',
+                        responsibilities: [
+                            'Create shipments with pickup/delivery details',
+                            'Provide accurate freight information',
+                            'Coordinate with brokers and carriers',
+                            'Ensure proper documentation'
+                        ],
+                        features: ['Post shipments', 'Track shipments', 'Manage load requests']
+                    },
+                    broker: {
+                        description: 'Freight brokers connecting shippers and carriers',
+                        responsibilities: [
+                            'Find suitable carriers for shipments',
+                            'Negotiate rates between parties',
+                            'Ensure compliance and documentation',
+                            'Manage load postings'
+                        ],
+                        features: ['Browse shipments', 'Post loads', 'Link loads to shipments', 'Manage carrier relationships'],
+                        requirements: ['EIN required', 'MC or USDOT required', 'MC needed for interstate loads']
+                    },
+                    carrier: {
+                        description: 'Trucking companies that transport freight',
+                        responsibilities: [
+                            'Provide reliable transportation services',
+                            'Maintain equipment and compliance',
+                            'Deliver freight on time and safely',
+                            'Provide proper documentation'
+                        ],
+                        features: ['Browse loads', 'Book loads', 'Track deliveries', 'Manage equipment'],
+                        requirements: ['EIN required', 'MC or USDOT required', 'MC needed for interstate loads']
+                    }
+                },
+                
+                // Common Questions & Answers
+                faq: {
+                    registration: [
+                        'How do I register?',
+                        'What information do I need?',
+                        'Do I need an EIN?',
+                        'What is MC number?',
+                        'What is USDOT number?'
+                    ],
+                    loads: [
+                        'How do I find loads?',
+                        'How do I post a load?',
+                        'How do I book a load?',
+                        'What is shipment ID?',
+                        'Can I post interstate loads?'
+                    ],
+                    rates: [
+                        'How are rates calculated?',
+                        'What is rate per mile?',
+                        'What are accessorial charges?',
+                        'How do I negotiate rates?'
+                    ],
+                    compliance: [
+                        'What authority do I need?',
+                        'Do I need MC for interstate?',
+                        'What is EIN used for?',
+                        'How do I verify authority?'
+                    ]
+                },
                 
                 // Technical Details
                 technical: {
@@ -9055,7 +9168,9 @@
                     api: 'RESTful API endpoints',
                     database: 'MongoDB Atlas',
                     deployment: 'Render (backend), Netlify (frontend)',
-                    security: 'JWT tokens, password hashing, rate limiting'
+                    security: 'JWT tokens, password hashing, rate limiting',
+                    email: 'Professional email verification system',
+                    validation: 'Comprehensive field validation for USA/Canada'
                 }
             };
 
@@ -9087,7 +9202,16 @@
                     equipment: 0,
                     userTypes: 0,
                     features: 0,
-                    technical: 0
+                    technical: 0,
+                    authority: 0,
+                    compliance: 0,
+                    rates: 0,
+                    shipment: 0,
+                    ein: 0,
+                    mc: 0,
+                    usdot: 0,
+                    interstate: 0,
+                    intrastate: 0
                 };
 
                 // Greeting patterns
@@ -9143,6 +9267,32 @@
                 // Help patterns
                 if (/help|how to|what is|explain|tutorial/.test(q)) intents.help += 10;
                 if (/don't know|confused|stuck/.test(q)) intents.help += 5;
+
+                // Authority & Compliance patterns
+                if (/authority|operating authority|permit|license/.test(q)) intents.authority += 10;
+                if (/compliance|safety|inspection|audit/.test(q)) intents.compliance += 10;
+                if (/ein|employer identification number|tax id/.test(q)) intents.ein += 10;
+                if (/mc number|motor carrier|mc-/.test(q)) intents.mc += 10;
+                if (/usdot|dot number|department of transportation/.test(q)) intents.usdot += 10;
+                if (/interstate|cross state|between states/.test(q)) intents.interstate += 10;
+                if (/intrastate|within state|same state/.test(q)) intents.intrastate += 10;
+
+                // Rates & Pricing patterns
+                if (/rate per mile|rpm|all in rate|line haul/.test(q)) intents.rates += 10;
+                if (/fuel surcharge|accessorial|detention|layover/.test(q)) intents.rates += 8;
+                if (/negotiate|counter offer|best rate|market rate/.test(q)) intents.rates += 5;
+
+                // Shipment patterns
+                if (/shipment id|shipment number|shp-/.test(q)) intents.shipment += 10;
+                if (/create shipment|post shipment|new shipment/.test(q)) intents.shipment += 8;
+                if (/link load|tie load|connect load/.test(q)) intents.shipment += 5;
+
+                // Enhanced freight terms
+                if (/bill of lading|bol|proof of delivery|pod/.test(q)) intents.help += 8;
+                if (/lumper|lumper fee|tarping|scale ticket/.test(q)) intents.help += 6;
+                if (/deadhead|backhaul|round trip|multi stop/.test(q)) intents.help += 6;
+                if (/hazmat|oversized|heavy haul|expedited/.test(q)) intents.equipment += 8;
+                if (/ltl|ftl|less than truckload|full truckload/.test(q)) intents.equipment += 8;
 
                 // Find highest scoring intent
                 const topIntent = Object.keys(intents).reduce((a, b) => intents[a] > intents[b] ? a : b);
@@ -9347,6 +9497,33 @@
                                 `I'm here for you! 💪 Whether it's registration, load search, posting, booking, pricing, account settings, equipment, or user types - I've got you covered! What can I help you with?`
                             ];
                             return helpResponses[Math.floor(Math.random() * helpResponses.length)];
+
+                        case 'authority':
+                            return `Great question about operating authority! 🚛 For interstate freight, you need an MC (Motor Carrier) number. For intrastate only, USDOT is sufficient. Brokers need MC for interstate loads, carriers need MC for interstate loads. EIN is required for all brokers and carriers. Need help with specific authority requirements?`;
+
+                        case 'compliance':
+                            return `Compliance is crucial! 📋 FreightPro helps ensure you meet all requirements. We validate MC/USDOT numbers, require EIN for brokers/carriers, and enforce authority rules. Interstate loads require MC numbers. Need help with specific compliance questions?`;
+
+                        case 'ein':
+                            return `EIN (Employer Identification Number) is required for all brokers and carriers! 🏢 Format: XX-XXXXXXX (e.g., 89-4521364). Shippers don't need EIN. It's used for tax purposes and business identification. Need help with EIN format or requirements?`;
+
+                        case 'mc':
+                            return `MC (Motor Carrier) number is essential for interstate freight! 🚛 Format: MC-XXXXXX or just XXXXXX. Required for interstate loads for both brokers and carriers. USDOT-only carriers can only do intrastate loads. Need help with MC requirements?`;
+
+                        case 'usdot':
+                            return `USDOT (Department of Transportation) number is required for all carriers! 🚚 Format: 6-8 digits. Minimum requirement for intrastate freight. For interstate, you also need MC number. Need help with USDOT requirements?`;
+
+                        case 'interstate':
+                            return `Interstate freight crosses state lines! 🌍 Requires MC number for both brokers and carriers. Higher rates, more opportunities, but stricter requirements. Brokers with only USDOT can't post interstate loads. Need help with interstate requirements?`;
+
+                        case 'intrastate':
+                            return `Intrastate freight stays within one state! 🏠 USDOT number is sufficient, no MC required. Lower rates but still good opportunities. Perfect for local and regional carriers. Need help with intrastate operations?`;
+
+                        case 'rates':
+                            return `Rate negotiation is key! 💰 Rates can be per mile or flat rate. Consider fuel surcharge, accessorial charges (detention, layover, tarping), and market conditions. All-in rates include everything. Need help with rate calculations?`;
+
+                        case 'shipment':
+                            return `Shipments are created by shippers! 📦 Each gets a unique Shipment ID (SHP-YYYYMMDD-XXXXXX). Brokers can link loads to shipments using this ID, or post unlinked loads. Need help with shipment creation or linking?`;
                     }
                 }
 
