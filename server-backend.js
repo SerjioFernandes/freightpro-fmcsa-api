@@ -260,6 +260,14 @@ if (FRONTEND_URL && !allowedOrigins.includes(FRONTEND_URL)) {
     allowedOrigins.push(FRONTEND_URL);
 }
 
+// Handle preflight requests first
+app.options('*', cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+
 app.use(cors({
     origin: allowedOrigins,
     credentials: true,
@@ -312,7 +320,6 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
-app.options('*', cors());
 
 // Email Configuration
 function createEmailTransporter() {
