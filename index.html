@@ -2485,15 +2485,31 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-briefcase mr-2 text-blue-500"></i>Account Type *
                             </label>
-                            <select name="accountType" required 
+                            <select name="accountType" id="accountTypeSelect" required 
                                 class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
-                                       transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300 cursor-pointer">
+                                       transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300 cursor-pointer"
+                                onchange="toggleEINField()">
                                 <option value="">Select your account type</option>
                                 <option value="shipper">📦 Shipper - I need to ship freight</option>
                                 <option value="carrier">🚛 Carrier - I transport freight</option>
                                 <option value="broker">🤝 Broker - I connect shippers & carriers</option>
                             </select>
+                        </div>
+
+                        <!-- EIN Field (only for brokers and carriers) -->
+                        <div class="group" id="einFieldGroup" style="display: none;">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600">
+                                <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
+                            </label>
+                            <input type="text" name="ein" id="einInput" 
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
+                                placeholder="Enter EIN (e.g., 89-4521364)"
+                                pattern="^\d{2}-\d{7}$"
+                                title="EIN must be in format: XX-XXXXXXX">
+                            <p class="text-xs text-gray-500 mt-1">Required for brokers and carriers. Format: XX-XXXXXXX</p>
                         </div>
                         
 
@@ -6655,6 +6671,25 @@
                 verificationForm.dataset.bound = 'true';
             }
 
+            // Toggle EIN field based on account type
+            function toggleEINField() {
+                const accountTypeSelect = document.getElementById('accountTypeSelect');
+                const einFieldGroup = document.getElementById('einFieldGroup');
+                const einInput = document.getElementById('einInput');
+                
+                if (accountTypeSelect && einFieldGroup && einInput) {
+                    const selectedType = accountTypeSelect.value;
+                    if (selectedType === 'broker' || selectedType === 'carrier') {
+                        einFieldGroup.style.display = 'block';
+                        einInput.required = true;
+                    } else {
+                        einFieldGroup.style.display = 'none';
+                        einInput.required = false;
+                        einInput.value = '';
+                    }
+                }
+            }
+
             // Attach registration form handler
             const registerForm = document.getElementById('registerForm');
             if (registerForm) {
@@ -6710,6 +6745,24 @@
                 return;
             }
             
+            // EIN validation for brokers and carriers
+            if (selectedAccountType === 'broker' || selectedAccountType === 'carrier') {
+                const einInput = document.getElementById('einInput');
+                if (!einInput || !einInput.value.trim()) {
+                    showNotification('EIN is required for brokers and carriers.', 'error');
+                    if (einInput) einInput.focus();
+                    return;
+                }
+                
+                // Validate EIN format (XX-XXXXXXX)
+                const einPattern = /^\d{2}-\d{7}$/;
+                if (!einPattern.test(einInput.value.trim())) {
+                    showNotification('EIN must be in format XX-XXXXXXX (e.g., 89-4521364).', 'error');
+                    einInput.focus();
+                    return;
+                }
+            }
+            
             // Get authority data from stored values
             const storedUSDOT = window.storedUSDOT || '';
             const storedMC = window.storedMC || '';
@@ -6726,7 +6779,9 @@
                 mcNumber: selectedAccountType === 'shipper' ? '' : storedMC,
                 hasUSDOT: selectedAccountType !== 'shipper' && !!storedUSDOT,
                 companyLegalName: form.company.value.trim(),
-                dbaName: ''
+                dbaName: '',
+                ein: (selectedAccountType === 'broker' || selectedAccountType === 'carrier') ? 
+                     (document.getElementById('einInput')?.value.trim() || '') : ''
             };
             
             console.log('Registering user with data:', registrationData);

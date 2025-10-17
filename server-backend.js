@@ -135,6 +135,10 @@ const userSchema = new mongoose.Schema({
     companyLegalName: { type: String, default: '' },
     dbaName: { type: String, default: '' },
     
+    // EIN Information (for brokers/carriers)
+    einCanon: { type: String, default: '' }, // EIN without dashes (e.g., 894521364)
+    einDisplay: { type: String, default: '' }, // EIN with dashes (e.g., 89-4521364)
+    
     // Address Information
     address: {
         street: { type: String, default: '' },
@@ -467,9 +471,28 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
 
         console.log('Registration request body:', JSON.stringify(req.body, null, 2));
 
-        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName } = req.body;
+        const { email, password, company, phone, accountType, usdotNumber, mcNumber, hasUSDOT, companyLegalName, dbaName, ein } = req.body;
 
         const normalizedEmail = (email || '').trim().toLowerCase();
+
+        // EIN validation for brokers and carriers
+        if (accountType === 'broker' || accountType === 'carrier') {
+            if (!ein || !ein.trim()) {
+                return res.status(400).json({
+                    error: 'EIN required',
+                    message: 'EIN is required for brokers and carriers'
+                });
+            }
+            
+            // Validate EIN format (XX-XXXXXXX)
+            const einPattern = /^\d{2}-\d{7}$/;
+            if (!einPattern.test(ein.trim())) {
+                return res.status(400).json({
+                    error: 'Invalid EIN format',
+                    message: 'EIN must be in format XX-XXXXXXX (e.g., 89-4521364)'
+                });
+            }
+        }
 
         // Check if user already exists
         console.log('Checking for existing user with email:', normalizedEmail);
@@ -496,6 +519,14 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
         );
         const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 
+        // Process EIN for brokers/carriers
+        let einCanon = '';
+        let einDisplay = '';
+        if (ein && (accountType === 'broker' || accountType === 'carrier')) {
+            einDisplay = ein.trim();
+            einCanon = ein.trim().replace('-', '');
+        }
+
         // Create user
         const user = new User({
             email: normalizedEmail,
@@ -509,6 +540,8 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
             hasUSDOT: hasUSDOT || false,
             companyLegalName: companyLegalName || '',
             dbaName: dbaName || '',
+            einCanon,
+            einDisplay,
             address: {
                 street: '',
                 city: '',
