@@ -2449,6 +2449,21 @@
                             <p class="text-xs text-gray-500 mt-1">Include country/area code. Numbers only; no extensions.</p>
                         </div>
                         
+                        <!-- EIN Field (for brokers and carriers only) -->
+                        <div id="einFieldGroup" class="group hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600">
+                                <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
+                            </label>
+                            <input type="text" name="ein" id="einInput"
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                                       transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
+                                placeholder="Enter EIN (e.g., 12-3456789)"
+                                pattern="^\d{2}-\d{7}$"
+                                title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)">
+                            <p class="text-xs text-gray-500 mt-1">Required for brokers and carriers. Format: XX-XXXXXXX</p>
+                        </div>
+                        
                         <!-- Username Field -->
                         <!-- Password Field -->
                         <div class="group relative">
@@ -7102,10 +7117,10 @@
                 if (accountTypeSelect && einFieldGroup && einInput) {
                     const selectedType = accountTypeSelect.value;
                     if (selectedType === 'broker' || selectedType === 'carrier') {
-                        einFieldGroup.style.display = 'block';
+                        einFieldGroup.classList.remove('hidden');
                         einInput.required = true;
                     } else {
-                        einFieldGroup.style.display = 'none';
+                        einFieldGroup.classList.add('hidden');
                         einInput.required = false;
                         einInput.value = '';
                     }
@@ -7143,6 +7158,14 @@
                 return;
             }
             
+            // Validate email format
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(form.email.value.trim())) {
+                showNotification('Please enter a valid email address.', 'error');
+                form.email.focus();
+                return;
+            }
+            
             if (!form.password.value) {
                 showNotification('Password is required.', 'error');
                 form.password.focus();
@@ -7163,6 +7186,14 @@
             
             if (form.phone.value.trim().length < 7) {
                 showNotification('Phone number must be at least 7 characters long.', 'error');
+                form.phone.focus();
+                return;
+            }
+            
+            // Validate phone number format (US/Canada)
+            const phonePattern = /^\+?1?\s*\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+            if (!phonePattern.test(form.phone.value.trim())) {
+                showNotification('Please enter a valid US/Canada phone number (e.g., 555-123-4567 or +1 (555) 123-4567).', 'error');
                 form.phone.focus();
                 return;
             }
@@ -7263,7 +7294,24 @@
 
                     return;
                 } else {
-                    showNotification(result.message || 'Registration failed. Please try again.', 'error');
+                    // Handle specific error cases
+                    let errorMessage = result.message || 'Registration failed. Please try again.';
+                    
+                    // Check for duplicate email error
+                    if (result.error && result.error.toLowerCase().includes('email') && 
+                        (result.error.toLowerCase().includes('already') || result.error.toLowerCase().includes('duplicate'))) {
+                        errorMessage = 'This email address is already registered. Please use a different email or try logging in.';
+                    }
+                    // Check for EIN validation errors
+                    else if (result.error && result.error.toLowerCase().includes('ein')) {
+                        errorMessage = result.error;
+                    }
+                    // Check for phone validation errors
+                    else if (result.error && result.error.toLowerCase().includes('phone')) {
+                        errorMessage = result.error;
+                    }
+                    
+                    showNotification(errorMessage, 'error');
                 }
                 
             } catch (error) {
@@ -8314,6 +8362,8 @@
                     // Disable the select field since it's already chosen
                     accountTypeSelect.disabled = true;
                     accountTypeSelect.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    // Toggle EIN field based on selected type
+                    toggleEINField();
                 }
             }
         }
