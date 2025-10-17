@@ -1634,6 +1634,9 @@
                 <button id="mobilePostLoadBtn" onclick="showPostLoadPage(); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
                     <i class="fas fa-plus-circle mr-3"></i>Post Load
                 </button>
+                <button id="mobileCreateShipmentBtn" onclick="showCreateShipmentPage(); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
+                    <i class="fas fa-shipping-fast mr-3"></i>Create Shipment
+                </button>
                 
                 <button onclick="showPage('rates'); toggleSidebar()" class="nav-item w-full text-left text-white px-4 py-3">
                     <i class="fas fa-chart-line mr-3"></i>Rate Analysis
@@ -1683,6 +1686,9 @@
                         </button>
                         <button id="desktopPostLoadBtn" onclick="showPostLoadPage();" class="nav-item text-white text-sm px-3 py-2 hidden">
                             <i class="fas fa-plus mr-1"></i>Post Load
+                        </button>
+                        <button id="desktopCreateShipmentBtn" onclick="showCreateShipmentPage();" class="nav-item text-white text-sm px-3 py-2 hidden">
+                            <i class="fas fa-shipping-fast mr-1"></i>Create Shipment
                         </button>
                         <button onclick="showPage('rates')" class="nav-item text-white text-sm px-3 py-2">
                             <i class="fas fa-chart-line mr-1"></i>Rates
@@ -3529,7 +3535,302 @@
         </div>
     </div>
 
-    
+    <!-- Create Shipment Page -->
+    <div id="createshipment" class="page hidden">
+        <!-- Access Control Check -->
+        <div id="createShipmentAccessDenied" class="max-w-4xl mx-auto px-4 py-8 hidden">
+            <div class="text-center">
+                <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Access Restricted</h2>
+                <p class="text-gray-600 mb-6">Only shippers can create shipments. Please log in with a shipper account.</p>
+                <button onclick="showPage('login')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    Go to Login
+                </button>
+            </div>
+        </div>
+        
+        <!-- Professional Create Shipment Form -->
+        <div id="createShipmentForm" class="max-w-7xl mx-auto px-8 py-12 pb-20 hidden">
+            <!-- Professional Header Section -->
+            <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-xl p-12 mb-12 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-shipping-fast mr-4"></i>Create New Shipment
+                        </h1>
+                        <p class="text-green-100 text-lg">Post your freight requirements and connect with qualified brokers</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">📦</div>
+                        <div class="text-green-200 text-sm">Shipper Portal</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipment Form -->
+            <form id="shipmentForm" class="bg-white rounded-xl shadow-lg p-8" onsubmit="handleCreateShipment(event)">
+                <!-- Basic Information -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-info-circle mr-3 text-blue-600"></i>Shipment Details
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Title -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-tag mr-2 text-blue-500"></i>Shipment Title *
+                            </label>
+                            <input type="text" name="title" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                placeholder="e.g., Electronics Shipment, Furniture Delivery">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-align-left mr-2 text-blue-500"></i>Description
+                            </label>
+                            <textarea name="description" rows="4"
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                placeholder="Describe your shipment requirements, special handling needs, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pickup Location -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-3 text-green-600"></i>Pickup Location
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Pickup City -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-city mr-2 text-green-500"></i>City *
+                            </label>
+                            <input type="text" name="pickupCity" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                                placeholder="e.g., Chicago">
+                        </div>
+
+                        <!-- Pickup State -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-flag mr-2 text-green-500"></i>State/Province *
+                            </label>
+                            <select name="pickupState" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm 
+                                       focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200">
+                                <option value="">Select State/Province</option>
+                                <optgroup label="US States">
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </optgroup>
+                                <optgroup label="Canadian Provinces">
+                                    <option value="AB">Alberta</option>
+                                    <option value="BC">British Columbia</option>
+                                    <option value="MB">Manitoba</option>
+                                    <option value="NB">New Brunswick</option>
+                                    <option value="NL">Newfoundland and Labrador</option>
+                                    <option value="NS">Nova Scotia</option>
+                                    <option value="ON">Ontario</option>
+                                    <option value="PE">Prince Edward Island</option>
+                                    <option value="QC">Quebec</option>
+                                    <option value="SK">Saskatchewan</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- Pickup ZIP -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-mail-bulk mr-2 text-green-500"></i>ZIP/Postal Code *
+                            </label>
+                            <input type="text" name="pickupZip" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                                placeholder="e.g., 60601 or A1A 1A1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Location -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-3 text-red-600"></i>Delivery Location
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Delivery City -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-city mr-2 text-red-500"></i>City *
+                            </label>
+                            <input type="text" name="deliveryCity" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200"
+                                placeholder="e.g., Los Angeles">
+                        </div>
+
+                        <!-- Delivery State -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-flag mr-2 text-red-500"></i>State/Province *
+                            </label>
+                            <select name="deliveryState" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm 
+                                       focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200">
+                                <option value="">Select State/Province</option>
+                                <optgroup label="US States">
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </optgroup>
+                                <optgroup label="Canadian Provinces">
+                                    <option value="AB">Alberta</option>
+                                    <option value="BC">British Columbia</option>
+                                    <option value="MB">Manitoba</option>
+                                    <option value="NB">New Brunswick</option>
+                                    <option value="NL">Newfoundland and Labrador</option>
+                                    <option value="NS">Nova Scotia</option>
+                                    <option value="ON">Ontario</option>
+                                    <option value="PE">Prince Edward Island</option>
+                                    <option value="QC">Quebec</option>
+                                    <option value="SK">Saskatchewan</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- Delivery ZIP -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-mail-bulk mr-2 text-red-500"></i>ZIP/Postal Code *
+                            </label>
+                            <input type="text" name="deliveryZip" required
+                                class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                       focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200"
+                                placeholder="e.g., 90210 or A1A 1A1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <button type="button" onclick="showPage('loadboard')" 
+                            class="px-8 py-4 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-base">
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-10 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-base">
+                        <i class="fas fa-shipping-fast mr-2"></i>Create Shipment
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Extra bottom spacing -->
+            <div class="h-16"></div>
+        </div>
+    </div>
 
     <!-- Rate Analysis Page -->
     <div id="rates" class="page hidden">
@@ -5430,6 +5731,7 @@
             setLoadingState(false);
             updateAutoRefreshButton();
             checkPostLoadAccess();
+            checkCreateShipmentAccess();
             }
         }
 
@@ -5489,6 +5791,120 @@
             }
         }
 
+        // Shipment Creation Functions
+        function checkCreateShipmentAccess() {
+            const user = getCurrentUser();
+            const shipmentForm = document.getElementById('createShipmentForm');
+            const denied = document.getElementById('createShipmentAccessDenied');
+            const mobileButton = document.getElementById('mobileCreateShipmentBtn');
+            const desktopButton = document.getElementById('desktopCreateShipmentBtn');
+            const canCreate = !!(user && (user.accountType === 'shipper' || user.role === 'admin'));
+
+            if (mobileButton) mobileButton.classList.toggle('hidden', !user || !canCreate);
+            if (desktopButton) desktopButton.classList.toggle('hidden', !user || !canCreate);
+
+            if (!shipmentForm || !denied) return;
+            if (canCreate) {
+                shipmentForm.classList.remove('hidden');
+                denied.classList.add('hidden');
+            } else {
+                shipmentForm.classList.add('hidden');
+                denied.classList.remove('hidden');
+            }
+        }
+
+        function showCreateShipmentPage() {
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to create shipments.', 'warning');
+                showPage('login');
+                return;
+            }
+            
+            if (user.accountType !== 'shipper' && user.role !== 'admin') {
+                showNotification('Only shippers can create shipments.', 'error');
+                showPage('loadboard');
+                return;
+            }
+            
+            // Reset form
+            const form = document.getElementById('shipmentForm');
+            if (form) {
+                form.reset();
+            }
+            
+            showPage('createshipment');
+            checkCreateShipmentAccess();
+        }
+
+        async function handleCreateShipment(event) {
+            event.preventDefault();
+            
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to create shipments.', 'warning');
+                showPage('login');
+                return;
+            }
+
+            if (user.accountType !== 'shipper' && user.role !== 'admin') {
+                showNotification('Only shippers can create shipments.', 'error');
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const shipmentData = {
+                title: formData.get('title'),
+                description: formData.get('description') || '',
+                pickup: {
+                    city: formData.get('pickupCity'),
+                    state: formData.get('pickupState'),
+                    zip: formData.get('pickupZip'),
+                    country: 'US'
+                },
+                delivery: {
+                    city: formData.get('deliveryCity'),
+                    state: formData.get('deliveryState'),
+                    zip: formData.get('deliveryZip'),
+                    country: 'US'
+                }
+            };
+
+            // Validate required fields
+            if (!shipmentData.title || !shipmentData.pickup.city || !shipmentData.pickup.state || 
+                !shipmentData.pickup.zip || !shipmentData.delivery.city || !shipmentData.delivery.state || 
+                !shipmentData.delivery.zip) {
+                showNotification('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/shipments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user.token}`
+                    },
+                    body: JSON.stringify(shipmentData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(`Shipment created successfully! Shipment ID: ${result.shipment.shipmentId}`, 'success');
+                    form.reset();
+                    showPage('loadboard');
+                } else {
+                    showNotification(result.error || 'Failed to create shipment', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating shipment:', error);
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
         function showPostLoadPage() {
             const user = getCurrentUser();
             if (!user) {
@@ -5527,6 +5943,7 @@
             
             showPage('postload');
             checkPostLoadAccess();
+            checkCreateShipmentAccess();
         }
         async function handlePostLoad(event) {
             event.preventDefault();
@@ -5835,16 +6252,21 @@
                 
                 // Check Post Load access
                 checkPostLoadAccess();
+                checkCreateShipmentAccess();
             } else {
                 // User is not logged in
                 if (authButtons) authButtons.classList.remove('hidden');
                 if (userInfo) userInfo.classList.add('hidden');
                 
-                // Hide Post Load buttons for non-logged in users
+                // Hide Post Load and Create Shipment buttons for non-logged in users
                 const mobilePostLoadBtn = document.getElementById('mobilePostLoadBtn');
                 const desktopPostLoadBtn = document.getElementById('desktopPostLoadBtn');
+                const mobileCreateShipmentBtn = document.getElementById('mobileCreateShipmentBtn');
+                const desktopCreateShipmentBtn = document.getElementById('desktopCreateShipmentBtn');
                 if (mobilePostLoadBtn) mobilePostLoadBtn.classList.add('hidden');
                 if (desktopPostLoadBtn) desktopPostLoadBtn.classList.add('hidden');
+                if (mobileCreateShipmentBtn) mobileCreateShipmentBtn.classList.add('hidden');
+                if (desktopCreateShipmentBtn) desktopCreateShipmentBtn.classList.add('hidden');
             }
         }
 
