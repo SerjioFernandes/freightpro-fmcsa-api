@@ -1,0 +1,51 @@
+{
+  "name": "freightpro-load-board",
+  "version": "1.0.0",
+  "description": "Professional load board platform for FreightPro",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server-backend.js",
+    "dev": "nodemon server-backend.js",
+    "static": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "freight",
+    "trucking",
+    "api",
+    "express",
+    "load-board"
+  ],
+  "author": "FreightPro Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "mongoose": "^8.0.3",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.4",
+    "nodemailer": "^6.9.7",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freightpro/load-board.git"
+  },
+  "bugs": {
+    "url": "https://github.com/freightpro/load-board/issues"
+  },
+  "homepage": "https://freight-pro.netlify.app"
+}
