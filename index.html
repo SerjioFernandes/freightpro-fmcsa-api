@@ -2386,7 +2386,10 @@
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
                                                         placeholder="Enter EIN (e.g., 12-3456789)"
                                                         pattern="^\d{2}-\d{7}$"
-                                                        title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)">
+                                                        title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)"
+                                                        maxlength="10"
+                                                        oninput="formatEIN(this)"
+                                                        onkeypress="return validateEINInput(event)">
                                                     <p class="text-xs text-gray-500 mt-1">Required for brokers and carriers. Format: XX-XXXXXXX</p>
                                                 </div>
                                             </div>
@@ -2475,7 +2478,10 @@
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
                                 placeholder="Enter EIN (e.g., 12-3456789)"
                                 pattern="^\d{2}-\d{7}$"
-                                title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)">
+                                title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)"
+                                maxlength="10"
+                                oninput="formatEIN(this)"
+                                onkeypress="return validateEINInput(event)">
                             <p class="text-xs text-gray-500 mt-1">Required for brokers and carriers. Format: XX-XXXXXXX</p>
                         </div>
                         
@@ -3156,15 +3162,15 @@
             <div class="text-center">
                 <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
                 <h1 class="text-3xl font-bold text-gray-800 mb-4">Access Restricted</h1>
-                <p class="text-lg text-gray-600 mb-6">Only registered brokers and shippers can post loads.</p>
+                <p class="text-lg text-gray-600 mb-6">Only registered brokers can post loads.</p>
                 <div class="space-y-3">
                     <p class="text-gray-500">• Brokers can post loads to connect shippers with carriers</p>
-                    <p class="text-gray-500">• Shippers can post loads to find transportation</p>
+                    <p class="text-gray-500">• Shippers create shipments (not loads)</p>
                     <p class="text-gray-500">• Carriers cannot post loads (they transport freight)</p>
                 </div>
                 <div class="mt-8 space-x-4">
                     <button onclick="showPage('register')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                        <i class="fas fa-user-plus mr-2"></i>Register as Broker/Shipper
+                        <i class="fas fa-user-plus mr-2"></i>Register as Broker
                     </button>
                     <button onclick="showPage('home')" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         <i class="fas fa-home mr-2"></i>Go Home
@@ -5043,6 +5049,92 @@
             }
         }
 
+        // EIN Auto-formatting functions (Global scope)
+        function formatEIN(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove all non-digits
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '-' + value.substring(2, 9);
+            }
+            
+            input.value = value;
+        }
+
+        function validateEINInput(event) {
+            const char = String.fromCharCode(event.which);
+            const input = event.target;
+            const currentValue = input.value.replace(/\D/g, '');
+            
+            // Only allow digits
+            if (!/\d/.test(char)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            // Don't allow more than 9 digits total
+            if (currentValue.length >= 9) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Authority Validation Functions
+        function getUserAuthorityLevel(user) {
+            if (!user) return { hasUSDOT: false, hasMC: false, level: 'none' };
+            
+            const hasUSDOT = !!(user.usdotNumber && user.usdotNumber.trim());
+            const hasMC = !!(user.mcNumber && user.mcNumber.trim());
+            
+            let level = 'none';
+            if (hasUSDOT && hasMC) level = 'full'; // Can do interstate and intrastate
+            else if (hasUSDOT) level = 'limited'; // Can only do intrastate
+            
+            return { hasUSDOT, hasMC, level };
+        }
+
+        function isInterstateLoad(originState, destinationState) {
+            return originState !== destinationState;
+        }
+
+        function canBrokerPostInterstateLoad(user) {
+            const authority = getUserAuthorityLevel(user);
+            return authority.hasMC; // Only brokers with MC can post interstate loads
+        }
+
+        function canCarrierBookInterstateLoad(user) {
+            const authority = getUserAuthorityLevel(user);
+            return authority.hasMC; // Only carriers with MC can book interstate loads
+        }
+
+        function getAuthorityStatusMessage(user) {
+            if (!user) return '';
+            
+            const authority = getUserAuthorityLevel(user);
+            const accountType = user.accountType;
+            
+            if (accountType === 'broker') {
+                if (authority.hasMC) {
+                    return '✅ Full Authority: Can post interstate and intrastate loads';
+                } else if (authority.hasUSDOT) {
+                    return '⚠️ Limited Authority: Can only post intrastate loads (same state)';
+                } else {
+                    return '❌ No Authority: Please add USDOT number to post loads';
+                }
+            } else if (accountType === 'carrier') {
+                if (authority.hasMC) {
+                    return '✅ Full Authority: Can book interstate and intrastate loads';
+                } else if (authority.hasUSDOT) {
+                    return '⚠️ Limited Authority: Can only book intrastate loads (same state)';
+                } else {
+                    return '❌ No Authority: Please add USDOT number to book loads';
+                }
+            }
+            
+            return '';
+        }
+
         function getAuthToken() {
             try {
                 return localStorage.getItem('authToken') || '';
@@ -5386,6 +5478,8 @@
         }
 
         function smartFilterLoads(allLoads, filters) {
+            const user = getCurrentUser();
+            
             let filtered = allLoads.filter(load => {
                 const originMatch = !filters.origin || (load.origin || '').toLowerCase().includes(filters.origin);
                 const destinationMatch = !filters.destination || (load.destination || '').toLowerCase().includes(filters.destination);
@@ -5395,7 +5489,17 @@
                 const maxMilesMatch = !filters.maxMiles || Number(load.miles) <= filters.maxMiles;
                 const dateMatch = !filters.date || (load.pickupDate && load.pickupDate.startsWith(filters.date));
                 const radiusMatch = !filters.radius || Number(load.miles) <= filters.radius;
-                return originMatch && destinationMatch && equipmentMatch && loadTypeMatch && minRateMatch && maxMilesMatch && dateMatch && radiusMatch;
+                
+                // Authority-based filtering for carriers
+                let authorityMatch = true;
+                if (user && user.accountType === 'carrier') {
+                    const isInterstate = isInterstateLoad(load.origin?.state, load.destination?.state);
+                    if (isInterstate && !canCarrierBookInterstateLoad(user)) {
+                        authorityMatch = false; // Hide interstate loads for USDOT-only carriers
+                    }
+                }
+                
+                return originMatch && destinationMatch && equipmentMatch && loadTypeMatch && minRateMatch && maxMilesMatch && dateMatch && radiusMatch && authorityMatch;
             });
 
             // Apply smart sorting based on user preferences and load quality
@@ -5624,6 +5728,23 @@
                 showPage('login');
                 return;
             }
+
+            // Check if user is a carrier
+            if (user.accountType !== 'carrier' && user.role !== 'admin') {
+                showNotification('Only carriers can book loads.', 'error');
+                return;
+            }
+
+            // Find the load to check if it's interstate
+            const load = loads.find(l => l.id === loadId) || filteredLoads.find(l => l.id === loadId);
+            if (load) {
+                const isInterstate = isInterstateLoad(load.origin.state, load.destination.state);
+                if (isInterstate && !canCarrierBookInterstateLoad(user)) {
+                    showNotification('❌ Interstate Load Restricted: You need MC authority to book interstate loads. This load crosses state lines and requires full carrier authority.', 'error');
+                    return;
+                }
+            }
+
             const token = getAuthToken();
             if (!token) {
                 showNotification('Your session expired. Please log in again.', 'warning');
@@ -5762,6 +5883,8 @@
             updateAutoRefreshButton();
             checkPostLoadAccess();
             checkCreateShipmentAccess();
+            checkLoadBoardAccess();
+            displayAuthorityStatus();
             }
         }
 
@@ -5806,7 +5929,7 @@
             const denied = document.getElementById('postLoadAccessDenied');
             const mobileButton = document.getElementById('mobilePostLoadBtn');
             const desktopButton = document.getElementById('desktopPostLoadBtn');
-            const canPost = !!(user && (['broker','shipper','admin'].includes(user.accountType) || user.role === 'admin'));
+            const canPost = !!(user && (user.accountType === 'broker' || user.role === 'admin'));
 
             if (mobileButton) mobileButton.classList.toggle('hidden', !user || !canPost);
             if (desktopButton) desktopButton.classList.toggle('hidden', !user || !canPost);
@@ -5818,6 +5941,56 @@
             } else {
                 postForm.classList.add('hidden');
                 denied.classList.remove('hidden');
+            }
+        }
+
+        // Load Board Access Control (hide for shippers)
+        function checkLoadBoardAccess() {
+            const user = getCurrentUser();
+            const mobileLoadBoardBtn = document.querySelector('button[onclick*="loadboard"]');
+            const desktopLoadBoardBtn = document.querySelector('button[onclick*="loadboard"]:not(.nav-item.w-full)');
+            
+            // Hide Load Board for shippers (they should only create shipments)
+            const shouldHideLoadBoard = user && user.accountType === 'shipper';
+            
+            if (mobileLoadBoardBtn) {
+                mobileLoadBoardBtn.classList.toggle('hidden', shouldHideLoadBoard);
+            }
+            if (desktopLoadBoardBtn) {
+                desktopLoadBoardBtn.classList.toggle('hidden', shouldHideLoadBoard);
+            }
+        }
+
+        // Display Authority Status
+        function displayAuthorityStatus() {
+            const user = getCurrentUser();
+            if (!user || (user.accountType !== 'broker' && user.accountType !== 'carrier')) {
+                return;
+            }
+
+            const statusMessage = getAuthorityStatusMessage(user);
+            if (!statusMessage) return;
+
+            // Find or create authority status element
+            let statusElement = document.getElementById('authorityStatus');
+            if (!statusElement) {
+                // Create status element in user info area
+                const userInfo = document.getElementById('userInfo');
+                if (userInfo) {
+                    statusElement = document.createElement('div');
+                    statusElement.id = 'authorityStatus';
+                    statusElement.className = 'text-xs text-gray-600 mt-1 px-2 py-1 bg-gray-100 rounded';
+                    userInfo.appendChild(statusElement);
+                }
+            }
+
+            if (statusElement) {
+                statusElement.textContent = statusMessage;
+                statusElement.className = statusMessage.includes('✅') ? 
+                    'text-xs text-green-600 mt-1 px-2 py-1 bg-green-100 rounded' :
+                    statusMessage.includes('⚠️') ?
+                    'text-xs text-yellow-600 mt-1 px-2 py-1 bg-yellow-100 rounded' :
+                    'text-xs text-red-600 mt-1 px-2 py-1 bg-red-100 rounded';
             }
         }
 
@@ -5974,6 +6147,8 @@
             showPage('postload');
             checkPostLoadAccess();
             checkCreateShipmentAccess();
+            checkLoadBoardAccess();
+            displayAuthorityStatus();
         }
         async function handlePostLoad(event) {
             event.preventDefault();
@@ -5983,6 +6158,12 @@
             if (!user) {
                 showNotification('Please log in to post loads.', 'warning');
                 showPage('login');
+                return;
+            }
+
+            // Check if user is a broker
+            if (user.accountType !== 'broker' && user.role !== 'admin') {
+                showNotification('Only brokers can post loads.', 'error');
                 return;
             }
 
@@ -6005,6 +6186,13 @@
 
             const pickupLocation = parseLocation(formData.get('originLocation'));
             const deliveryLocation = parseLocation(formData.get('destinationLocation'));
+
+            // Validate interstate load authority
+            const isInterstate = isInterstateLoad(pickupLocation.state, deliveryLocation.state);
+            if (isInterstate && !canBrokerPostInterstateLoad(user)) {
+                showNotification('❌ Interstate Load Restricted: You need MC authority to post interstate loads. This load crosses state lines and requires full broker authority.', 'error');
+                return;
+            }
 
             // Handle commodity (either from dropdown or manual entry)
             let commodity = formData.get('commodity') || '';
@@ -6283,6 +6471,8 @@
                 // Check Post Load access
                 checkPostLoadAccess();
                 checkCreateShipmentAccess();
+                checkLoadBoardAccess();
+                displayAuthorityStatus();
             } else {
                 // User is not logged in
                 if (authButtons) authButtons.classList.remove('hidden');
@@ -8723,10 +8913,10 @@
                                 <button id="fpFileUpload" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors" onclick="triggerFileUpload()" title="Upload file">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                    </svg>
+                            </svg>
                                 </button>
                                 <input type="file" id="fpFileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt" style="display: none;" onchange="handleFileUpload(event)">
-                            </div>
+                        </div>
                             <button id="fpChatSend" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">Send</button>
                         </div>
                     </div>`;
@@ -9135,7 +9325,7 @@
                 
                 // Posting Loads (broker only)
                 if (msg.includes('post') || msg.includes('create') || msg.includes('add load') || msg.includes('new load') || msg.includes('list load') || msg.includes('publish load') || msg.includes('submit load')) {
-                    return `Only brokers can post loads. If your load is tied to a shipment, include the Shipment ID from the shipper. Otherwise, you can post a standalone load. Need help with broker posting? 📝`;
+                    return `Only brokers can post loads. Shippers create shipments instead. If your load is tied to a shipment, include the Shipment ID from the shipper. Otherwise, you can post a standalone load. Need help with broker posting? 📝`;
                 }
                 
                 // Registration and Account
@@ -9248,10 +9438,10 @@
                 // Display image preview
                 if (fileData.type.startsWith('image/') && fileData.data) {
                     filePreview = `<div class="mt-2 max-w-xs"><img src="${fileData.data}" alt="${fileData.name}" class="rounded-lg border border-gray-200 max-w-full h-auto cursor-pointer" onclick="openFileViewer('${fileData.id}')"></div>`;
-                }
-                
-                addMessage({
-                    role: 'user',
+                    }
+                    
+                    addMessage({
+                        role: 'user',
                     text: messageText,
                     timestamp: new Date().toLocaleTimeString(),
                     filePreview: filePreview,
@@ -9375,7 +9565,7 @@
                 
                 // Force English only
                 chatState.currentLanguage = 'en';
-                updateChatLanguage();
+                    updateChatLanguage();
             }
 
             function saveChatHistory() {
@@ -9494,48 +9684,48 @@
             const freightProKnowledge = {
                 // Filtering Options
                 filteringOptions: {
-                    rate: 'Minimum rate filtering',
+                        rate: 'Minimum rate filtering',
                     miles: 'Maximum miles filtering',
                     equipment: 'Equipment type filtering',
                     state: 'State/province filtering',
                     date: 'Pickup date filtering'
-                },
-                
-                // Sorting Options
-                sortingOptions: [
-                    'Rate (High to Low)',
-                    'Rate (Low to High)', 
-                    'Distance (Near to Far)',
-                    'Pickup Date (Earliest)',
-                    'Recently Posted'
-                ],
-                
-                // View Modes
-                viewModes: ['List View', 'Card View', 'Compact View'],
-                
-                // Pages & Navigation
-                pages: {
-                    home: 'Landing page with hero section and stats',
-                    register: 'User registration with account type selection',
-                    login: 'User authentication',
-                    loadboard: 'Main load board with search and filters',
-                    postload: 'Post new loads (Broker/Shipper only)',
-                    profile: 'User profile and account management',
+                    },
+                    
+                    // Sorting Options
+                    sortingOptions: [
+                        'Rate (High to Low)',
+                        'Rate (Low to High)', 
+                        'Distance (Near to Far)',
+                        'Pickup Date (Earliest)',
+                        'Recently Posted'
+                    ],
+                    
+                    // View Modes
+                    viewModes: ['List View', 'Card View', 'Compact View'],
+                    
+                    // Pages & Navigation
+                    pages: {
+                        home: 'Landing page with hero section and stats',
+                        register: 'User registration with account type selection',
+                        login: 'User authentication',
+                        loadboard: 'Main load board with search and filters',
+                        postload: 'Post new loads (Broker/Shipper only)',
+                        profile: 'User profile and account management',
                     pricing: 'Subscription plans and billing',
                     dashboard: 'User dashboard with activity and settings'
-                },
-                
-                // Features
-                features: [
-                    'Real-time load board',
-                    'Advanced search and filtering',
-                    'Load posting and booking',
-                    'User authentication',
-                    'Email verification',
-                    'Profile management',
-                    'Auto-refresh system',
-                    'Performance optimization',
-                    'Mobile responsive design',
+                    },
+                    
+                    // Features
+                    features: [
+                        'Real-time load board',
+                        'Advanced search and filtering',
+                        'Load posting and booking',
+                        'User authentication',
+                        'Email verification',
+                        'Profile management',
+                        'Auto-refresh system',
+                        'Performance optimization',
+                        'Mobile responsive design',
                     'Live chat support',
                     'Shipment tracking',
                     'Authority validation',
@@ -9647,19 +9837,19 @@
                         'How do I verify authority?'
                     ]
                 },
-                
-                // Technical Details
-                technical: {
-                    backend: 'Node.js with MongoDB',
-                    frontend: 'HTML5, CSS3, JavaScript',
-                    api: 'RESTful API endpoints',
-                    database: 'MongoDB Atlas',
-                    deployment: 'Render (backend), Netlify (frontend)',
+                    
+                    // Technical Details
+                    technical: {
+                        backend: 'Node.js with MongoDB',
+                        frontend: 'HTML5, CSS3, JavaScript',
+                        api: 'RESTful API endpoints',
+                        database: 'MongoDB Atlas',
+                        deployment: 'Render (backend), Netlify (frontend)',
                     security: 'JWT tokens, password hashing, rate limiting',
                     email: 'Professional email verification system',
                     validation: 'Comprehensive field validation for USA/Canada'
-                }
-            };
+                    }
+                };
 
             // AI-powered response generation
             function generateAIResponse(question, agent) {
@@ -10073,12 +10263,12 @@
 
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', createChatUI); else createChatUI();
 
-        function saveChatHistory(){ try { localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages)); } catch(e){} }
-        function loadChatHistory(){
-            try { chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || []; } catch(e){ chatState.messages = []; }
-            const list = document.getElementById('fpChatMessages'); if (!list) return;
-            chatState.messages.forEach(m => addMessage(m.role, m.text));
-        }
+            function saveChatHistory(){ try { localStorage.setItem('fp_chat_history', JSON.stringify(chatState.messages)); } catch(e){} }
+            function loadChatHistory(){
+                try { chatState.messages = JSON.parse(localStorage.getItem('fp_chat_history') || '[]') || []; } catch(e){ chatState.messages = []; }
+                const list = document.getElementById('fpChatMessages'); if (!list) return;
+                chatState.messages.forEach(m => addMessage(m.role, m.text));
+            }
         
         // Live Features - Multi-User Optimized
         function initializeLiveFeatures() {
