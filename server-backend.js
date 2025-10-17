@@ -58,34 +58,34 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 
 async function ensureDefaultAdminUser() {
     try {
-        if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-            console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
-            return;
-        }
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+        console.warn('⚠️ Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD not set');
+        return;
+    }
 
-        const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
-        if (existing) {
-            return;
-        }
+    const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+    if (existing) {
+        return;
+    }
 
-        const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
+    const hashedPassword = await bcryptjs.hash(ADMIN_PASSWORD, 12);
 
-        const adminUser = new User({
-            email: ADMIN_EMAIL.toLowerCase(),
-            password: hashedPassword,
-            passwordPlain: ADMIN_PASSWORD,
-            company: 'FreightPro',
-            phone: '+1-000-000-0000',
-            accountType: 'broker',
-            role: 'admin',
-            isEmailVerified: true,
-            emailVerificationToken: '',
-            emailVerificationCodeHash: '',
-            emailVerificationExpires: null
-        });
+    const adminUser = new User({
+        email: ADMIN_EMAIL.toLowerCase(),
+        password: hashedPassword,
+        passwordPlain: ADMIN_PASSWORD,
+        company: 'FreightPro',
+        phone: '+1-000-000-0000',
+        accountType: 'broker',
+        role: 'admin',
+        isEmailVerified: true,
+        emailVerificationToken: '',
+        emailVerificationCodeHash: '',
+        emailVerificationExpires: null
+    });
 
-        await adminUser.save();
-        console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
+    await adminUser.save();
+    console.log(`👑 Default admin user created: ${ADMIN_EMAIL}`);
     } catch (error) {
         console.error('Failed to ensure default admin user:', error);
     }
@@ -349,7 +349,13 @@ function createEmailTransporter() {
         },
         tls: {
             rejectUnauthorized: false
-        }
+        },
+        // Additional options to help with Gmail
+        pool: true,
+        maxConnections: 1,
+        maxMessages: 3,
+        rateDelta: 20000,
+        rateLimit: 5
     });
 
     console.log('✅ Email transporter created successfully');
@@ -692,6 +698,70 @@ app.post('/api/auth/verify', asyncHandler(async (req, res) => {
         user.emailVerificationExpires = null;
         await user.save();
         res.json({ success: true, message: 'Email verified successfully' });
+}));
+
+// Resend verification code
+app.post('/api/auth/resend-code', asyncHandler(async (req, res) => {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (user.isEmailVerified) {
+            return res.status(400).json({ error: 'Email already verified' });
+        }
+        
+        // Generate new verification code
+        const emailVerificationCode = crypto.randomInt(100000, 999999).toString();
+        const emailVerificationCodeHash = await bcryptjs.hash(emailVerificationCode, 10);
+        const emailVerificationToken = jsonwebtoken.sign(
+            { email: user.email },
+            JWT_SECRET,
+            { expiresIn: EMAIL_VERIFICATION_TTL_MS / 1000 }
+        );
+        const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
+        
+        user.emailVerificationCodeHash = emailVerificationCodeHash;
+        user.emailVerificationToken = emailVerificationToken;
+        user.emailVerificationExpires = emailVerificationExpires;
+        await user.save();
+        
+        // Send email
+        if (transporter) {
+            const html = `
+                <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
+                  <div style="background:#1a2238; color:#fff; padding:16px 24px">
+                    <h1 style="margin:0; font-size:20px;">FreightPro</h1>
+                    <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+                  </div>
+                  <div style="padding:24px">
+                    <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
+                    <p style="margin:0 0 16px; color:#374151;">Here's your new verification code:</p>
+                    <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
+                      <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${emailVerificationCode}</div>
+                    </div>
+                    <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
+                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open FreightPro</a>
+                  </div>
+                  <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
+                    <p style="margin:0 0 4px;">If you didn't request this code, you can safely ignore this email.</p>
+                    <p style="margin:0;">© ${new Date().getFullYear()} FreightPro. All rights reserved.</p>
+                  </div>
+                </div>`;
+            transporter.sendMail({
+                from: `"FreightPro" <${process.env.EMAIL_USER}>`,
+                to: user.email,
+                subject: 'New verification code for FreightPro',
+                html
+            }).catch(err => console.error('Email send failed:', err));
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'New verification code sent',
+            verification: { code: emailVerificationCode }
+        });
 }));
 
 // Current user context (for chat role auto-detect)

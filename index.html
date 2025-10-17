@@ -6582,7 +6582,7 @@
             }
 
             try {
-                const response = await fetch(`${window.API_BASE_URL}/auth/verify-code`, {
+                const response = await fetch(`${window.API_BASE_URL}/auth/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, code })
