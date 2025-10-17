@@ -2374,6 +2374,21 @@
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
                                                         placeholder="Enter company email">
                                                 </div>
+                                                
+                                                <!-- EIN Field (for brokers and carriers) -->
+                                                <div class="group">
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                        <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
+                                                    </label>
+                                                    <input type="text" name="companyEIN" id="authorityEIN" required
+                                                        class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
+                                                               focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                                               transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
+                                                        placeholder="Enter EIN (e.g., 12-3456789)"
+                                                        pattern="^\d{2}-\d{7}$"
+                                                        title="EIN must be in format XX-XXXXXXX (e.g., 12-3456789)">
+                                                    <p class="text-xs text-gray-500 mt-1">Required for brokers and carriers. Format: XX-XXXXXXX</p>
+                                                </div>
                                             </div>
                                             
                                             <!-- Submit Company Info Button -->
@@ -10481,19 +10496,31 @@
             const companyEmail = document.querySelector('input[name="companyEmail"]');
             const businessAddress = document.querySelector('input[name="companyAddress"]');
             const companyPhone = document.querySelector('input[name="companyPhone"]');
+            const companyEIN = document.getElementById('authorityEIN');
             
             const missingCompanyName = companyLegalName && !companyLegalName.value.trim();
             const missingCompanyEmail = companyEmail && !companyEmail.value.trim();
             const missingBusinessAddress = businessAddress && !businessAddress.value.trim();
             const missingCompanyPhone = companyPhone && !companyPhone.value.trim();
+            const missingCompanyEIN = companyEIN && !companyEIN.value.trim();
             
-            if (missingUsd || missingMc || missingCompanyName || missingCompanyEmail || missingBusinessAddress || missingCompanyPhone) {
+            // Validate EIN format if provided
+            let invalidEINFormat = false;
+            if (companyEIN && companyEIN.value.trim()) {
+                const einPattern = /^\d{2}-\d{7}$/;
+                if (!einPattern.test(companyEIN.value.trim())) {
+                    invalidEINFormat = true;
+                }
+            }
+            
+            if (missingUsd || missingMc || missingCompanyName || missingCompanyEmail || missingBusinessAddress || missingCompanyPhone || missingCompanyEIN || invalidEINFormat) {
                 if (usdField) usdField.classList.toggle('border-red-400', missingUsd);
                 if (mcField) mcField.classList.toggle('border-red-400', missingMc);
                 if (companyLegalName) companyLegalName.classList.toggle('border-red-400', missingCompanyName);
                 if (companyEmail) companyEmail.classList.toggle('border-red-400', missingCompanyEmail);
                 if (businessAddress) businessAddress.classList.toggle('border-red-400', missingBusinessAddress);
                 if (companyPhone) companyPhone.classList.toggle('border-red-400', missingCompanyPhone);
+                if (companyEIN) companyEIN.classList.toggle('border-red-400', missingCompanyEIN || invalidEINFormat);
                 
                 let errorMessage = 'Please fill in all required fields before continuing:';
                 if (missingUsd) errorMessage += ' USDOT number,';
@@ -10502,6 +10529,8 @@
                 if (missingCompanyEmail) errorMessage += ' Company email,';
                 if (missingBusinessAddress) errorMessage += ' Business address,';
                 if (missingCompanyPhone) errorMessage += ' Phone number,';
+                if (missingCompanyEIN) errorMessage += ' EIN,';
+                if (invalidEINFormat) errorMessage += ' Valid EIN format (XX-XXXXXXX),';
                 
                 errorMessage = errorMessage.replace(/,$/, ''); // Remove trailing comma
                 showNotification(errorMessage, 'warning');
@@ -10514,6 +10543,7 @@
             companyLegalName?.classList.remove('border-red-400');
             companyEmail?.classList.remove('border-red-400');
             businessAddress?.classList.remove('border-red-400');
+            companyEIN?.classList.remove('border-red-400');
             
             return true;
         }
@@ -10587,6 +10617,7 @@
             // Get authority form data
             const authorityUSDOT = document.getElementById('authorityUSDOT');
             const authorityMC = document.getElementById('authorityMC');
+            const authorityEIN = document.getElementById('authorityEIN');
             const companyLegalName = document.querySelector('input[name="companyLegalName"]');
             const dbaName = document.querySelector('input[name="dbaName"]');
             const companyEmail = document.querySelector('input[name="companyEmail"]');
@@ -10597,6 +10628,7 @@
             const regCompany = document.querySelector('input[name="company"]');
             const regEmail = document.querySelector('input[name="email"]');
             const regPhone = document.querySelector('input[name="phone"]');
+            const regEIN = document.getElementById('einInput');
             
             // Transfer data if fields exist
             if (authorityUSDOT && authorityUSDOT.value) {
@@ -10607,6 +10639,11 @@
             if (authorityMC && authorityMC.value) {
                 // Store MC for later use in registration
                 window.storedMC = authorityMC.value;
+            }
+            
+            if (authorityEIN && authorityEIN.value && regEIN) {
+                // Transfer EIN to registration form
+                regEIN.value = authorityEIN.value;
             }
             
             if (companyLegalName && companyLegalName.value && regCompany) {
@@ -10629,6 +10666,7 @@
             console.log('Authority data transferred:', {
                 usdot: window.storedUSDOT,
                 mc: window.storedMC,
+                ein: regEIN?.value,
                 company: regCompany?.value,
                 email: regEmail?.value,
                 address: window.storedBusinessAddress,
