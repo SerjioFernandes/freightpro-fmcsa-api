@@ -7892,6 +7892,8 @@
                 updateData.mcNumber = formData.get('mcNumber');
             }
 
+            console.log('Updating profile with data:', updateData);
+
             try {
                 const response = await fetch(`${API_BASE_URL}/users/settings`, {
                     method: 'PUT',
@@ -7902,11 +7904,20 @@
                     body: JSON.stringify(updateData)
                 });
 
+                console.log('Profile update response status:', response.status);
                 const result = await response.json();
+                console.log('Profile update response:', result);
 
                 if (response.ok) {
                     showNotification('Profile updated successfully!', 'success');
                     closeProfileModal();
+                    
+                    // Update localStorage with new data
+                    if (result.user) {
+                        const updatedUser = { ...user, ...result.user };
+                        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                    }
+                    
                     // Refresh profile page
                     populateProfilePage();
                 } else {
@@ -7919,13 +7930,43 @@
         }
 
         // Populate profile page with user data
-        function populateProfilePage() {
+        async function populateProfilePage() {
             console.log('Populating profile page with user data');
             const user = getCurrentUser();
             if (!user) {
                 console.log('No user data available');
                 return;
             }
+
+            // Fetch fresh user data from API
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.dashboard && result.dashboard.user) {
+                        // Update localStorage with fresh data
+                        const updatedUser = { ...user, ...result.dashboard.user };
+                        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                        // Use fresh data
+                        populateProfilePageWithData(updatedUser);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching fresh user data:', error);
+            }
+
+            // Fallback to existing data
+            populateProfilePageWithData(user);
+        }
+
+        // Populate profile page with specific user data
+        function populateProfilePageWithData(user) {
 
             // Update profile header
             const profileName = document.getElementById('profileName');
