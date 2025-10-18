@@ -848,13 +848,16 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
                 id: user._id,
                 email: user.email,
                 company: user.company,
+                phone: user.phone,
                 accountType: user.accountType,
                 usdotNumber: user.usdotNumber,
                 mcNumber: user.mcNumber,
                 hasUSDOT: user.hasUSDOT,
                 hasMC: user.hasMC,
                 isEmailVerified: user.isEmailVerified,
-                role: user.role
+                role: user.role,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
             }
         });
 

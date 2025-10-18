@@ -4397,6 +4397,75 @@
             </div>
         </div>
     </div>
+
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-white">Edit Profile</h3>
+                        <button onclick="closeProfileModal()" class="text-white hover:text-gray-200 text-2xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <form id="profileEditForm" onsubmit="handleProfileUpdate(event)">
+                        <div class="space-y-4">
+                            <!-- Company Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                                <input type="text" name="company" id="editCompany" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="Enter company name">
+                            </div>
+                            
+                            <!-- Phone Number -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <input type="tel" name="phone" id="editPhone" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="Enter phone number">
+                            </div>
+                            
+                            <!-- USDOT Number (for brokers/carriers) -->
+                            <div id="editUSDOTContainer" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">USDOT Number</label>
+                                <input type="text" name="usdotNumber" id="editUSDOT" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="Enter USDOT number">
+                            </div>
+                            
+                            <!-- MC Number (for brokers/carriers) -->
+                            <div id="editMCContainer" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">MC Number</label>
+                                <input type="text" name="mcNumber" id="editMC" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="Enter MC number">
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Footer -->
+                        <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                            <button type="button" onclick="closeProfileModal()" 
+                                    class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Directory Page -->
     <div id="directory" class="page hidden">
         <div class="max-w-7xl mx-auto px-4 py-8 relative overflow-hidden">
@@ -7746,12 +7815,106 @@
             if (modal) {
                 modal.classList.remove('hidden');
                 // Populate profile data if user is logged in
-                if (currentUser) {
-                    populateProfileForm();
+                const user = getCurrentUser();
+                if (user) {
+                    populateProfileForm(user);
                 }
             } else {
                 console.error('Profile modal not found');
                 showNotification('Profile modal not available', 'error');
+            }
+        }
+
+        // Close profile modal
+        function closeProfileModal() {
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Populate profile form with current user data
+        function populateProfileForm(user) {
+            if (!user) user = getCurrentUser();
+            if (!user) return;
+
+            const editCompany = document.getElementById('editCompany');
+            const editPhone = document.getElementById('editPhone');
+            const editUSDOT = document.getElementById('editUSDOT');
+            const editMC = document.getElementById('editMC');
+            const editUSDOTContainer = document.getElementById('editUSDOTContainer');
+            const editMCContainer = document.getElementById('editMCContainer');
+
+            if (editCompany) editCompany.value = user.company || '';
+            if (editPhone) editPhone.value = user.phone || '';
+            
+            // Show/hide USDOT and MC fields based on user role
+            if (editUSDOTContainer && editUSDOT) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    editUSDOTContainer.classList.remove('hidden');
+                    editUSDOT.value = user.usdotNumber || '';
+                } else {
+                    editUSDOTContainer.classList.add('hidden');
+                }
+            }
+            
+            if (editMCContainer && editMC) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    editMCContainer.classList.remove('hidden');
+                    editMC.value = user.mcNumber || '';
+                } else {
+                    editMCContainer.classList.add('hidden');
+                }
+            }
+        }
+
+        // Handle profile update
+        async function handleProfileUpdate(event) {
+            event.preventDefault();
+            
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to update profile', 'error');
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const updateData = {
+                company: formData.get('company'),
+                phone: formData.get('phone')
+            };
+
+            // Add USDOT and MC for brokers/carriers
+            if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                updateData.usdotNumber = formData.get('usdotNumber');
+                updateData.mcNumber = formData.get('mcNumber');
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user.token}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Profile updated successfully!', 'success');
+                    closeProfileModal();
+                    // Refresh profile page
+                    populateProfilePage();
+                } else {
+                    showNotification(result.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
