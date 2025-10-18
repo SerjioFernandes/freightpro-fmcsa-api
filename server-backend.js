@@ -849,6 +849,10 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
                 email: user.email,
                 company: user.company,
                 accountType: user.accountType,
+                usdotNumber: user.usdotNumber,
+                mcNumber: user.mcNumber,
+                hasUSDOT: user.hasUSDOT,
+                hasMC: user.hasMC,
                 isEmailVerified: user.isEmailVerified,
                 role: user.role
             }
@@ -969,6 +973,8 @@ app.get('/api/users/dashboard', authenticateToken, asyncHandler(async (req, res)
                 einDisplay: user.einDisplay,
                 usdotNumber: user.usdotNumber,
                 mcNumber: user.mcNumber,
+                hasUSDOT: user.hasUSDOT,
+                hasMC: user.hasMC,
                 isEmailVerified: user.isEmailVerified,
                 createdAt: user.createdAt,
                 lastLogin: user.lastLogin

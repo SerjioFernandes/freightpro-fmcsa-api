@@ -1921,7 +1921,7 @@
                             <button onclick="showPage('loadboard'); initializeLoadBoard();" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
                                 <i class="fas fa-search mr-3 text-blue-600"></i>Browse Loads
                             </button>
-                            <button onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
+                            <button id="dashboardPostLoadBtn" onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors hidden">
                                 <i class="fas fa-plus mr-3 text-green-600"></i>Post a Load
                             </button>
                             <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
@@ -1957,7 +1957,7 @@
                 </div>
 
                 <!-- Posted Loads Section -->
-                <div class="mt-12">
+                <div id="postedLoadsSection" class="mt-12">
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-xl font-bold text-gray-800" id="postedLoadsTitle">
@@ -2590,7 +2590,7 @@
                                      transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl
                                      shadow-lg overflow-hidden">
                             <!-- Animated background -->
-                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                            <span class="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></span>
                             <i class="fas fa-rocket mr-3 text-xl relative"></i>
                             <span class="relative">Create My FreightPro Account</span>
                         </button>
@@ -2885,7 +2885,7 @@
                                      transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl
                                      shadow-lg overflow-hidden">
                             <!-- Animated background -->
-                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                            <span class="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></span>
                             <i class="fas fa-sign-in-alt mr-3 text-xl relative"></i>
                             <span class="relative">Sign In to FreightPro</span>
                         </button>
@@ -5085,22 +5085,51 @@
             if (!user) return { hasUSDOT: false, hasMC: false, level: 'none' };
             
             // Support multiple shapes coming from backend/localStorage
-            const usdotRaw = user.usdotNumber || user.usdot || user.USDOT || user.usdotNumber || '';
-            const mcRaw = user.mcNumber || user.mc || user.MC || user.mcNumber || '';
+            const usdotRaw = user.usdotNumber || user.usdot || user.USDOT || '';
+            const mcRaw = user.mcNumber || user.mc || user.MC || '';
             const hasUSDOTFlag = typeof user.hasUSDOT === 'boolean' ? user.hasUSDOT : undefined;
             const hasMCFlag = typeof user.hasMC === 'boolean' ? user.hasMC : undefined;
             
-            // For carriers, if they're logged in, they MUST have USDOT (required for registration)
-            // So if we can't detect it properly, assume they have it
-            const hasUSDOT = hasUSDOTFlag !== undefined ? hasUSDOTFlag : 
-                            (String(usdotRaw).trim() ? true : 
-                             (user.accountType === 'carrier' ? true : false));
+            // Debug logging to help troubleshoot
+            console.log('Authority Detection Debug:', {
+                user: user,
+                usdotRaw: usdotRaw,
+                mcRaw: mcRaw,
+                hasUSDOTFlag: hasUSDOTFlag,
+                hasMCFlag: hasMCFlag,
+                accountType: user.accountType
+            });
             
-            const hasMC = hasMCFlag !== undefined ? hasMCFlag : !!(String(mcRaw).trim());
+            // Check for USDOT - more robust detection
+            let hasUSDOT = false;
+            if (hasUSDOTFlag !== undefined) {
+                hasUSDOT = hasUSDOTFlag;
+            } else {
+                // Check if USDOT number exists and is not empty
+                const usdotValue = String(usdotRaw).trim();
+                hasUSDOT = usdotValue && usdotValue !== '' && usdotValue !== '-' && usdotValue !== 'undefined';
+                
+                // For carriers, if they're logged in, they MUST have USDOT (required for registration)
+                if (!hasUSDOT && user.accountType === 'carrier') {
+                    hasUSDOT = true; // Assume they have USDOT since it's required for carrier registration
+                }
+            }
+            
+            // Check for MC - more robust detection
+            let hasMC = false;
+            if (hasMCFlag !== undefined) {
+                hasMC = hasMCFlag;
+            } else {
+                // Check if MC number exists and is not empty
+                const mcValue = String(mcRaw).trim();
+                hasMC = mcValue && mcValue !== '' && mcValue !== '-' && mcValue !== 'undefined';
+            }
             
             let level = 'none';
             if (hasUSDOT && hasMC) level = 'full'; // Can do interstate and intrastate
             else if (hasUSDOT) level = 'limited'; // Can only do intrastate
+            
+            console.log('Authority Detection Result:', { hasUSDOT, hasMC, level });
             
             return { hasUSDOT, hasMC, level };
         }
@@ -5127,22 +5156,22 @@
             
             if (accountType === 'broker') {
                 if (authority.hasMC) {
-                    return '✅ Full Authority: Can post interstate and intrastate loads';
+                    return '✅ Interstate Authority: Can post interstate and intrastate loads';
                 } else if (authority.hasUSDOT) {
-                    return '⚠️ Limited Authority: Can only post intrastate loads (same state)';
+                    return '✅ Intrastate Authority: Can only post intrastate loads (same state)';
                 } else {
                     return '❌ No Authority: Please add USDOT number to post loads';
                 }
             } else if (accountType === 'carrier') {
                 // Carriers MUST have USDOT to register, so if they're logged in, they have authority
                 if (authority.hasMC) {
-                    return '✅ Full Authority: Can book interstate and intrastate loads';
+                    return '✅ Interstate Authority: Can book interstate and intrastate loads';
                 } else if (authority.hasUSDOT) {
-                    return '⚠️ Limited Authority: Can only book intrastate loads (same state)';
+                    return '✅ Intrastate Authority: Can book intrastate loads (same state)';
                 } else {
                     // This should never happen since carriers need USDOT to register
                     // But if it does, assume they have basic authority
-                    return '✅ Basic Authority: Can book loads (USDOT verification pending)';
+                    return '✅ Intrastate Authority: Can book loads (USDOT verification pending)';
                 }
             }
             
@@ -5943,6 +5972,8 @@
             const denied = document.getElementById('postLoadAccessDenied');
             const mobileButton = document.getElementById('mobilePostLoadBtn');
             const desktopButton = document.getElementById('desktopPostLoadBtn');
+            
+            // Only brokers can post loads
             const canPost = !!(user && (user.accountType === 'broker' || user.role === 'admin'));
 
             if (mobileButton) mobileButton.classList.toggle('hidden', !user || !canPost);
@@ -7854,8 +7885,29 @@
             // Add authority status to dashboard
             addAuthorityStatusToDashboard(user);
 
-            // Populate posted loads section
-            populatePostedLoadsSection(user);
+            // Control visibility based on user role
+            const dashboardPostLoadBtn = document.getElementById('dashboardPostLoadBtn');
+            const postedLoadsSection = document.getElementById('postedLoadsSection');
+            
+            // Show/hide Post Load button in Quick Actions (only for brokers)
+            if (dashboardPostLoadBtn) {
+                if (user.accountType === 'broker' || user.role === 'admin') {
+                    dashboardPostLoadBtn.classList.remove('hidden');
+                } else {
+                    dashboardPostLoadBtn.classList.add('hidden');
+                }
+            }
+            
+            // Show/hide Posted Loads section (only for brokers)
+            if (postedLoadsSection) {
+                if (user.accountType === 'broker' || user.role === 'admin') {
+                    postedLoadsSection.classList.remove('hidden');
+                    // Populate posted loads section
+                    populatePostedLoadsSection(user);
+                } else {
+                    postedLoadsSection.classList.add('hidden');
+                }
+            }
 
             console.log('User dashboard populated successfully');
         }
