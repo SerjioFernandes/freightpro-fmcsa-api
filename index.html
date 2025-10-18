@@ -4291,9 +4291,6 @@
                                     Account: <span id="profileAccountType">Free</span>
                                 </span>
                                 <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-                                    Role: <span id="profileRole">User</span>
-                                </span>
-                                <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">
                                     Member since: <span id="profileMemberSince">-</span>
                                 </span>
                             </div>
@@ -4332,13 +4329,17 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                                     <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-800" id="profilePhoneDisplay">-</div>
                                 </div>
-                                <div>
+                                <div id="profileUSDOTContainer">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">USDOT Number</label>
                                     <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-800" id="profileUSDOTDisplay">-</div>
                                 </div>
-                                <div>
+                                <div id="profileMCContainer">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">MC Number</label>
                                     <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-800" id="profileMCDisplay">-</div>
+                                </div>
+                                <div id="profileAuthorityTypeContainer" class="hidden">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Authority Type</label>
+                                    <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-800" id="profileAuthorityTypeDisplay">-</div>
                                 </div>
                             </div>
                         </div>
@@ -4354,10 +4355,6 @@
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-medium">Account Type:</span>
                                         <span class="font-semibold text-blue-600" id="profileAccountTypeDisplay">-</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-gray-600 font-medium">User Role:</span>
-                                        <span class="font-semibold text-purple-600" id="profileRoleDisplay">-</span>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-medium">Registration Date:</span>
@@ -7773,7 +7770,6 @@
             const profileCompany = document.getElementById('profileCompany');
             const profileInitials = document.getElementById('profileInitials');
             const profileAccountType = document.getElementById('profileAccountType');
-            const profileRole = document.getElementById('profileRole');
             const profileMemberSince = document.getElementById('profileMemberSince');
 
             if (profileName) profileName.textContent = user.company || user.name || 'User Profile';
@@ -7785,9 +7781,12 @@
                 profileInitials.textContent = initials;
             }
             if (profileAccountType) profileAccountType.textContent = user.accountType || 'Free';
-            if (profileRole) profileRole.textContent = user.role || 'User';
             if (profileMemberSince) {
-                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : '-';
                 profileMemberSince.textContent = regDate;
             }
 
@@ -7796,30 +7795,68 @@
             const profileUsernameDisplay = document.getElementById('profileUsernameDisplay');
             const profileEmailDisplay = document.getElementById('profileEmailDisplay');
             const profilePhoneDisplay = document.getElementById('profilePhoneDisplay');
+            const profileUSDOTContainer = document.getElementById('profileUSDOTContainer');
             const profileUSDOTDisplay = document.getElementById('profileUSDOTDisplay');
+            const profileMCContainer = document.getElementById('profileMCContainer');
             const profileMCDisplay = document.getElementById('profileMCDisplay');
+            const profileAuthorityTypeContainer = document.getElementById('profileAuthorityTypeContainer');
+            const profileAuthorityTypeDisplay = document.getElementById('profileAuthorityTypeDisplay');
 
             if (profileCompanyDisplay) profileCompanyDisplay.textContent = user.company || '-';
             if (profileUsernameDisplay) profileUsernameDisplay.textContent = user.name || user.email?.split('@')[0] || '-';
             if (profileEmailDisplay) profileEmailDisplay.textContent = user.email || '-';
             if (profilePhoneDisplay) profilePhoneDisplay.textContent = user.phone || '-';
-            if (profileUSDOTDisplay) profileUSDOTDisplay.textContent = user.usdotNumber || '-';
-            if (profileMCDisplay) profileMCDisplay.textContent = user.mcNumber || '-';
+            
+            // Show/hide USDOT and MC fields based on user role
+            if (profileUSDOTContainer) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    profileUSDOTContainer.classList.remove('hidden');
+                    if (profileUSDOTDisplay) profileUSDOTDisplay.textContent = user.usdotNumber || '-';
+                } else {
+                    profileUSDOTContainer.classList.add('hidden');
+                }
+            }
+            
+            if (profileMCContainer) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    profileMCContainer.classList.remove('hidden');
+                    if (profileMCDisplay) profileMCDisplay.textContent = user.mcNumber || '-';
+                } else {
+                    profileMCContainer.classList.add('hidden');
+                }
+            }
+            
+            // Show Authority Type for brokers and carriers
+            if (profileAuthorityTypeContainer && profileAuthorityTypeDisplay) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    profileAuthorityTypeContainer.classList.remove('hidden');
+                    const authorityMessage = getAuthorityStatusMessage(user);
+                    profileAuthorityTypeDisplay.textContent = authorityMessage || 'No Authority';
+                } else {
+                    profileAuthorityTypeContainer.classList.add('hidden');
+                }
+            }
 
             // Update account details section
             const profileAccountTypeDisplay = document.getElementById('profileAccountTypeDisplay');
-            const profileRoleDisplay = document.getElementById('profileRoleDisplay');
             const profileRegistrationDate = document.getElementById('profileRegistrationDate');
             const profileLastUpdated = document.getElementById('profileLastUpdated');
 
             if (profileAccountTypeDisplay) profileAccountTypeDisplay.textContent = user.accountType || 'Free';
-            if (profileRoleDisplay) profileRoleDisplay.textContent = user.role || 'User';
             if (profileRegistrationDate) {
-                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : '-';
                 profileRegistrationDate.textContent = regDate;
             }
             if (profileLastUpdated) {
-                const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-';
+                const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : '-';
                 profileLastUpdated.textContent = lastUpdate;
             }
 
@@ -7873,8 +7910,22 @@
             if (dashboardUserName) dashboardUserName.textContent = user.company || user.name || 'User';
             if (dashboardUserCompany) dashboardUserCompany.textContent = user.company || 'Company';
             if (dashboardAccountType) dashboardAccountType.textContent = user.accountType || 'Free';
-            if (dashboardUSDOT) dashboardUSDOT.textContent = user.usdotNumber || '-';
-            if (dashboardMC) dashboardMC.textContent = user.mcNumber || '-';
+            
+            // Show USDOT and MC only for brokers and carriers
+            if (dashboardUSDOT) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    dashboardUSDOT.textContent = user.usdotNumber || '-';
+                } else {
+                    dashboardUSDOT.textContent = 'N/A';
+                }
+            }
+            if (dashboardMC) {
+                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+                    dashboardMC.textContent = user.mcNumber || '-';
+                } else {
+                    dashboardMC.textContent = 'N/A';
+                }
+            }
 
             // Update statistics
             if (dashboardLoadsPosted) dashboardLoadsPosted.textContent = user.loadsPosted || '0';
