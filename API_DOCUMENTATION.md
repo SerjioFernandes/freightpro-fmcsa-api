@@ -1,10 +1,10 @@
-# FreightPro API Documentation
+# CargoLume API Documentation
 
 ## Overview
-FreightPro is a professional load board platform for the trucking industry. This API provides endpoints for user management, load posting, shipment tracking, and more.
+CargoLume is a professional load board platform for the trucking industry. This API provides endpoints for user management, load posting, shipment tracking, and more.
 
 ## Base URL
-- **Production**: `https://freightpro-fmcsa-api.onrender.com/api`
+- **Production**: `https://cargolume-fmcsa-api.onrender.com/api`
 - **Local Development**: `http://localhost:4000/api`
 
 ## Authentication
@@ -432,7 +432,7 @@ Book a load (carriers only).
 ### Test Suite
 Run the comprehensive test suite:
 ```bash
-node test-freightpro.js
+node test-cargolume.js
 ```
 
 ### Migration Script
@@ -450,9 +450,9 @@ node migration-script.js --confirm
 ### Environment Variables
 ```json
 {
-  "api_base_url": "https://freightpro-fmcsa-api.onrender.com/api",
+  "api_base_url": "https://cargolume-fmcsa-api.onrender.com/api",
   "auth_token": "{{jwt_token}}",
-  "test_email": "test@freightpro.com",
+  "test_email": "test@cargolume.com",
   "test_password": "TestPassword123!"
 }
 ```
@@ -524,4 +524,4 @@ Content-Type: application/json
 ```
 
 ## Support
-For API support and questions, contact the development team or use the live chat feature in the FreightPro application.
+For API support and questions, contact the development team or use the live chat feature in the CargoLume application.

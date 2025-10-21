@@ -1,8 +1,8 @@
-# FreightPro Environment Variables
+# CargoLume Environment Variables
 # Copy this file to .env and fill in your actual values
 
 # MongoDB Connection
-MONGODB_URI=mongodb+srv://freightpro-user:YOUR_PASSWORD@freightpro-cluster.tcvxlo5.mongodb.net/freightpro?retryWrites=true&w=majority&appName=freightpro-cluster
+MONGODB_URI=mongodb+srv://cargolume-user:YOUR_PASSWORD@cargolume-cluster.tcvxlo5.mongodb.net/cargolume?retryWrites=true&w=majority&appName=cargolume-cluster
 
 # JWT Secret (change this in production)
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
@@ -12,7 +12,7 @@ EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-16-character-app-password
 
 # Admin Account
-ADMIN_EMAIL=admin@freightpro.com
+ADMIN_EMAIL=admin@cargolume.com
 ADMIN_PASSWORD=admin123
 
 # Frontend URL

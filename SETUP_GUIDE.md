@@ -1,4 +1,4 @@
-# 🚀 FreightPro Complete Setup Guide
+# 🚀 CargoLume Complete Setup Guide
 
 ## 📋 **What You Need to Do**
 
@@ -18,7 +18,7 @@ setup.bat
 #### **2.2 Create Database User**
 1. Go to **"Database Access"**
 2. Click **"Add New Database User"**
-3. Username: `freightpro-user`
+3. Username: `cargolume-user`
 4. Password: Generate strong password
 5. Privileges: Read and write to any database
 
@@ -35,7 +35,7 @@ setup.bat
 
 **Example:**
 ```
-mongodb+srv://freightpro-user:MyPassword123@freightpro-cluster.abc123.mongodb.net/freightpro?retryWrites=true&w=majority
+mongodb+srv://cargolume-user:MyPassword123@cargolume-cluster.abc123.mongodb.net/cargolume?retryWrites=true&w=majority
 ```
 
 ### **Step 3: Get Gmail App Password**
@@ -47,7 +47,7 @@ mongodb+srv://freightpro-user:MyPassword123@freightpro-cluster.abc123.mongodb.ne
 #### **3.2 Generate App Password**
 1. Security → **"App passwords"**
 2. Select **"Mail"** → **"Other (custom name)"**
-3. Name: `FreightPro`
+3. Name: `CargoLume`
 4. Copy the 16-character password
 
 ### **Step 4: Update .env File**
@@ -56,7 +56,7 @@ Edit your `.env` file with these values:
 
 ```bash
 # Replace with your MongoDB connection string
-MONGODB_URI=mongodb+srv://freightpro-user:YOUR_PASSWORD@freightpro-cluster.xxxxx.mongodb.net/freightpro?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://cargolume-user:YOUR_PASSWORD@cargolume-cluster.xxxxx.mongodb.net/cargolume?retryWrites=true&w=majority
 
 # Replace with your Gmail
 EMAIL_USER=your-email@gmail.com
@@ -165,4 +165,4 @@ If you get stuck on any step:
 3. Make sure MongoDB Atlas is accessible
 4. Test Gmail app password separately
 
-**Your FreightPro load board will be live and working!** 🚛✨
+**Your CargoLume load board will be live and working!** 🚛✨

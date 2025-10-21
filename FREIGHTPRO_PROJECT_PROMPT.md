@@ -1,7 +1,7 @@
-# FreightPro Project - Complete Technical Overview
+# CargoLume Project - Complete Technical Overview
 
 ## 🚛 PROJECT OVERVIEW
-**FreightPro** is a professional load board platform for the trucking industry, similar to DAT and Truckstop. It's a full-stack web application that connects shippers with carriers, provides FMCSA data integration, and includes advanced features like live chat, user authentication, and load management.
+**CargoLume** is a professional load board platform for the trucking industry, similar to DAT and Truckstop. It's a full-stack web application that connects shippers with carriers, provides FMCSA data integration, and includes advanced features like live chat, user authentication, and load management.
 
 ## 🏗️ ARCHITECTURE & TECHNOLOGY STACK
 
@@ -30,7 +30,7 @@
 ## 📁 PROJECT STRUCTURE
 
 ```
-FreightPro/
+CargoLume/
 ├── index.html                 # Main frontend application (10,050+ lines)
 ├── server-backend.js          # Backend API server (763+ lines)
 ├── server.js                  # Static file server
@@ -182,7 +182,7 @@ PUT /api/users/profile
 
 ### **Current Setup**
 - **Frontend**: Netlify (https://freight-pro.netlify.app)
-- **Backend**: Render.com (https://freightpro-fmcsa-api.onrender.com)
+- **Backend**: Render.com (https://cargolume-fmcsa-api.onrender.com)
 - **Database**: MongoDB Atlas (cloud)
 - **Email**: Gmail SMTP via Nodemailer
 
@@ -194,7 +194,7 @@ EMAIL_USER=your-gmail@gmail.com
 EMAIL_PASS=your-app-password
 FRONTEND_URL=https://freight-pro.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000
-ADMIN_EMAIL=admin@freightpro.com
+ADMIN_EMAIL=admin@cargolume.com
 ADMIN_PASSWORD=your-admin-password
 ```
 
@@ -209,7 +209,7 @@ npm start                    # Runs server-backend.js on port 4000
 npm run static              # Runs server.js for static files
 
 # Development with live reload
-npx live-server --port=8000 --open="/index.html?api=https://freightpro-fmcsa-api.onrender.com/api"
+npx live-server --port=8000 --open="/index.html?api=https://cargolume-fmcsa-api.onrender.com/api"
 ```
 
 ### **Key Development Files**
@@ -332,7 +332,7 @@ npx live-server --port=8000 --open="/index.html?api=https://freightpro-fmcsa-api
 
 ## 🎉 SUMMARY
 
-**FreightPro** is a comprehensive load board platform that successfully combines:
+**CargoLume** is a comprehensive load board platform that successfully combines:
 - **Professional UI/UX** with Tailwind CSS
 - **Robust Backend** with Express.js and MongoDB
 - **FMCSA Integration** for carrier verification
@@ -389,10 +389,10 @@ This is a production-ready application that demonstrates professional web develo
 ### API Base URL Configuration
 - Frontend auto-detects API base URL:
   - `http://localhost:4000/api` on localhost
-  - Production default: `https://freightpro-fmcsa-api.onrender.com/api`
+  - Production default: `https://cargolume-fmcsa-api.onrender.com/api`
   - On Render hosting, derives from `window.location.origin + /api`
   - Override supported via URL parameter: `?api=https://custom-api.example.com/api`
-- Users can also set the API base via `window.setFreightProApiBaseUrl(newUrl)` which persists to `localStorage` under `FP_API_BASE_URL`.
+- Users can also set the API base via `window.setCargoLumeApiBaseUrl(newUrl)` which persists to `localStorage` under `FP_API_BASE_URL`.
 
 ### Backend Observability & Error Handling
 - Per-request IDs generated and attached to logs; also returned in the `X-Request-Id` response header.
@@ -479,7 +479,7 @@ EMAIL_USER=...
 EMAIL_PASS=...
 FRONTEND_URL=https://freight-pro.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000
-ADMIN_EMAIL=admin@freightpro.com
+ADMIN_EMAIL=admin@cargolume.com
 ADMIN_PASSWORD=...
 ```
 Frontend override: append `?api=https://your-api.example.com/api` to the URL.

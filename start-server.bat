@@ -1,9 +1,9 @@
 @echo off
-title FreightPro Local Server
+title CargoLume Local Server
 color 0A
 echo.
 echo ========================================
-echo    FreightPro Local Development Server
+echo    CargoLume Local Development Server
 echo ========================================
 echo.
 echo Starting server...

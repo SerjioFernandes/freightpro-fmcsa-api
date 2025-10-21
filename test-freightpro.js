@@ -1,4 +1,4 @@
-// FreightPro API Tests
+// CargoLume API Tests
 // Run with: node test-freightpro.js
 
 import fetch from 'node-fetch';
@@ -9,7 +9,7 @@ let testUserId = '';
 
 // Test data
 const testUser = {
-    email: 'test@freightpro.com',
+    email: 'test@cargolume.com',
     password: 'TestPassword123!',
     company: 'Test Freight Company',
     phone: '+1-555-123-4567',
@@ -344,7 +344,7 @@ async function testValidation() {
 
 // Run all tests
 async function runAllTests() {
-    console.log('🚛 FreightPro API Test Suite');
+    console.log('🚛 CargoLume API Test Suite');
     console.log('============================');
     
     try {

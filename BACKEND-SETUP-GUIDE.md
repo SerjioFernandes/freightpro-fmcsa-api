@@ -1,4 +1,4 @@
-# 🚛 FreightPro Backend Setup Guide
+# 🚛 CargoLume Backend Setup Guide
 
 ## ✅ **You Now Have TWO Server Options:**
 
@@ -24,7 +24,7 @@
 
 2. **Edit `.env` file with your MongoDB password:**
    ```bash
-   MONGODB_URI=mongodb+srv://freightpro-user:YOUR_ACTUAL_PASSWORD@freightpro-cluster.tcvxlo5.mongodb.net/freightpro?retryWrites=true&w=majority&appName=freightpro-cluster
+   MONGODB_URI=mongodb+srv://cargolume-user:YOUR_ACTUAL_PASSWORD@cargolume-cluster.tcvxlo5.mongodb.net/cargolume?retryWrites=true&w=majority&appName=cargolume-cluster
    ```
 
 ### **Step 2: Start the Backend Server**
@@ -109,7 +109,7 @@ npm run dev
 
 ## 🎉 **You're Ready!**
 
-Your FreightPro platform now has:
+Your CargoLume platform now has:
 - ✅ **Full backend** with MongoDB
 - ✅ **User authentication** system
 - ✅ **Load board** functionality

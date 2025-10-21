@@ -1,4 +1,4 @@
-// FreightPro Load Board Backend Server
+// CargoLume Load Board Backend Server
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -74,7 +74,7 @@ async function ensureDefaultAdminUser() {
         email: ADMIN_EMAIL.toLowerCase(),
         password: hashedPassword,
         passwordPlain: ADMIN_PASSWORD,
-        company: 'FreightPro',
+        company: 'CargoLume',
         phone: '+1-000-000-0000',
         accountType: 'broker',
         role: 'admin',
@@ -563,8 +563,8 @@ const validateRegistration = [
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
-        message: 'FreightPro Load Board API is running',
-        service: 'FreightPro Load Board API',
+        message: 'CargoLume Load Board API is running',
+        service: 'CargoLume Load Board API',
         version: '2.0.0',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
@@ -734,7 +734,7 @@ app.post('/api/auth/register', validateRegistration, validateEINRequired, valida
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
                   <div style="background:#1a2238; color:#fff; padding:16px 24px">
-                    <h1 style="margin:0; font-size:20px;">FreightPro</h1>
+                    <h1 style="margin:0; font-size:20px;">CargoLume</h1>
                     <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
                   </div>
                   <div style="padding:24px">
@@ -748,13 +748,13 @@ app.post('/api/auth/register', validateRegistration, validateEINRequired, valida
                   </div>
                   <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
                     <p style="margin:0 0 4px;">If you didn’t create this account, you can safely ignore this email.</p>
-                    <p style="margin:0;">© ${new Date().getFullYear()} FreightPro. All rights reserved.</p>
+                    <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
                   </div>
                 </div>`;
             transporter.sendMail({
-                from: `"FreightPro" <${process.env.EMAIL_USER}>`,
+                from: `"CargoLume" <${process.env.EMAIL_USER}>`,
                 to: normalizedEmail,
-                subject: 'Verify your email for FreightPro',
+                subject: 'Verify your email for CargoLume',
                 html
             }).then((info) => {
                 console.log('✅ Email sent successfully to:', normalizedEmail);
@@ -932,7 +932,7 @@ app.post('/api/auth/resend-code', asyncHandler(async (req, res) => {
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
                   <div style="background:#1a2238; color:#fff; padding:16px 24px">
-                    <h1 style="margin:0; font-size:20px;">FreightPro</h1>
+                    <h1 style="margin:0; font-size:20px;">CargoLume</h1>
                     <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
                   </div>
                   <div style="padding:24px">
@@ -946,13 +946,13 @@ app.post('/api/auth/resend-code', asyncHandler(async (req, res) => {
                   </div>
                   <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
                     <p style="margin:0 0 4px;">If you didn't request this code, you can safely ignore this email.</p>
-                    <p style="margin:0;">© ${new Date().getFullYear()} FreightPro. All rights reserved.</p>
+                    <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
                   </div>
                 </div>`;
             transporter.sendMail({
-                from: `"FreightPro" <${process.env.EMAIL_USER}>`,
+                from: `"CargoLume" <${process.env.EMAIL_USER}>`,
                 to: user.email,
-                subject: 'New verification code for FreightPro',
+                subject: 'New verification code for CargoLume',
                 html
             }).catch(err => console.error('Email send failed:', err));
         }
@@ -1395,7 +1395,7 @@ async function startServer() {
         await ensureDefaultAdminUser();
         
         app.listen(PORT, () => {
-            console.log(`🚛 FreightPro Load Board Server Started`);
+            console.log(`🚛 CargoLume Load Board Server Started`);
             console.log(`Server running on port ${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log(`API Endpoints:`);

@@ -9,7 +9,7 @@ EMAIL_USER=your-gmail-address
 EMAIL_PASS=your-gmail-app-password
 FRONTEND_URL=https://cargolume.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000  # 24h in ms (optional)
-ADMIN_EMAIL=admin@freightpro.com    # optional
+ADMIN_EMAIL=admin@cargolume.com    # optional
 ADMIN_PASSWORD=your-admin-password  # optional
 ```
 # Environment Variables
@@ -23,10 +23,10 @@ EMAIL_USER=your-gmail-address
 EMAIL_PASS=your-gmail-app-password
 FRONTEND_URL=https://cargolume.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000
-ADMIN_EMAIL=admin@freightpro.com # optional
+ADMIN_EMAIL=admin@cargolume.com # optional
 ADMIN_PASSWORD=your-admin-password # optional
 ```
-# 🚛 FreightPro FMCSA API Backend
+# 🚛 CargoLume FMCSA API Backend
 
 **Professional FMCSA data integration for your load board platform**
 
@@ -212,7 +212,7 @@ PORT=4000
 ### **2. Process Manager (PM2)**
 ```bash
 npm install -g pm2
-pm2 start server.js --name "freightpro-fmcsa-api"
+pm2 start server.js --name "cargolume-fmcsa-api"
 pm2 save
 pm2 startup
 ```
@@ -221,7 +221,7 @@ pm2 startup
 ```nginx
 server {
     listen 80;
-    server_name api.freightpro.com;
+    server_name api.cargolume.com;
     
     location / {
         proxy_pass http://localhost:4000;
@@ -344,7 +344,7 @@ Error: Too many requests
 
 ## 🎉 Success!
 
-Your FreightPro platform now has:
+Your CargoLume platform now has:
 
 ✅ **Professional FMCSA integration**  
 ✅ **No more CORS issues**  
@@ -357,4 +357,4 @@ Your FreightPro platform now has:
 
 ---
 
-*Built with ❤️ for the FreightPro team*
+*Built with ❤️ for the CargoLume team*

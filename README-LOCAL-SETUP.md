@@ -1,11 +1,11 @@
-# FreightPro Local Development Setup
+# CargoLume Local Development Setup
 
 ## Quick Start (No Python Required)
 
 ### Option 1: Direct File Opening
-1. Navigate to your FreightPro folder: `C:\Users\HAYK\Desktop\FreightPro`
+1. Navigate to your CargoLume folder: `C:\Users\HAYK\Desktop\CargoLume`
 2. Double-click on `index.html` to open it directly in your browser
-3. The website will open at: `file:///C:/Users/HAYK/Desktop/FreightPro/index.html`
+3. The website will open at: `file:///C:/Users/HAYK/Desktop/CargoLume/index.html`
 
 **Note:** Some features might not work perfectly with file:// protocol, but the main functionality will work.
 
@@ -13,7 +13,7 @@
 
 ### ✅ Node.js Server (Already Available!)
 
-Your system has Node.js installed, so you can use the custom FreightPro server!
+Your system has Node.js installed, so you can use the custom CargoLume server!
 
 ### Start Local Server
 
@@ -24,9 +24,9 @@ Your system has Node.js installed, so you can use the custom FreightPro server!
 
 #### Method 2: Using npm (Recommended)
 1. Open Command Prompt or PowerShell
-2. Navigate to FreightPro folder:
+2. Navigate to CargoLume folder:
    ```
-   cd C:\Users\HAYK\Desktop\FreightPro
+   cd C:\Users\HAYK\Desktop\CargoLume
    ```
 3. Start static server:
    ```
@@ -36,9 +36,9 @@ Your system has Node.js installed, so you can use the custom FreightPro server!
 
 #### Method 3: Direct Node.js
 1. Open Command Prompt or PowerShell
-2. Navigate to FreightPro folder:
+2. Navigate to CargoLume folder:
    ```
-   cd C:\Users\HAYK\Desktop\FreightPro
+   cd C:\Users\HAYK\Desktop\CargoLume
    ```
 3. Start server:
    ```

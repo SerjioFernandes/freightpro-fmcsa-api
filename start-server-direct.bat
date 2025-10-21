@@ -1,9 +1,9 @@
 @echo off
-title FreightPro Local Server (Direct)
+title CargoLume Local Server (Direct)
 color 0A
 echo.
 echo ========================================
-echo    FreightPro Local Development Server
+echo    CargoLume Local Development Server
 echo ========================================
 echo.
 echo Starting server directly with Node.js...

@@ -1,9 +1,9 @@
-# 🚀 FreightPro MongoDB Setup - Ready to Go!
+# 🚀 CargoLume MongoDB Setup - Ready to Go!
 
 ## ✅ **Your MongoDB Connection String is Ready!**
 
 ```
-mongodb+srv://freightpro-user:<db_password>@freightpro-cluster.tcvxlo5.mongodb.net/?retryWrites=true&w=majority&appName=freightpro-cluster
+mongodb+srv://cargolume-user:<db_password>@cargolume-cluster.tcvxlo5.mongodb.net/?retryWrites=true&w=majority&appName=cargolume-cluster
 ```
 
 ## 🔧 **Step 1: Update Your Password**
@@ -14,7 +14,7 @@ mongodb+srv://freightpro-user:<db_password>@freightpro-cluster.tcvxlo5.mongodb.n
 
 **Example:**
 ```bash
-MONGODB_URI=mongodb+srv://freightpro-user:MyPassword123@freightpro-cluster.tcvxlo5.mongodb.net/freightpro?retryWrites=true&w=majority&appName=freightpro-cluster
+MONGODB_URI=mongodb+srv://cargolume-user:MyPassword123@cargolume-cluster.tcvxlo5.mongodb.net/cargolume?retryWrites=true&w=majority&appName=cargolume-cluster
 ```
 
 ## 📧 **Step 2: Set Up Email (Optional but Recommended)**
@@ -23,7 +23,7 @@ MONGODB_URI=mongodb+srv://freightpro-user:MyPassword123@freightpro-cluster.tcvxl
 1. Go to [myaccount.google.com](https://myaccount.google.com)
 2. Security → Enable **"2-Step Verification"**
 3. Security → **"App passwords"**
-4. Generate password for "FreightPro"
+4. Generate password for "CargoLume"
 5. Update `.env` file:
    ```bash
    EMAIL_USER=your-email@gmail.com
@@ -58,7 +58,7 @@ start.bat
 
 ### **✅ MongoDB Connection:**
 - Connects to your Atlas cluster
-- Creates `freightpro` database
+- Creates `cargolume` database
 - Sets up user and load collections
 
 ### **✅ API Endpoints Available:**
@@ -103,7 +103,7 @@ Error: Cannot find module
 
 ## 🎉 **You're All Set!**
 
-Your FreightPro load board now has:
+Your CargoLume load board now has:
 - ✅ **MongoDB Atlas** database
 - ✅ **Professional backend** API
 - ✅ **User authentication** system

@@ -53,7 +53,7 @@ function startServer(port) {
                             <body>
                                 <h1>404 - File Not Found</h1>
                                 <p>The requested file was not found on this server.</p>
-                                <p><a href="/">Go back to FreightPro</a></p>
+                                <p><a href="/">Go back to CargoLume</a></p>
                             </body>
                         </html>
                     `, 'utf-8');
@@ -71,7 +71,7 @@ function startServer(port) {
     });
 
     server.listen(port, () => {
-        console.log(`🚛 FreightPro Server running at http://localhost:${port}/`);
+        console.log(`🚛 CargoLume Server running at http://localhost:${port}/`);
         console.log(`📁 Serving files from: ${__dirname}`);
         console.log(`🌐 Open your browser and go to: http://localhost:${port}`);
         console.log(`⏹️  Press Ctrl+C to stop the server`);
@@ -88,7 +88,7 @@ function startServer(port) {
 
     // Handle server shutdown gracefully
     process.on('SIGINT', () => {
-        console.log('\n🛑 Shutting down FreightPro server...');
+        console.log('\n🛑 Shutting down CargoLume server...');
         server.close(() => {
             console.log('✅ Server stopped successfully');
             process.exit(0);

@@ -1,4 +1,4 @@
-Write-Host "Starting FreightPro Local Server..." -ForegroundColor Green
+Write-Host "Starting CargoLume Local Server..." -ForegroundColor Green
 Write-Host ""
 Write-Host "Server will be available at: http://localhost:8000" -ForegroundColor Yellow
 Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Yellow

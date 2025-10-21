@@ -1,9 +1,9 @@
 @echo off
-title Kill FreightPro Server
+title Kill CargoLume Server
 color 0C
 echo.
 echo ========================================
-echo    Killing FreightPro Server on Port 8000
+echo    Killing CargoLume Server on Port 8000
 echo ========================================
 echo.
 

@@ -85,7 +85,7 @@
             (function configureApiBaseUrl(){
                 const LOCAL_API = 'http://localhost:4000/api';
                 // Primary production API on Render for Netlify
-                const DEFAULT_PROD_API = 'https://cargolume-fmcsa-api.onrender.com/api';
+                const DEFAULT_PROD_API = 'https://freightpro-fmcsa-api.onrender.com/api';
                 const storedValue = (typeof localStorage !== 'undefined') ? localStorage.getItem('FP_API_BASE_URL') : null;
 
                 let selectedBaseUrl = storedValue && storedValue.trim();

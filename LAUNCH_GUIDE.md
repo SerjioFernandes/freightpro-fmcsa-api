@@ -1,4 +1,4 @@
-# 🚀 FreightPro Load Board - How to Launch Your Website
+# 🚀 CargoLume Load Board - How to Launch Your Website
 
 ## ✅ **What I've Implemented**
 
@@ -46,7 +46,7 @@ Create `.env` file:
 cp env.example .env
 
 # Edit .env with your settings:
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/freightpro
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/cargolume
 JWT_SECRET=your-super-secret-key-change-this
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
@@ -157,7 +157,7 @@ For email verification to work:
 
 ## 🎉 **You're Ready!**
 
-Your FreightPro load board now has:
+Your CargoLume load board now has:
 - ✅ **Professional backend** with MongoDB
 - ✅ **Complete authentication** system
 - ✅ **Load board functionality**

@@ -1,22 +1,22 @@
-# FreightPro Setup Script
+# CargoLume Setup Script
 
-echo "🚛 Setting up FreightPro Load Board..."
+echo "🚛 Setting up CargoLume Load Board..."
 
 # Create .env file
 echo "Creating .env configuration file..."
 
 cat > .env << 'EOF'
-# FreightPro Environment Configuration
+# CargoLume Environment Configuration
 
 # MongoDB Connection String (replace with your actual connection string)
-MONGODB_URI=mongodb+srv://freightpro-user:YOUR_PASSWORD@freightpro-cluster.xxxxx.mongodb.net/freightpro?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://cargolume-user:YOUR_PASSWORD@cargolume-cluster.xxxxx.mongodb.net/cargolume?retryWrites=true&w=majority
 
 # Server Configuration
 PORT=4000
 NODE_ENV=development
 
 # JWT Secret (change this to a random string)
-JWT_SECRET=freightpro-super-secret-jwt-key-2024-change-this-in-production
+JWT_SECRET=cargolume-super-secret-jwt-key-2024-change-this-in-production
 
 # Email Configuration (replace with your Gmail settings)
 EMAIL_USER=your-email@gmail.com

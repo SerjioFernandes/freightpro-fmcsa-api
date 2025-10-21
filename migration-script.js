@@ -1,4 +1,4 @@
-// FreightPro Migration Script
+// CargoLume Migration Script
 // Migrates existing data to new schema with EIN validation and authority rules
 // Run with: node migration-script.js
 
@@ -378,7 +378,7 @@ async function createIndexes() {
 
 // Main migration function
 async function runMigration() {
-    console.log('🚛 FreightPro Migration Script');
+    console.log('🚛 CargoLume Migration Script');
     console.log('==============================');
     
     try {

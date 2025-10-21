@@ -1,4 +1,4 @@
-# 🚀 FreightPro GitHub Push Guide
+# 🚀 CargoLume GitHub Push Guide
 
 ## ✅ Files to KEEP and COMMIT:
 
@@ -26,7 +26,7 @@
 
 ### **Development Files:**
 - `migration-script.js` - Database migration script
-- `test-freightpro.js` - Test suite
+- `test-cargolume.js` - Test suite
 
 ### **Windows Automation (Optional):**
 - `*.bat` files - Windows batch scripts for automation
@@ -64,10 +64,10 @@ git add .
 git status
 
 # Commit with message
-git commit -m "Initial FreightPro commit - Complete freight logistics platform"
+git commit -m "Initial CargoLume commit - Complete freight logistics platform"
 
 # Add remote repository (replace with your GitHub repo URL)
-git remote add origin https://github.com/yourusername/freightpro.git
+git remote add origin https://github.com/yourusername/cargolume.git
 
 # Push to GitHub
 git push -u origin main
@@ -83,7 +83,7 @@ git push -u origin main
 ## 📁 Recommended Repository Structure:
 
 ```
-freightpro/
+cargolume/
 ├── index.html                 # Main frontend
 ├── server-backend.js          # Backend server
 ├── package.json               # Dependencies
@@ -98,7 +98,7 @@ freightpro/
 │   ├── *.bat files
 │   └── migration-script.js
 └── tests/
-    └── test-freightpro.js
+    └── test-cargolume.js
 ```
 
 ## 🔒 Environment Variables Setup:

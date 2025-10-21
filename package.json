@@ -1,7 +1,7 @@
 {
-  "name": "freightpro-load-board",
+  "name": "cargolume-load-board",
   "version": "1.0.0",
-  "description": "Professional load board platform for FreightPro",
+  "description": "Professional load board platform for CargoLume",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "express",
     "load-board"
   ],
-  "author": "FreightPro Team",
+  "author": "CargoLume Team",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
@@ -46,10 +46,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/freightpro/load-board.git"
+    "url": "https://github.com/cargolume/load-board.git"
   },
   "bugs": {
-    "url": "https://github.com/freightpro/load-board/issues"
+    "url": "https://github.com/cargolume/load-board/issues"
   },
   "homepage": "https://cargolume.netlify.app"
 }

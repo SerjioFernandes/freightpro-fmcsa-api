@@ -1,4 +1,4 @@
-# 🚀 DEPLOYMENT GUIDE: FreightPro FMCSA API
+# 🚀 DEPLOYMENT GUIDE: CargoLume FMCSA API
 
 **How to deploy your backend while keeping frontend on Netlify**
 
@@ -33,7 +33,7 @@
 3. **Click:** "New +" → "Web Service"
 4. **Connect your GitHub repo**
 5. **Configure:**
-   - **Name:** `freightpro-fmcsa-api`
+   - **Name:** `cargolume-fmcsa-api`
    - **Environment:** `Node`
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
@@ -166,7 +166,7 @@ curl https://your-app-name.onrender.com/api/fmcsa/MC/515740
 
 ## 🎯 RECOMMENDED APPROACH
 
-### **For You (FreightPro):**
+### **For You (CargoLume):**
 1. **Use Render (FREE)** for backend
 2. **Keep Netlify (FREE)** for frontend
 3. **Total cost: $0/month**
@@ -189,7 +189,7 @@ curl https://your-app-name.onrender.com/api/fmcsa/MC/515740
 4. **Update frontend** with new backend URL
 5. **Test everything works!**
 
-**Your FreightPro platform will be fully professional and deployed!** 🚛💼✨
+**Your CargoLume platform will be fully professional and deployed!** 🚛💼✨
 
 ---
 
