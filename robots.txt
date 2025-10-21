@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cargolume.com/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Allow important pages
+Allow: /loadboard
+Allow: /pricing
+Allow: /register
+Allow: /login
+Allow: /terms
+Allow: /privacy

@@ -7,7 +7,7 @@ MONGODB_URI=your-mongodb-connection
 JWT_SECRET=super-secret-string
 EMAIL_USER=your-gmail-address
 EMAIL_PASS=your-gmail-app-password
-FRONTEND_URL=https://your-netlify-site.netlify.app
+FRONTEND_URL=https://cargolume.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000  # 24h in ms (optional)
 ADMIN_EMAIL=admin@freightpro.com    # optional
 ADMIN_PASSWORD=your-admin-password  # optional
@@ -21,7 +21,7 @@ MONGODB_URI=your-mongodb-connection
 JWT_SECRET=super-secret-string
 EMAIL_USER=your-gmail-address
 EMAIL_PASS=your-gmail-app-password
-FRONTEND_URL=https://your-netlify-site.netlify.app
+FRONTEND_URL=https://cargolume.netlify.app
 EMAIL_VERIFICATION_TTL_MS=86400000
 ADMIN_EMAIL=admin@freightpro.com # optional
 ADMIN_PASSWORD=your-admin-password # optional
@@ -144,7 +144,7 @@ NODE_ENV=production         # Environment mode
 
 ### CORS Origins
 The server is configured to accept requests from:
-- `https://freightpro.netlify.app` (production)
+- `https://cargolume.netlify.app` (production)
 - `http://localhost:3000` (frontend dev)
 - `http://localhost:8000` (frontend dev)
 

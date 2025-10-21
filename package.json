@@ -8,7 +8,10 @@
     "start": "node server-backend.js",
     "dev": "nodemon server-backend.js",
     "static": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-freightpro.js",
+    "test:api": "node test-freightpro.js",
+    "migrate": "node migration-script.js",
+    "migrate:confirm": "node migration-script.js --confirm"
   },
   "keywords": [
     "freight",
@@ -32,7 +35,8 @@
     "nodemailer": "^6.9.7",
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
-    "compression": "^1.7.4"
+    "compression": "^1.7.4",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
@@ -47,5 +51,5 @@
   "bugs": {
     "url": "https://github.com/freightpro/load-board/issues"
   },
-  "homepage": "https://freight-pro.netlify.app"
+  "homepage": "https://cargolume.netlify.app"
 }

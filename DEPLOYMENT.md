@@ -118,7 +118,7 @@ const backendUrl = `https://your-app-name.ondigitalocean.app/api/fmcsa/${searchT
 ```javascript
 app.use(cors({
     origin: [
-        'https://freightpro.netlify.app',  // Your Netlify frontend
+        'https://cargolume.netlify.app',  // Your Netlify frontend
         'https://your-custom-domain.com',  // If you have a custom domain
         'http://localhost:3000',           // Local development
         'http://localhost:8000'            // Local development

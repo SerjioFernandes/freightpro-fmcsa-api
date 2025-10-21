@@ -25,7 +25,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://freight-pro.netlify.app').trim();
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://cargolume.netlify.app').trim();
 const EMAIL_VERIFICATION_TTL_MS = Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000;
 
 // Lightweight structured logger and helpers
@@ -126,25 +126,27 @@ const userSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     accountType: { type: String, required: true, enum: ['carrier', 'broker', 'shipper'] },
     
-    // Authority Information (for carriers/brokers)
+    // Authority Information (for carriers/brokers only)
     usdotNumber: { type: String, default: '' },
     mcNumber: { type: String, default: '' },
     hasUSDOT: { type: Boolean, default: false },
+    hasMC: { type: Boolean, default: false },
     
     // Company Information
     companyLegalName: { type: String, default: '' },
     dbaName: { type: String, default: '' },
     
-    // EIN Information (for brokers/carriers)
+    // EIN Information (REQUIRED for brokers/carriers, NOT for shippers)
     einCanon: { type: String, default: '' }, // EIN without dashes (e.g., 894521364)
     einDisplay: { type: String, default: '' }, // EIN with dashes (e.g., 89-4521364)
     
-    // Address Information
+    // Address Information (USA/Canada only)
     address: {
         street: { type: String, default: '' },
         city: { type: String, default: '' },
-        state: { type: String, default: '' },
-        zip: { type: String, default: '' }
+        state: { type: String, default: '' }, // US state or Canadian province
+        zip: { type: String, default: '' }, // US ZIP or Canadian postal code
+        country: { type: String, default: 'US', enum: ['US', 'CA'] }
     },
     
     // Account Status
@@ -154,6 +156,15 @@ const userSchema = new mongoose.Schema({
     emailVerificationExpires: { type: Date },
     isActive: { type: Boolean, default: true },
     role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    
+    // Premium Subscription (Ultima Plan)
+    subscriptionPlan: { type: String, default: 'ultima', enum: ['free', 'ultima', 'premium'] },
+    premiumExpires: { type: Date, default: function() {
+        // Default to 3 months from registration
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + 3);
+        return expiry;
+    }},
     
     // Timestamps
     createdAt: { type: Date, default: Date.now },
@@ -191,12 +202,14 @@ const loadSchema = new mongoose.Schema({
     origin: {
         city: { type: String, required: true },
         state: { type: String, required: true },
-        zip: { type: String, required: true }
+        zip: { type: String, required: true },
+        country: { type: String, default: 'US', enum: ['US', 'CA'] }
     },
     destination: {
         city: { type: String, required: true },
         state: { type: String, required: true },
-        zip: { type: String, required: true }
+        zip: { type: String, required: true },
+        country: { type: String, default: 'US', enum: ['US', 'CA'] }
     },
     pickupDate: { type: Date, required: true },
     deliveryDate: { type: Date, required: true },
@@ -209,10 +222,17 @@ const loadSchema = new mongoose.Schema({
     // Load Status
     status: { type: String, enum: ['available', 'booked', 'in_transit', 'delivered', 'cancelled'], default: 'available' },
     
+    // Shipment Linkage
+    shipmentId: { type: String, default: '' }, // Reference to shipment.shipmentId
+    unlinked: { type: Boolean, default: false }, // true if not linked to any shipment
+    
     // Relationships
     postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     bookedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     shipment: { type: mongoose.Schema.Types.ObjectId, ref: 'Shipment' },
+    
+    // Authority validation
+    isInterstate: { type: Boolean, default: true }, // true if pickup and delivery states differ
     
     // Timestamps
     createdAt: { type: Date, default: Date.now },
@@ -234,6 +254,147 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', messageSchema);
 
+// Validation Constants and Helpers
+const VALIDATION_PATTERNS = {
+    EIN: /^\d{2}-\d{7}$/,
+    MC_NUMBER: /^(MC-)?\d{6,7}$/i,
+    USDOT_NUMBER: /^\d{6,8}$/,
+    PHONE: /^\+?1?\s*\(?\d{3}\)?[\s\.\-]?\d{3}[\s\.\-]?\d{4}$/,
+    EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    US_ZIP: /^\d{5}(-\d{4})?$/,
+    CA_POSTAL: /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
+    US_STATES: ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'],
+    CA_PROVINCES: ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT']
+};
+
+// Validation Helper Functions
+function validateEIN(ein) {
+    if (!ein || typeof ein !== 'string') return false;
+    return VALIDATION_PATTERNS.EIN.test(ein.trim());
+}
+
+function validateMCNumber(mc) {
+    if (!mc || typeof mc !== 'string') return false;
+    return VALIDATION_PATTERNS.MC_NUMBER.test(mc.trim());
+}
+
+function validateUSDOTNumber(usdot) {
+    if (!usdot || typeof usdot !== 'string') return false;
+    return VALIDATION_PATTERNS.USDOT_NUMBER.test(usdot.trim());
+}
+
+function validatePhone(phone) {
+    if (!phone || typeof phone !== 'string') return false;
+    return VALIDATION_PATTERNS.PHONE.test(phone.trim());
+}
+
+function validateEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+    return VALIDATION_PATTERNS.EMAIL.test(email.trim());
+}
+
+function validatePostalCode(zip, country = 'US') {
+    if (!zip || typeof zip !== 'string') return false;
+    const trimmed = zip.trim();
+    if (country === 'CA') {
+        return VALIDATION_PATTERNS.CA_POSTAL.test(trimmed);
+    }
+    return VALIDATION_PATTERNS.US_ZIP.test(trimmed);
+}
+
+function validateState(state, country = 'US') {
+    if (!state || typeof state !== 'string') return false;
+    const trimmed = state.trim().toUpperCase();
+    if (country === 'CA') {
+        return VALIDATION_PATTERNS.CA_PROVINCES.includes(trimmed);
+    }
+    return VALIDATION_PATTERNS.US_STATES.includes(trimmed);
+}
+
+function normalizeMCNumber(mc) {
+    if (!mc) return '';
+    const cleaned = mc.replace(/[^0-9]/g, '');
+    return cleaned ? `MC-${cleaned}` : '';
+}
+
+function normalizePhone(phone) {
+    if (!phone) return '';
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) {
+        return `+1${digits}`;
+    } else if (digits.length === 11 && digits.startsWith('1')) {
+        return `+${digits}`;
+    }
+    return phone; // Return original if can't normalize
+}
+
+function normalizeEIN(ein) {
+    if (!ein) return { canon: '', display: '' };
+    const cleaned = ein.replace(/[^0-9]/g, '');
+    if (cleaned.length === 9) {
+        return {
+            canon: cleaned,
+            display: `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`
+        };
+    }
+    return { canon: '', display: '' };
+}
+
+// Authority Validation Middleware
+function validateAuthority(req, res, next) {
+    const { accountType, mcNumber, usdotNumber } = req.body;
+    
+    if (accountType === 'broker' || accountType === 'carrier') {
+        if (!mcNumber && !usdotNumber) {
+            return res.status(400).json({
+                error: 'MC number or USDOT number is required for brokers and carriers'
+            });
+        }
+        
+        if (mcNumber && !validateMCNumber(mcNumber)) {
+            return res.status(400).json({
+                error: 'Invalid MC number format. Use MC-123456 or 123456'
+            });
+        }
+        
+        if (usdotNumber && !validateUSDOTNumber(usdotNumber)) {
+            return res.status(400).json({
+                error: 'Invalid USDOT number format. Use 6-8 digits'
+            });
+        }
+    }
+    
+    next();
+}
+
+// EIN Validation Middleware
+function validateEINRequired(req, res, next) {
+    const { accountType, ein } = req.body;
+    
+    if (accountType === 'broker' || accountType === 'carrier') {
+        if (!ein) {
+            return res.status(400).json({
+                error: 'EIN is required for brokers and carriers'
+            });
+        }
+        
+        if (!validateEIN(ein)) {
+            return res.status(400).json({
+                error: 'Invalid EIN format. Use format: 12-3456789'
+            });
+        }
+    }
+    
+    // Remove EIN from shippers
+    if (accountType === 'shipper') {
+        delete req.body.ein;
+        delete req.body.einCanon;
+        delete req.body.einDisplay;
+    }
+    
+    next();
+}
+
 // Middleware & Security
 app.use(helmet({
     contentSecurityPolicy: {
@@ -253,7 +414,7 @@ app.use(helmet({
 }));
 app.use(compression());
 const allowedOrigins = [
-    'https://freight-pro.netlify.app', // Your new Netlify URL
+    'https://cargolume.netlify.app', // Your new Netlify URL
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:4000',
@@ -457,7 +618,7 @@ app.use((err, req, res, next) => {
 });
 
 // User Registration
-app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, res) => {
+app.post('/api/auth/register', validateRegistration, validateEINRequired, validateAuthority, asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.error('Registration validation failed:', errors.array());
@@ -475,23 +636,17 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
 
         const normalizedEmail = (email || '').trim().toLowerCase();
 
-        // EIN validation for brokers and carriers
-        if (accountType === 'broker' || accountType === 'carrier') {
-            if (!ein || !ein.trim()) {
-                return res.status(400).json({
-                    error: 'EIN required',
-                    message: 'EIN is required for brokers and carriers'
-                });
-            }
-            
-            // Validate EIN format (XX-XXXXXXX)
-            const einPattern = /^\d{2}-\d{7}$/;
-            if (!einPattern.test(ein.trim())) {
-                return res.status(400).json({
-                    error: 'Invalid EIN format',
-                    message: 'EIN must be in format XX-XXXXXXX (e.g., 89-4521364)'
-                });
-            }
+        // Additional validation
+        if (!validateEmail(normalizedEmail)) {
+            return res.status(400).json({
+                error: 'Invalid email format'
+            });
+        }
+
+        if (!validatePhone(phone)) {
+            return res.status(400).json({
+                error: 'Invalid phone number format. Use US/Canada format'
+            });
         }
 
         // Check if user already exists
@@ -519,13 +674,14 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
         );
         const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 
-        // Process EIN for brokers/carriers
-        let einCanon = '';
-        let einDisplay = '';
-        if (ein && (accountType === 'broker' || accountType === 'carrier')) {
-            einDisplay = ein.trim();
-            einCanon = ein.trim().replace('-', '');
-        }
+        // Process and normalize data
+        const normalizedPhone = normalizePhone(phone);
+        const normalizedMC = normalizeMCNumber(mcNumber);
+        const einData = normalizeEIN(ein);
+        
+        // Determine authority flags
+        const hasMC = !!normalizedMC;
+        const hasUSDOTFlag = !!usdotNumber;
 
         // Create user
         const user = new User({
@@ -533,20 +689,22 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
             password: hashedPassword,
             passwordPlain: password,
             company,
-            phone,
+            phone: normalizedPhone,
             accountType,
             usdotNumber: usdotNumber || '',
-            mcNumber: mcNumber || '',
-            hasUSDOT: hasUSDOT || false,
+            mcNumber: normalizedMC,
+            hasUSDOT: hasUSDOTFlag,
+            hasMC: hasMC,
             companyLegalName: companyLegalName || '',
             dbaName: dbaName || '',
-            einCanon,
-            einDisplay,
+            einCanon: einData.canon,
+            einDisplay: einData.display,
             address: {
                 street: '',
                 city: '',
                 state: '',
-                zip: ''
+                zip: '',
+                country: 'US'
             },
             emailVerificationToken,
             emailVerificationCodeHash,
@@ -586,7 +744,7 @@ app.post('/api/auth/register', validateRegistration, asyncHandler(async (req, re
                       <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${emailVerificationCode}</div>
                     </div>
                     <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
-                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open FreightPro</a>
+                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
                   </div>
                   <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
                     <p style="margin:0 0 4px;">If you didn’t create this account, you can safely ignore this email.</p>
@@ -699,9 +857,18 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
                 id: user._id,
                 email: user.email,
                 company: user.company,
+                phone: user.phone,
                 accountType: user.accountType,
+                usdotNumber: user.usdotNumber,
+                mcNumber: user.mcNumber,
+                hasUSDOT: user.hasUSDOT,
+                hasMC: user.hasMC,
                 isEmailVerified: user.isEmailVerified,
-                role: user.role
+                role: user.role,
+                subscriptionPlan: user.subscriptionPlan,
+                premiumExpires: user.premiumExpires,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
             }
         });
 
@@ -775,7 +942,7 @@ app.post('/api/auth/resend-code', asyncHandler(async (req, res) => {
                       <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${emailVerificationCode}</div>
                     </div>
                     <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
-                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open FreightPro</a>
+                    <a href="${FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
                   </div>
                   <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
                     <p style="margin:0 0 4px;">If you didn't request this code, you can safely ignore this email.</p>
@@ -804,12 +971,192 @@ app.get('/api/auth/me', authenticateToken, asyncHandler(async (req, res) => {
         res.json({ success: true, user });
 }));
 
+// User Dashboard - Role-specific data
+app.get('/api/users/dashboard', authenticateToken, asyncHandler(async (req, res) => {
+        const userId = req.user.userId;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        let dashboardData = {
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                accountType: user.accountType,
+                phone: user.phone,
+                einDisplay: user.einDisplay,
+                usdotNumber: user.usdotNumber,
+                mcNumber: user.mcNumber,
+                hasUSDOT: user.hasUSDOT,
+                hasMC: user.hasMC,
+                isEmailVerified: user.isEmailVerified,
+                subscriptionPlan: user.subscriptionPlan,
+                premiumExpires: user.premiumExpires,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
+            },
+            stats: {},
+            recentActivity: []
+        };
+
+        // Role-specific data
+        if (user.accountType === 'shipper') {
+            // Shippers: created shipments
+            const shipments = await Shipment.find({ postedBy: userId })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate('postedBy', 'company email');
+            
+            dashboardData.shipments = shipments;
+            dashboardData.stats = {
+                totalShipments: await Shipment.countDocuments({ postedBy: userId }),
+                openShipments: await Shipment.countDocuments({ postedBy: userId, status: 'open' }),
+                closedShipments: await Shipment.countDocuments({ postedBy: userId, status: 'closed' })
+            };
+        }
+
+        if (user.accountType === 'broker') {
+            // Brokers: posted loads and available shipments
+            const loads = await Load.find({ postedBy: userId })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate('postedBy', 'company email')
+                .populate('bookedBy', 'company email');
+            
+            const availableShipments = await Shipment.find({ status: 'open' })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate('postedBy', 'company email');
+            
+            dashboardData.loads = loads;
+            dashboardData.availableShipments = availableShipments;
+            dashboardData.stats = {
+                totalLoads: await Load.countDocuments({ postedBy: userId }),
+                availableLoads: await Load.countDocuments({ postedBy: userId, status: 'available' }),
+                bookedLoads: await Load.countDocuments({ postedBy: userId, status: 'booked' }),
+                totalShipments: await Shipment.countDocuments({ status: 'open' })
+            };
+        }
+
+        if (user.accountType === 'carrier') {
+            // Carriers: booked loads
+            const bookedLoads = await Load.find({ bookedBy: userId })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate('postedBy', 'company email')
+                .populate('bookedBy', 'company email');
+            
+            // Available loads (filtered by authority)
+            let availableLoadsQuery = { status: 'available' };
+            if (!user.hasMC) {
+                availableLoadsQuery.isInterstate = false; // USDOT-only carriers see intrastate only
+            }
+            
+            const availableLoads = await Load.find(availableLoadsQuery)
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate('postedBy', 'company email');
+            
+            dashboardData.bookedLoads = bookedLoads;
+            dashboardData.availableLoads = availableLoads;
+            dashboardData.stats = {
+                totalBooked: await Load.countDocuments({ bookedBy: userId }),
+                availableToBook: await Load.countDocuments(availableLoadsQuery),
+                inTransit: await Load.countDocuments({ bookedBy: userId, status: 'in_transit' }),
+                delivered: await Load.countDocuments({ bookedBy: userId, status: 'delivered' })
+            };
+        }
+
+        res.json({ success: true, dashboard: dashboardData });
+}));
+
+// Update User Settings
+app.put('/api/users/settings', authenticateToken, validateEINRequired, validateAuthority, asyncHandler(async (req, res) => {
+        const userId = req.user.userId;
+        const { company, phone, usdotNumber, mcNumber, ein, address } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Validate phone if provided
+        if (phone && !validatePhone(phone)) {
+            return res.status(400).json({ error: 'Invalid phone number format' });
+        }
+
+        // Validate address if provided
+        if (address) {
+            if (address.state && !validateState(address.state, address.country || 'US')) {
+                return res.status(400).json({ error: 'Invalid state/province' });
+            }
+            if (address.zip && !validatePostalCode(address.zip, address.country || 'US')) {
+                return res.status(400).json({ error: 'Invalid postal code' });
+            }
+        }
+
+        // Update user fields
+        if (company) user.company = company;
+        if (phone) user.phone = normalizePhone(phone);
+        if (usdotNumber) {
+            user.usdotNumber = usdotNumber;
+            user.hasUSDOT = !!usdotNumber;
+        }
+        if (mcNumber) {
+            user.mcNumber = normalizeMCNumber(mcNumber);
+            user.hasMC = !!normalizeMCNumber(mcNumber);
+        }
+        if (ein && (user.accountType === 'broker' || user.accountType === 'carrier')) {
+            const einData = normalizeEIN(ein);
+            user.einCanon = einData.canon;
+            user.einDisplay = einData.display;
+        }
+        if (address) {
+            user.address = {
+                street: address.street || user.address.street,
+                city: address.city || user.address.city,
+                state: address.state ? address.state.toUpperCase() : user.address.state,
+                zip: address.zip || user.address.zip,
+                country: address.country || user.address.country || 'US'
+            };
+        }
+
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: 'Settings updated successfully',
+            user: {
+                id: user._id,
+                email: user.email,
+                company: user.company,
+                phone: user.phone,
+                accountType: user.accountType,
+                einDisplay: user.einDisplay,
+                usdotNumber: user.usdotNumber,
+                mcNumber: user.mcNumber,
+                hasUSDOT: user.hasUSDOT,
+                hasMC: user.hasMC,
+                address: user.address
+            }
+        });
+}));
+
 // Get Loads
-app.get('/api/loads', asyncHandler(async (req, res) => {
+app.get('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
         const { page = 1, limit = 20, status = 'available', accountType } = req.query;
         const skip = (page - 1) * limit;
 
         let query = { status };
+        
+        // Authority-based filtering for carriers
+        if (req.user.accountType === 'carrier') {
+            const carrier = await User.findById(req.user.userId);
+            
+            // Carriers with only USDOT can only see intrastate loads
+            if (!carrier.hasMC) {
+                query.isInterstate = false;
+            }
+            // Carriers with MC can see all loads (no additional filter)
+        }
         
         // Filter by account type if specified
         if (accountType) {
@@ -844,9 +1191,43 @@ app.post('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
             return res.status(403).json({ error: 'Only brokers can post loads' });
         }
 
-        const { shipmentId } = req.body;
+        const { shipmentId, origin, destination, pickupDate, deliveryDate } = req.body;
+
+        // Validate required fields
+        if (!origin || !destination || !pickupDate || !deliveryDate) {
+            return res.status(400).json({ error: 'Origin, destination, pickup date, and delivery date are required' });
+        }
+
+        // Validate locations
+        if (!validateState(origin.state, origin.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid origin state/province' });
+        }
+
+        if (!validateState(destination.state, destination.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid destination state/province' });
+        }
+
+        if (!validatePostalCode(origin.zip, origin.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid origin postal code' });
+        }
+
+        if (!validatePostalCode(destination.zip, destination.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid destination postal code' });
+        }
+
+        // Authority validation for interstate vs intrastate
+        const isInterstate = origin.state !== destination.state;
+        const broker = await User.findById(req.user.userId);
+        
+        if (isInterstate && !broker.hasMC) {
+            return res.status(403).json({ 
+                error: 'MC number required for interstate loads. Brokers with only USDOT can post intrastate loads only.' 
+            });
+        }
 
         let shipmentRef = null;
+        let unlinked = true;
+
         if (shipmentId) {
             // Validate shipmentId exists and is open
             const shipment = await Shipment.findOne({ shipmentId, status: 'open' });
@@ -854,10 +1235,26 @@ app.post('/api/loads', authenticateToken, asyncHandler(async (req, res) => {
                 return res.status(400).json({ error: 'Invalid or closed shipmentId' });
             }
             shipmentRef = shipment._id;
+            unlinked = false;
         }
 
         const loadData = {
             ...req.body,
+            origin: {
+                city: origin.city,
+                state: origin.state.toUpperCase(),
+                zip: origin.zip,
+                country: origin.country || 'US'
+            },
+            destination: {
+                city: destination.city,
+                state: destination.state.toUpperCase(),
+                zip: destination.zip,
+                country: destination.country || 'US'
+            },
+            shipmentId: shipmentId || '',
+            unlinked,
+            isInterstate,
             shipment: shipmentRef,
             postedBy: req.user.userId
         };
@@ -879,6 +1276,23 @@ app.post('/api/loads/:id/book', authenticateToken, asyncHandler(async (req, res)
             return res.status(403).json({ error: 'Only carriers can book loads' });
         }
 
+        // Get the load first to check authority requirements
+        const loadToBook = await Load.findById(req.params.id);
+        if (!loadToBook) {
+            return res.status(404).json({ error: 'Load not found' });
+        }
+
+        // Authority validation for carriers
+        const carrier = await User.findById(req.user.userId);
+        
+        // Carriers with only USDOT can only book intrastate loads
+        if (loadToBook.isInterstate && !carrier.hasMC) {
+            return res.status(403).json({ 
+                error: 'MC number required for interstate loads. Carriers with only USDOT can book intrastate loads only.' 
+            });
+        }
+
+        // Atomic update to prevent double-booking
         const load = await Load.findOneAndUpdate(
             { _id: req.params.id, status: 'available' },
             { $set: { status: 'booked', bookedBy: req.user.userId, updatedAt: new Date() } },
@@ -903,16 +1317,50 @@ app.post('/api/shipments', authenticateToken, asyncHandler(async (req, res) => {
             return res.status(403).json({ error: 'Only shippers can create shipments' });
         }
 
+        const { title, description, pickup, delivery } = req.body;
+
+        // Validate required fields
+        if (!title || !pickup || !delivery) {
+            return res.status(400).json({ error: 'Title, pickup, and delivery are required' });
+        }
+
+        // Validate pickup and delivery locations
+        if (!validateState(pickup.state, pickup.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid pickup state/province' });
+        }
+
+        if (!validateState(delivery.state, delivery.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid delivery state/province' });
+        }
+
+        if (!validatePostalCode(pickup.zip, pickup.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid pickup postal code' });
+        }
+
+        if (!validatePostalCode(delivery.zip, delivery.country || 'US')) {
+            return res.status(400).json({ error: 'Invalid delivery postal code' });
+        }
+
         const random = Math.random().toString(36).slice(2, 8).toUpperCase();
         const datePart = new Date().toISOString().slice(0,10).replace(/-/g, '');
         const shipmentId = `SHP-${datePart}-${random}`;
 
         const shipment = new Shipment({
             shipmentId,
-            title: req.body.title,
-            description: req.body.description || '',
-            pickup: req.body.pickup,
-            delivery: req.body.delivery,
+            title,
+            description: description || '',
+            pickup: {
+                city: pickup.city,
+                state: pickup.state.toUpperCase(),
+                zip: pickup.zip,
+                country: pickup.country || 'US'
+            },
+            delivery: {
+                city: delivery.city,
+                state: delivery.state.toUpperCase(),
+                zip: delivery.zip,
+                country: delivery.country || 'US'
+            },
             postedBy: req.user.userId
         });
 

@@ -9,7 +9,7 @@ echo EMAIL_USER= >> .env
 echo EMAIL_PASS= >> .env
 echo ADMIN_EMAIL=admin@freightpro.com >> .env
 echo ADMIN_PASSWORD=admin123 >> .env
-echo FRONTEND_URL=http://localhost:8000 >> .env
+echo FRONTEND_URL=https://cargolume.netlify.app >> .env
 echo PORT=4000 >> .env
 echo EMAIL_VERIFICATION_TTL_MS=86400000 >> .env
 
