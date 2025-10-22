@@ -73,7 +73,7 @@ async function ensureDefaultAdminUser() {
     const adminUser = new User({
         email: ADMIN_EMAIL.toLowerCase(),
         password: hashedPassword,
-        passwordPlain: ADMIN_PASSWORD,
+        // SECURITY: Never store plain password - removed passwordPlain field
         company: 'CargoLume',
         phone: '+1-000-000-0000',
         accountType: 'broker',

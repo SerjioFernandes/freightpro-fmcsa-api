@@ -24,6 +24,13 @@
     <meta name="twitter:description" content="Connect carriers and shippers with comprehensive freight solutions.">
     <meta name="twitter:image" content="https://cargolume.com/twitter-image.jpg">
     
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https: http:; connect-src 'self' https://freightpro-fmcsa-api.onrender.com https://cargolume-fmcsa-api.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
     <!-- Performance Optimization -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="theme-color" content="#2563eb">
@@ -1775,6 +1782,77 @@
     </div>
 
     <script>
+        'use strict'; // Enable strict mode for better error handling
+        
+        /**
+         * Safe localStorage wrapper to prevent quota exceeded and disabled storage errors
+         * @namespace SafeStorage
+         */
+        const SafeStorage = {
+            /**
+             * Safely get item from localStorage
+             * @param {string} key - Storage key
+             * @param {*} defaultValue - Default value if key doesn't exist or error occurs
+             * @returns {*} Parsed value or default
+             */
+            getItem(key, defaultValue = null) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch (error) {
+                    console.error(`SafeStorage.getItem error for key "${key}":`, error);
+                    return defaultValue;
+                }
+            },
+            
+            /**
+             * Safely set item in localStorage
+             * @param {string} key - Storage key
+             * @param {*} value - Value to store (will be JSON stringified)
+             * @returns {boolean} Success status
+             */
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    return true;
+                } catch (error) {
+                    console.error(`SafeStorage.setItem error for key "${key}":`, error);
+                    // Storage quota exceeded or disabled
+                    return false;
+                }
+            },
+            
+            /**
+             * Safely remove item from localStorage
+             * @param {string} key - Storage key
+             * @returns {boolean} Success status
+             */
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (error) {
+                    console.error(`SafeStorage.removeItem error for key "${key}":`, error);
+                    return false;
+                }
+            },
+            
+            /**
+             * Check if localStorage is available
+             * @returns {boolean} Availability status
+             */
+            isAvailable() {
+                try {
+                    const test = '__storage_test__';
+                    localStorage.setItem(test, test);
+                    localStorage.removeItem(test);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            }
+        };
+        
         // Browser-style Navigation System - COMPLETELY REWRITTEN
         if (typeof window.navigationHistory === 'undefined') {
             window.navigationHistory = [];
@@ -1782,8 +1860,8 @@
         if (typeof window.currentHistoryIndex === 'undefined') {
             window.currentHistoryIndex = -1;
         }
-        navigationHistory = window.navigationHistory;
-        currentHistoryIndex = window.currentHistoryIndex;
+        let navigationHistory = window.navigationHistory;
+        let currentHistoryIndex = window.currentHistoryIndex;
         
         // Initialize navigation history
         function initNavigation() {
@@ -10743,6 +10821,21 @@
                 addMessage(welcomeMsg);
             }
 
+            /**
+             * Sanitize user input to prevent XSS attacks
+             * @param {string} text - Raw user input
+             * @returns {string} - Sanitized text safe for display
+             */
+            function sanitizeHTML(text) {
+                const div = document.createElement('div');
+                div.textContent = text; // Use textContent, not innerHTML
+                return div.innerHTML; // Get the escaped version
+            }
+
+            /**
+             * Add a message to the chat interface (XSS-safe)
+             * @param {Object} message - Message object with role, text, timestamp
+             */
             function addMessage(message) {
                 chatState.messages.push(message);
                 const messagesContainer = document.getElementById('fpChatMessages');
@@ -10768,9 +10861,9 @@
                 messageDiv.innerHTML = `
                     ${avatar}
                     <div class="${messageClass} rounded-lg p-3 max-w-xs shadow-sm">
-                        <p class="text-sm">${escapeHTML(message.text)}</p>
+                        <p class="text-sm">${sanitizeHTML(message.text || '')}</p>
                         ${message.filePreview || ''}
-                        ${message.timestamp ? `<p class="text-xs opacity-70 mt-1">${message.timestamp}</p>` : ''}
+                        ${message.timestamp ? `<p class="text-xs opacity-70 mt-1">${sanitizeHTML(message.timestamp)}</p>` : ''}
                     </div>
                 `;
                 
