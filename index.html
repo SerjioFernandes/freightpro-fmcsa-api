@@ -5748,6 +5748,15 @@
             const startTime = Date.now();
             const now = Date.now();
             
+            // Check if user is authenticated
+            const token = getAuthToken();
+            if (!token) {
+                // User not authenticated, return sample loads instead of trying backend
+                updateCacheStats('loads');
+                trackResponseTime(startTime);
+                return normalizedSampleLoads;
+            }
+            
             // Dynamic cache TTL based on system load
             const cacheTTL = getCacheTTL('loads');
             
@@ -5771,7 +5780,6 @@
             });
             
             const url = `${window.API_BASE_URL}/loads?${params.toString()}`;
-            const token = getAuthToken();
             const headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
