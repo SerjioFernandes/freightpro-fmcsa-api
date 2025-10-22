@@ -19,9 +19,9 @@
             "type": "image/png"
         },
         {
-            "src": "/apple-touch-icon.png",
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%232563eb'/><text x='90' y='100' font-family='Arial' font-size='60' fill='white' text-anchor='middle'>CL</text></svg>",
             "sizes": "180x180",
-            "type": "image/png"
+            "type": "image/svg+xml"
         },
         {
             "src": "/android-chrome-192x192.png",

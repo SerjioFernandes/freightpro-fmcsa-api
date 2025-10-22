@@ -1425,8 +1425,11 @@
             
             // Wait for DOM to be ready and then override showPage
             setTimeout(() => {
-                overrideShowPage();
-                updateNavigationArrowButtons();
+                // Use requestAnimationFrame to avoid blocking the main thread
+                requestAnimationFrame(() => {
+                    overrideShowPage();
+                    updateNavigationArrowButtons();
+                });
             }, 1000);
         }
         
@@ -2587,7 +2590,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
                             </label>
-                            <input type="text" name="ein" id="einInput"
+                            <input type="text" name="ein" id="einInput" autocomplete="organization"
                                 class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3146,7 +3149,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-envelope mr-2 text-blue-500"></i>Email Address
                             </label>
-                            <input type="email" name="email" required 
+                            <input type="email" name="email" required autocomplete="email"
                                 class="block w-full px-4 py-2 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
