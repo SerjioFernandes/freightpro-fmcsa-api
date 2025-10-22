@@ -1,0 +1,23 @@
+# CargoLume Environment Variables Template
+# Copy this file to .env and fill in your actual values
+
+# MongoDB Connection
+MONGODB_URI=your_mongodb_connection_string_here
+
+# Admin Account
+ADMIN_EMAIL=your_admin_email@example.com
+ADMIN_PASSWORD=your_secure_password_here
+
+# JWT Secret (generate a random string)
+JWT_SECRET=your_jwt_secret_key_here
+
+# Email Configuration (for notifications)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_email_app_password_here
+
+# Frontend URL (your Netlify URL)
+FRONTEND_URL=https://your-site.netlify.app
+
+# Optional: Email Verification TTL (time to live in milliseconds)
+EMAIL_VERIFICATION_TTL_MS=86400000
+
