@@ -78,8 +78,69 @@
         ]
     }
     </script>
+    
+    <!-- Inline critical styles to prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+        /* Loading screen */
+        #app-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease-out;
+        }
+        #app-loader.loaded {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader-logo {
+            font-size: 4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loader-text {
+            color: white;
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        /* Hide body content until fully loaded */
+        body:not(.loaded) > :not(#app-loader) {
+            opacity: 0;
+        }
+        body.loaded > :not(#app-loader) {
+            opacity: 1;
+            transition: opacity 0.3s ease-in;
+        }
+    </style>
+    
         <!-- CDN Optimized Resources -->
-        <script src="https://cdn.tailwindcss.com" defer></script>
+        <script src="https://cdn.tailwindcss.com"></script>
         
         <!-- FontAwesome Icons with CDN optimization -->
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1393,6 +1454,43 @@
     </style>
 </head>
 <body class="bg-gray-50">
+
+    <!-- Loading Screen -->
+    <div id="app-loader">
+        <div class="loader-logo">CargoLume</div>
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading your freight solutions...</div>
+    </div>
+    
+    <!-- Script to hide loader when page is fully loaded -->
+    <script>
+        // Hide loader and show content when everything is ready
+        function hideLoader() {
+            const loader = document.getElementById('app-loader');
+            const body = document.body;
+            
+            // Mark body as loaded
+            body.classList.add('loaded');
+            
+            // Fade out loader
+            if (loader) {
+                loader.classList.add('loaded');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        }
+        
+        // Wait for all resources to load (CSS, fonts, images)
+        if (document.readyState === 'complete') {
+            hideLoader();
+        } else {
+            window.addEventListener('load', hideLoader);
+        }
+        
+        // Fallback: Hide loader after max 3 seconds even if not fully loaded
+        setTimeout(hideLoader, 3000);
+    </script>
 
     <!-- Subscription overlay (glass black) -->
     <div id="subscriptionOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
