@@ -1648,28 +1648,14 @@
                 loader.classList.add('loaded');
                 setTimeout(() => {
                     loader.style.display = 'none';
-                }, 500);
+                }, 800);
             }
         }
         
-        // Wait for all resources to load (CSS, fonts, images)
-        if (document.readyState === 'complete') {
+        // Force exactly 5 seconds display time for premium branding experience
+        setTimeout(function() {
             hideLoader();
-        } else {
-            window.addEventListener('load', hideLoader);
-        }
-        
-        // Minimum display time: Show loader for 5 seconds for premium branding experience
-        let loaderStartTime = Date.now();
-        let originalHideLoader = hideLoader;
-        hideLoader = function() {
-            let elapsedTime = Date.now() - loaderStartTime;
-            let remainingTime = Math.max(0, 5000 - elapsedTime);
-            setTimeout(originalHideLoader, remainingTime);
-        };
-        
-        // Fallback: Hide loader after max 6 seconds even if not fully loaded
-        setTimeout(hideLoader, 6000);
+        }, 5000);
     </script>
 
     <!-- Subscription overlay (glass black) -->
