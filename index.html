@@ -81,34 +81,50 @@
     
     <!-- Inline critical styles to prevent FOUC (Flash of Unstyled Content) -->
     <style>
-        /* Premium Loading Screen */
+        /* 2025 Ultra-Modern Loading Screen */
         #app-loader {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #0c4a6e 0%, #1e40af 50%, #3b82f6 100%);
+            background: 
+                linear-gradient(135deg, #0a1628 0%, #1e3a8a 25%, #1e40af 50%, #3b82f6 75%, #60a5fa 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 99999;
-            transition: opacity 0.6s ease-out;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
         
-        /* Animated background particles */
+        /* Animated grid background */
         #app-loader::before {
             content: '';
             position: absolute;
             width: 200%;
             height: 200%;
+            background-image: 
+                linear-gradient(rgba(96, 165, 250, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(96, 165, 250, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 30s linear infinite;
+            opacity: 0.3;
+        }
+        
+        /* Floating light orbs */
+        #app-loader::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
             background: 
-                radial-gradient(circle at 20% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(147, 197, 253, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
-            animation: particle-float 20s ease-in-out infinite;
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(147, 197, 253, 0.25) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(96, 165, 250, 0.2) 0%, transparent 45%),
+                radial-gradient(circle at 30% 80%, rgba(191, 219, 254, 0.15) 0%, transparent 35%);
+            animation: orb-float 25s ease-in-out infinite;
         }
         
         #app-loader.loaded {
@@ -116,19 +132,47 @@
             pointer-events: none;
         }
         
-        /* Premium container with glass effect */
+        /* 2025 Futuristic Glass Container */
         .loader-container {
             position: relative;
             z-index: 2;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 3rem 4rem;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.08) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 32px;
+            padding: 3.5rem 5rem;
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: container-float 3s ease-in-out infinite;
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 0 100px rgba(59, 130, 246, 0.2);
+            border: 2px solid transparent;
+            background-image: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)),
+                linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(59, 130, 246, 0.1));
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            animation: container-float 4s ease-in-out infinite, container-glow 3s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+        
+        /* Shimmer effect overlay */
+        .loader-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            animation: shimmer 3s linear infinite;
+            pointer-events: none;
         }
         
         /* Logo with premium styling */
@@ -268,14 +312,58 @@
         }
         
         @keyframes container-float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            0%, 100% { 
+                transform: translateY(0px) rotateX(0deg) rotateY(0deg); 
+            }
+            25% { 
+                transform: translateY(-12px) rotateX(2deg) rotateY(-2deg); 
+            }
+            50% { 
+                transform: translateY(-8px) rotateX(0deg) rotateY(2deg); 
+            }
+            75% { 
+                transform: translateY(-12px) rotateX(-2deg) rotateY(0deg); 
+            }
         }
         
-        @keyframes particle-float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        @keyframes container-glow {
+            0%, 100% { 
+                box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                    0 0 80px rgba(59, 130, 246, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 25px 80px rgba(0, 0, 0, 0.5),
+                    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                    0 0 120px rgba(96, 165, 250, 0.4);
+            }
+        }
+        
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        @keyframes orb-float {
+            0%, 100% { 
+                transform: translate(0, 0) scale(1) rotate(0deg); 
+                opacity: 1;
+            }
+            33% { 
+                transform: translate(40px, -40px) scale(1.1) rotate(120deg); 
+                opacity: 0.8;
+            }
+            66% { 
+                transform: translate(-30px, 30px) scale(0.9) rotate(240deg); 
+                opacity: 0.9;
+            }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
         
         @keyframes dot-pulse {
@@ -1630,11 +1718,12 @@
 </head>
 <body class="bg-gray-50">
 
-    <!-- Premium Loading Screen -->
+    <!-- 2025 Ultra-Modern Loading Screen -->
     <div id="app-loader">
         <div class="loader-container">
             <div class="loader-icon">🚛</div>
             <div class="loader-logo">CargoLume</div>
+            <div class="loader-subtitle" style="color: rgba(255,255,255,0.8); font-size: 0.875rem; margin-top: -1rem; margin-bottom: 1.5rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;">Premium Freight Network</div>
             <div class="loader-spinner-container">
                 <div class="loader-spinner"></div>
                 <div class="loader-spinner"></div>
@@ -1645,6 +1734,7 @@
             <div class="loader-progress">
                 <div class="loader-progress-bar"></div>
             </div>
+            <div class="loader-version" style="margin-top: 1.5rem; color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 0.1em;">v2.0 • 2025 Edition</div>
         </div>
     </div>
     
@@ -1674,8 +1764,17 @@
             window.addEventListener('load', hideLoader);
         }
         
-        // Fallback: Hide loader after max 3 seconds even if not fully loaded
-        setTimeout(hideLoader, 3000);
+        // Minimum display time: Show loader for at least 1 second for branding
+        let loaderStartTime = Date.now();
+        let originalHideLoader = hideLoader;
+        hideLoader = function() {
+            let elapsedTime = Date.now() - loaderStartTime;
+            let remainingTime = Math.max(0, 1000 - elapsedTime);
+            setTimeout(originalHideLoader, remainingTime);
+        };
+        
+        // Fallback: Hide loader after max 4 seconds even if not fully loaded
+        setTimeout(hideLoader, 4000);
     </script>
 
     <!-- Subscription overlay (glass black) -->

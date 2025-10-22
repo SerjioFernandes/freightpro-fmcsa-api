@@ -1613,11 +1613,12 @@
 </head>
 <body class="bg-gray-50">
 
-    <!-- Premium Loading Screen -->
+    <!-- 2025 Ultra-Modern Loading Screen -->
     <div id="app-loader">
         <div class="loader-container">
             <div class="loader-icon">🚛</div>
             <div class="loader-logo">CargoLume</div>
+            <div class="loader-subtitle" style="color: rgba(255,255,255,0.8); font-size: 0.875rem; margin-top: -1rem; margin-bottom: 1.5rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;">Premium Freight Network</div>
             <div class="loader-spinner-container">
                 <div class="loader-spinner"></div>
                 <div class="loader-spinner"></div>
@@ -1628,6 +1629,7 @@
             <div class="loader-progress">
                 <div class="loader-progress-bar"></div>
             </div>
+            <div class="loader-version" style="margin-top: 1.5rem; color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 0.1em;">v2.0 • 2025 Edition</div>
         </div>
     </div>
     
@@ -1657,8 +1659,17 @@
             window.addEventListener('load', hideLoader);
         }
         
-        // Fallback: Hide loader after max 3 seconds even if not fully loaded
-        setTimeout(hideLoader, 3000);
+        // Minimum display time: Show loader for at least 1 second for branding
+        let loaderStartTime = Date.now();
+        let originalHideLoader = hideLoader;
+        hideLoader = function() {
+            let elapsedTime = Date.now() - loaderStartTime;
+            let remainingTime = Math.max(0, 1000 - elapsedTime);
+            setTimeout(originalHideLoader, remainingTime);
+        };
+        
+        // Fallback: Hide loader after max 4 seconds even if not fully loaded
+        setTimeout(hideLoader, 4000);
     </script>
 
     <!-- Subscription overlay (glass black) -->
