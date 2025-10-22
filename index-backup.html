@@ -1659,17 +1659,17 @@
             window.addEventListener('load', hideLoader);
         }
         
-        // Minimum display time: Show loader for at least 1 second for branding
+        // Minimum display time: Show loader for 5 seconds for premium branding experience
         let loaderStartTime = Date.now();
         let originalHideLoader = hideLoader;
         hideLoader = function() {
             let elapsedTime = Date.now() - loaderStartTime;
-            let remainingTime = Math.max(0, 1000 - elapsedTime);
+            let remainingTime = Math.max(0, 5000 - elapsedTime);
             setTimeout(originalHideLoader, remainingTime);
         };
         
-        // Fallback: Hide loader after max 4 seconds even if not fully loaded
-        setTimeout(hideLoader, 4000);
+        // Fallback: Hide loader after max 6 seconds even if not fully loaded
+        setTimeout(hideLoader, 6000);
     </script>
 
     <!-- Subscription overlay (glass black) -->
