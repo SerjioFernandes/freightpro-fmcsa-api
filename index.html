@@ -3134,10 +3134,10 @@
                                             
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div class="group">
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <label for="companyLegalName" class="block text-sm font-semibold text-gray-700 mb-2">
                                                         <i class="fas fa-building mr-2 text-blue-500"></i>Company Legal Name *
                                                     </label>
-                                                    <input type="text" name="companyLegalName" required
+                                                    <input type="text" name="companyLegalName" id="companyLegalName" required
                                                         class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                                                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3145,10 +3145,10 @@
                                                 </div>
                                                 
                                                 <div class="group">
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <label for="companyAddress" class="block text-sm font-semibold text-gray-700 mb-2">
                                                         <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>Business Address *
                                                     </label>
-                                                    <input type="text" name="companyAddress" required
+                                                    <input type="text" name="companyAddress" id="companyAddress" required
                                                         class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                                                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3156,10 +3156,10 @@
                                                 </div>
                                                 
                                                 <div class="group">
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <label for="companyPhone" class="block text-sm font-semibold text-gray-700 mb-2">
                                                         <i class="fas fa-phone mr-2 text-blue-500"></i>Phone Number *
                                                     </label>
-                                                    <input type="tel" name="companyPhone" required
+                                                    <input type="tel" name="companyPhone" id="companyPhone" required
                                                         class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                                                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3171,10 +3171,10 @@
                                                 </div>
                                                 
                                                 <div class="group">
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <label for="companyEmail" class="block text-sm font-semibold text-gray-700 mb-2">
                                                         <i class="fas fa-envelope mr-2 text-blue-500"></i>Work Email *
                                                     </label>
-                                                    <input type="email" name="companyEmail" required
+                                                    <input type="email" name="companyEmail" id="companyEmail" required
                                                         class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                                                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                                                transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3183,7 +3183,7 @@
                                                 
                                                 <!-- EIN Field (for brokers and carriers) -->
                                                 <div class="group">
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <label for="authorityEIN" class="block text-sm font-semibold text-gray-700 mb-2">
                                                         <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
                                                     </label>
                                                     <input type="text" name="companyEIN" id="authorityEIN" required
@@ -3236,10 +3236,10 @@
                                 <div class="space-y-6">
                                     <!-- Company Name Field -->
                                     <div class="group">
-                                        <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                                        <label for="companyName" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                             <i class="fas fa-building mr-2 text-blue-500"></i>Company Name *
                                         </label>
-                            <input type="text" name="company" required 
+                            <input type="text" name="company" id="companyName" required 
                                 class="block w-full px-4 py-2 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3248,10 +3248,10 @@
                         
                                                     <!-- Work Email Field -->
                         <div class="group">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="registerEmail" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                     <i class="fas fa-envelope mr-2 text-blue-500"></i>Work Email *
                             </label>
-                            <input type="email" name="email" required 
+                            <input type="email" name="email" id="registerEmail" required 
                                 class="block w-full px-4 py-2 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3261,10 +3261,10 @@
 
                         <!-- Phone Number Field -->
                         <div class="group">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="registerPhone" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-phone mr-2 text-blue-500"></i>Phone Number *
                             </label>
-                            <input type="tel" name="phone" required
+                            <input type="tel" name="phone" id="registerPhone" required
                                 class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3279,7 +3279,7 @@
                         
                         <!-- EIN Field (for brokers and carriers only) -->
                         <div id="einFieldGroup" class="group hidden">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="einInput" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
                             </label>
                             <input type="text" name="ein" id="einInput" autocomplete="organization"
@@ -3298,7 +3298,7 @@
                         <!-- Username Field -->
                         <!-- Password Field -->
                         <div class="group relative">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="registerPassword" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-lock mr-2 text-blue-500"></i>Password *
                             </label>
                             <input type="password" name="password" id="registerPassword" autocomplete="new-password" required 
@@ -3318,7 +3318,7 @@
                         </div>
                         <!-- Confirm Password Field -->
                         <div class="group relative">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="registerConfirmPassword" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-shield-alt mr-2 text-blue-500"></i>Confirm Password *
                             </label>
                             <input type="password" name="confirmPassword" id="registerConfirmPassword" autocomplete="new-password" required 
@@ -3334,7 +3334,7 @@
                         
                         <!-- Account Type Field -->
                         <div class="group">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="accountTypeSelect" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-briefcase mr-2 text-blue-500"></i>Account Type *
                             </label>
                             <select name="accountType" id="accountTypeSelect" required 
@@ -3351,7 +3351,7 @@
 
                         <!-- EIN Field (only for brokers and carriers) -->
                         <div class="group" id="einFieldGroup2" style="display: none;">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="einInput2" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-id-card mr-2 text-blue-500"></i>EIN (Employer Identification Number) *
                             </label>
                             <input type="text" name="ein" id="einInput2" 
@@ -3838,10 +3838,10 @@
                     <div class="space-y-6">
                         <!-- Email Field -->
                         <div class="group">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="loginEmail" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-envelope mr-2 text-blue-500"></i>Email Address
                             </label>
-                            <input type="email" name="email" required autocomplete="email"
+                            <input type="email" name="email" id="loginEmail" required autocomplete="email"
                                 class="block w-full px-4 py-2 border-2 border-gray-200 rounded-xl shadow-sm placeholder-gray-400 
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
                                        transition-all duration-300 bg-gray-50/50 hover:bg-white hover:border-gray-300"
@@ -3850,7 +3850,7 @@
                         
                         <!-- Password Field -->
                         <div class="group relative">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
+                            <label for="loginPassword" class="block text-sm font-semibold text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600">
                                 <i class="fas fa-lock mr-2 text-blue-500"></i>Password
                             </label>
                             <input id="loginPassword" type="password" name="password" autocomplete="current-password" required 
@@ -3951,21 +3951,21 @@
                     <!-- global search placeholder for JS to attach larger, shorter input -->
                     <div class="md:col-span-4 smart-search-global"></div>
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Origin</label>
+                        <label for="originFilter" class="block text-sm font-medium text-gray-700 mb-1">Origin</label>
                         <input type="text" id="originFilter" placeholder="City, State or ZIP" 
                                class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                                oninput="showSmartSuggestions(this, 'origin')">
                         <div id="originSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-48 overflow-y-auto"></div>
                     </div>
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                        <label for="destFilter" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
                         <input type="text" id="destFilter" placeholder="City, State or ZIP" 
                                class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                                oninput="showSmartSuggestions(this, 'destination')">
                         <div id="destSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-48 overflow-y-auto"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Equipment Type</label>
+                        <label for="equipmentFilter" class="block text-sm font-medium text-gray-700 mb-1">Equipment Type</label>
                         <div class="relative">
 
                             <!-- Hidden select kept for compatibility; JS will sync it -->
@@ -3995,22 +3995,22 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
+                        <label for="dateFilter" class="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
                         <input type="date" id="dateFilter" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" onchange="searchLoads()">
                     </div>
                 </div>
                 
                 <div class="grid md:grid-cols-5 gap-4 mb-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Rate ($)</label>
+                        <label for="minRate" class="block text-sm font-medium text-gray-700 mb-1">Min Rate ($)</label>
                         <input type="number" id="minRate" placeholder="1000" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="searchLoads()">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Miles</label>
+                        <label for="maxMiles" class="block text-sm font-medium text-gray-700 mb-1">Max Miles</label>
                         <input type="number" id="maxMiles" placeholder="" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="searchLoads()">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Load Type</label>
+                        <label for="loadTypeFilter" class="block text-sm font-medium text-gray-700 mb-1">Load Type</label>
                         <select id="loadTypeFilter" class="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500" onchange="searchLoads()">
                             <option value="">All Types</option>
                             <option value="Full Truckload">Full Truckload</option>
