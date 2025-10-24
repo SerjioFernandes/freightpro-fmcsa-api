@@ -2174,6 +2174,7 @@
                 'login': 'Login',
                 'register': 'Register',
                 'profile': 'Profile',
+                'settings': 'Settings',
                 'admin': 'Admin'
             };
             
@@ -2326,6 +2327,9 @@
                 </button>
                 <button onclick="showPage('profile'); toggleSidebar()" class="nav-item w-full text-left text-white px-4 py-3">
                     <i class="fas fa-user mr-3"></i>Profile
+                </button>
+                <button onclick="showPage('settings'); toggleSidebar()" class="nav-item w-full text-left text-white px-4 py-3">
+                    <i class="fas fa-cog mr-3"></i>Settings
                 </button>
             </nav>
         </div>
@@ -5620,6 +5624,450 @@
         </div>
     </div>
 
+    <!-- Settings Page -->
+    <div id="settings" class="page hidden">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-xl p-6 text-white">
+                <h1 class="text-3xl font-bold flex items-center">
+                    <i class="fas fa-cog mr-3"></i>Settings
+                </h1>
+                <p class="text-blue-100 mt-2">Manage your account preferences and configurations</p>
+            </div>
+
+            <!-- Settings Container -->
+            <div class="bg-white rounded-b-xl shadow-lg">
+                <!-- Tabs -->
+                <div class="border-b border-gray-200">
+                    <nav class="flex overflow-x-auto">
+                        <button onclick="showSettingsTab('account')" id="tab-account" 
+                                class="settings-tab px-6 py-4 text-sm font-medium border-b-2 border-blue-600 text-blue-600 whitespace-nowrap">
+                            <i class="fas fa-user mr-2"></i>Account
+                        </button>
+                        <button onclick="showSettingsTab('notifications')" id="tab-notifications" 
+                                class="settings-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                            <i class="fas fa-bell mr-2"></i>Notifications
+                        </button>
+                        <button onclick="showSettingsTab('security')" id="tab-security" 
+                                class="settings-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                            <i class="fas fa-shield-alt mr-2"></i>Security
+                        </button>
+                        <button onclick="showSettingsTab('subscription')" id="tab-subscription" 
+                                class="settings-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                            <i class="fas fa-credit-card mr-2"></i>Subscription
+                        </button>
+                        <button onclick="showSettingsTab('preferences')" id="tab-preferences" 
+                                class="settings-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                            <i class="fas fa-sliders-h mr-2"></i>Preferences
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="p-6">
+                    <!-- Account Settings Tab -->
+                    <div id="settings-account" class="settings-content">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Account Information</h2>
+                        
+                        <form id="accountSettingsForm" class="space-y-6">
+                            <!-- Company Name -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-building mr-2 text-blue-600"></i>Company Name
+                                </label>
+                                <input type="text" id="settings-company" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="Enter company name">
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Address
+                                </label>
+                                <input type="email" id="settings-email" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50"
+                                       placeholder="email@example.com" readonly>
+                                <p class="text-xs text-gray-500 mt-1">Email cannot be changed for security reasons</p>
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-phone mr-2 text-blue-600"></i>Phone Number
+                                </label>
+                                <input type="tel" id="settings-phone" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="+1 (555) 123-4567">
+                            </div>
+
+                            <!-- USDOT -->
+                            <div id="settings-usdot-container">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-id-card mr-2 text-blue-600"></i>USDOT Number
+                                </label>
+                                <input type="text" id="settings-usdot" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="USDOT-1234567">
+                            </div>
+
+                            <!-- MC Number -->
+                            <div id="settings-mc-container">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-certificate mr-2 text-blue-600"></i>MC Number
+                                </label>
+                                <input type="text" id="settings-mc" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="MC-123456">
+                            </div>
+
+                            <!-- Account Type -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-user-tag mr-2 text-blue-600"></i>Account Type
+                                </label>
+                                <input type="text" id="settings-account-type" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50"
+                                       readonly>
+                                <p class="text-xs text-gray-500 mt-1">Contact support to change account type</p>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" 
+                                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Notifications Tab -->
+                    <div id="settings-notifications" class="settings-content hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Notification Preferences</h2>
+                        
+                        <form id="notificationSettingsForm" class="space-y-6">
+                            <!-- Email Notifications -->
+                            <div class="border-b border-gray-200 pb-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                    <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Notifications
+                                </h3>
+                                
+                                <div class="space-y-4">
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <span class="flex-1">
+                                            <span class="block font-medium text-gray-800">New Load Matches</span>
+                                            <span class="text-sm text-gray-600">Get notified when loads match your preferences</span>
+                                        </span>
+                                        <input type="checkbox" id="notif-email-loads" checked 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <span class="flex-1">
+                                            <span class="block font-medium text-gray-800">Bid Notifications</span>
+                                            <span class="text-sm text-gray-600">Receive updates on your bids and offers</span>
+                                        </span>
+                                        <input type="checkbox" id="notif-email-bids" checked 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <span class="flex-1">
+                                            <span class="block font-medium text-gray-800">Rate Changes</span>
+                                            <span class="text-sm text-gray-600">Get alerts when rates change for your lanes</span>
+                                        </span>
+                                        <input type="checkbox" id="notif-email-rates" 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <span class="flex-1">
+                                            <span class="block font-medium text-gray-800">Platform Updates</span>
+                                            <span class="text-sm text-gray-600">News, features, and platform announcements</span>
+                                        </span>
+                                        <input type="checkbox" id="notif-email-updates" checked 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <span class="flex-1">
+                                            <span class="block font-medium text-gray-800">Marketing Emails</span>
+                                            <span class="text-sm text-gray-600">Promotional offers and special deals</span>
+                                        </span>
+                                        <input type="checkbox" id="notif-email-marketing" 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Notification Frequency -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                    <i class="fas fa-clock mr-2 text-blue-600"></i>Notification Frequency
+                                </h3>
+                                <select id="notif-frequency" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="instant">Instant - As they happen</option>
+                                    <option value="hourly">Hourly - Every hour</option>
+                                    <option value="daily">Daily Digest - Once per day</option>
+                                    <option value="weekly">Weekly Summary - Once per week</option>
+                                </select>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" 
+                                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Save Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div id="settings-security" class="settings-content hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Security Settings</h2>
+                        
+                        <!-- Change Password -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-key mr-2 text-blue-600"></i>Change Password
+                            </h3>
+                            <form id="changePasswordForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+                                    <input type="password" id="current-password" 
+                                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                           placeholder="Enter current password">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                                    <input type="password" id="new-password" 
+                                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                           placeholder="Enter new password">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                                    <input type="password" id="confirm-password" 
+                                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                           placeholder="Confirm new password">
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" 
+                                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                                        <i class="fas fa-lock mr-2"></i>Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Two-Factor Authentication -->
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-mobile-alt mr-2 text-blue-600"></i>Two-Factor Authentication
+                            </h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-800">2FA Status</p>
+                                        <p class="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                                    </div>
+                                    <button onclick="alert('Two-factor authentication setup coming soon!')" 
+                                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors">
+                                        Enable 2FA
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Sessions -->
+                        <div class="border-t border-gray-200 pt-6 mt-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-laptop mr-2 text-blue-600"></i>Active Sessions
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-desktop text-gray-400 text-2xl mr-4"></i>
+                                        <div>
+                                            <p class="font-medium text-gray-800">Current Device</p>
+                                            <p class="text-sm text-gray-600">Last activity: Just now</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-green-600 font-semibold text-sm">Active Now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Tab -->
+                    <div id="settings-subscription" class="settings-content hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Subscription & Billing</h2>
+                        
+                        <!-- Current Plan -->
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg mb-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">
+                                        <i class="fas fa-star mr-2 text-yellow-500"></i>
+                                        Current Plan: <span id="current-plan-name">Ultima</span>
+                                    </h3>
+                                    <p class="text-gray-600">Your subscription is active until <span id="plan-expiry" class="font-semibold">December 31, 2025</span></p>
+                                </div>
+                                <button onclick="showPage('pricing')" 
+                                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-arrow-up mr-2"></i>Change Plan
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Billing Information -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-credit-card mr-2 text-blue-600"></i>Payment Method
+                            </h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fab fa-cc-visa text-blue-600 text-3xl mr-4"></i>
+                                        <div>
+                                            <p class="font-medium text-gray-800">•••• •••• •••• 4242</p>
+                                            <p class="text-sm text-gray-600">Expires 12/2026</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="alert('Payment method update coming soon!')" 
+                                            class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors">
+                                        Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing History -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-receipt mr-2 text-blue-600"></i>Billing History
+                            </h3>
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Amount</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-sm text-gray-600">Oct 1, 2025</td>
+                                            <td class="px-4 py-3 text-sm text-gray-800">Ultima Plan - Monthly</td>
+                                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">$79.00</td>
+                                            <td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Paid</span></td>
+                                            <td class="px-4 py-3"><button class="text-blue-600 hover:text-blue-800 text-sm font-semibold"><i class="fas fa-download mr-1"></i>Download</button></td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-sm text-gray-600">Sep 1, 2025</td>
+                                            <td class="px-4 py-3 text-sm text-gray-800">Ultima Plan - Monthly</td>
+                                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">$79.00</td>
+                                            <td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Paid</span></td>
+                                            <td class="px-4 py-3"><button class="text-blue-600 hover:text-blue-800 text-sm font-semibold"><i class="fas fa-download mr-1"></i>Download</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Tab -->
+                    <div id="settings-preferences" class="settings-content hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Display & Preferences</h2>
+                        
+                        <form id="preferencesForm" class="space-y-6">
+                            <!-- Units -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-ruler mr-2 text-blue-600"></i>Measurement Units
+                                </label>
+                                <select id="pref-units" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="imperial">Imperial (miles, lbs)</option>
+                                    <option value="metric">Metric (km, kg)</option>
+                                </select>
+                            </div>
+
+                            <!-- Timezone -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-clock mr-2 text-blue-600"></i>Timezone
+                                </label>
+                                <select id="pref-timezone" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="America/New_York">Eastern Time (ET)</option>
+                                    <option value="America/Chicago">Central Time (CT)</option>
+                                    <option value="America/Denver">Mountain Time (MT)</option>
+                                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                </select>
+                            </div>
+
+                            <!-- Date Format -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar mr-2 text-blue-600"></i>Date Format
+                                </label>
+                                <select id="pref-date-format" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2025)</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
+                                </select>
+                            </div>
+
+                            <!-- Default Search Radius -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-map-marked-alt mr-2 text-blue-600"></i>Default Search Radius
+                                </label>
+                                <select id="pref-search-radius" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="50">50 miles</option>
+                                    <option value="100">100 miles</option>
+                                    <option value="250">250 miles</option>
+                                    <option value="500" selected>500 miles</option>
+                                    <option value="1000">1000 miles</option>
+                                    <option value="unlimited">Unlimited</option>
+                                </select>
+                            </div>
+
+                            <!-- Language -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-language mr-2 text-blue-600"></i>Language
+                                </label>
+                                <select id="pref-language" 
+                                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                    <option value="fr">Français</option>
+                                </select>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" 
+                                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Save Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Directory Page -->
     <div id="directory" class="page hidden">
         <div class="max-w-7xl mx-auto px-4 py-8 relative overflow-hidden">
@@ -7773,6 +8221,155 @@
             showPage('privacy');
         }
 
+        // Settings Tab Navigation
+        function showSettingsTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.settings-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(`settings-${tabName}`);
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+            
+            // Update tab button styles
+            const tabs = document.querySelectorAll('.settings-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('border-blue-600', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            const selectedTab = document.getElementById(`tab-${tabName}`);
+            if (selectedTab) {
+                selectedTab.classList.remove('border-transparent', 'text-gray-500');
+                selectedTab.classList.add('border-blue-600', 'text-blue-600');
+            }
+        }
+
+        // Load settings data when settings page is opened
+        function loadSettingsData() {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            // Populate Account Settings
+            const companyInput = document.getElementById('settings-company');
+            const emailInput = document.getElementById('settings-email');
+            const phoneInput = document.getElementById('settings-phone');
+            const usdotInput = document.getElementById('settings-usdot');
+            const mcInput = document.getElementById('settings-mc');
+            const accountTypeInput = document.getElementById('settings-account-type');
+            
+            if (companyInput) companyInput.value = user.company || '';
+            if (emailInput) emailInput.value = user.email || '';
+            if (phoneInput) phoneInput.value = user.phone || '';
+            if (usdotInput) usdotInput.value = user.usdotNumber || '';
+            if (mcInput) mcInput.value = user.mcNumber || '';
+            if (accountTypeInput) accountTypeInput.value = user.accountType ? user.accountType.charAt(0).toUpperCase() + user.accountType.slice(1) : '';
+            
+            // Show/hide USDOT and MC fields based on account type
+            const usdotContainer = document.getElementById('settings-usdot-container');
+            const mcContainer = document.getElementById('settings-mc-container');
+            
+            if (user.accountType === 'shipper') {
+                if (usdotContainer) usdotContainer.style.display = 'none';
+                if (mcContainer) mcContainer.style.display = 'none';
+            } else {
+                if (usdotContainer) usdotContainer.style.display = 'block';
+                if (mcContainer) mcContainer.style.display = 'block';
+            }
+            
+            // Load subscription info
+            const planNameEl = document.getElementById('current-plan-name');
+            if (planNameEl && user.subscription) {
+                planNameEl.textContent = user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1);
+            }
+        }
+
+        // Handle Account Settings Form Submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const accountForm = document.getElementById('accountSettingsForm');
+            if (accountForm) {
+                accountForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const user = getCurrentUser();
+                    if (!user) return;
+                    
+                    // Get form values
+                    const updatedData = {
+                        company: document.getElementById('settings-company').value,
+                        phone: document.getElementById('settings-phone').value,
+                        usdotNumber: document.getElementById('settings-usdot').value,
+                        mcNumber: document.getElementById('settings-mc').value
+                    };
+                    
+                    // Update user data
+                    Object.assign(user, updatedData);
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    
+                    // Show success message
+                    alert('✅ Account settings updated successfully!');
+                });
+            }
+            
+            // Handle Notification Settings Form
+            const notificationForm = document.getElementById('notificationSettingsForm');
+            if (notificationForm) {
+                notificationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('✅ Notification preferences saved successfully!');
+                });
+            }
+            
+            // Handle Change Password Form
+            const passwordForm = document.getElementById('changePasswordForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const currentPassword = document.getElementById('current-password').value;
+                    const newPassword = document.getElementById('new-password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    
+                    if (newPassword !== confirmPassword) {
+                        alert('❌ New passwords do not match!');
+                        return;
+                    }
+                    
+                    if (newPassword.length < 8) {
+                        alert('❌ Password must be at least 8 characters long!');
+                        return;
+                    }
+                    
+                    // Here you would make an API call to update the password
+                    alert('✅ Password updated successfully!');
+                    passwordForm.reset();
+                });
+            }
+            
+            // Handle Preferences Form
+            const preferencesForm = document.getElementById('preferencesForm');
+            if (preferencesForm) {
+                preferencesForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const preferences = {
+                        units: document.getElementById('pref-units').value,
+                        timezone: document.getElementById('pref-timezone').value,
+                        dateFormat: document.getElementById('pref-date-format').value,
+                        searchRadius: document.getElementById('pref-search-radius').value,
+                        language: document.getElementById('pref-language').value
+                    };
+                    
+                    // Save to localStorage
+                    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+                    
+                    alert('✅ Preferences saved successfully!');
+                });
+            }
+        });
+
         // Toggle EIN field based on account type (Global function)
         function toggleEINField() {
             const accountTypeSelect = document.getElementById('accountTypeSelect');
@@ -8357,7 +8954,7 @@
                 pageId = 'home';
             }
             
-            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin'];
+            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin', 'settings'];
             
             if (protectedPages.includes(pageId) && !currentUser) {
                 showNotification('Please log in to access this feature', 'warning');
@@ -8388,6 +8985,11 @@
             if (targetPage) {
                 targetPage.classList.remove('hidden');
                 targetPage.style.display = 'block'; // Ensure display is set to block
+                
+                // Load settings data when settings page is opened
+                if (pageId === 'settings') {
+                    loadSettingsData();
+                }
             } else {
                 console.error(`Page ${pageId} not found!`);
             }
