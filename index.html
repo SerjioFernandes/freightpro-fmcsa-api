@@ -2454,24 +2454,32 @@
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                     <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
-                        <div id="liveCarriers" class="text-3xl font-bold text-blue-600 mb-2">2,547</div>
+                        <div id="liveCarriers" class="text-3xl font-bold text-blue-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Active Carriers</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +12 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
-                        <div id="liveShippers" class="text-3xl font-bold text-green-600 mb-2">1,234</div>
+                        <div id="liveShippers" class="text-3xl font-bold text-green-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Active Shippers</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +8 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
-                        <div id="liveFreightValue" class="text-3xl font-bold text-purple-600 mb-2">$85M</div>
-                        <div class="text-gray-600">Annual Freight Value</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +$125K today</div>
+                        <div id="liveFreightValue" class="text-3xl font-bold text-purple-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="text-gray-600">Total Freight Value</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg">
-                        <div id="liveLoads" class="text-3xl font-bold text-orange-600 mb-2">285</div>
+                        <div id="liveLoads" class="text-3xl font-bold text-orange-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Available Loads</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +18 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                 </div>
             </div>
@@ -8256,8 +8264,107 @@
             }
         }
 
+        // Fetch and display platform statistics from database
+        async function fetchPlatformStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats/platform`);
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    
+                    // Update platform statistics
+                    const liveCarriers = document.getElementById('liveCarriers');
+                    const liveShippers = document.getElementById('liveShippers');
+                    const liveFreightValue = document.getElementById('liveFreightValue');
+                    const liveLoads = document.getElementById('liveLoads');
+                    
+                    if (liveCarriers) liveCarriers.textContent = stats.activeCarriers.toLocaleString();
+                    if (liveShippers) liveShippers.textContent = stats.activeShippers.toLocaleString();
+                    if (liveFreightValue) {
+                        const value = stats.totalFreightValue;
+                        if (value >= 1000000) {
+                            liveFreightValue.textContent = `$${(value / 1000000).toFixed(1)}M`;
+                        } else if (value >= 1000) {
+                            liveFreightValue.textContent = `$${(value / 1000).toFixed(0)}K`;
+                        } else {
+                            liveFreightValue.textContent = `$${value.toLocaleString()}`;
+                        }
+                    }
+                    if (liveLoads) liveLoads.textContent = stats.availableLoads.toLocaleString();
+                    
+                    console.log('Platform stats updated:', stats);
+                }
+            } catch (error) {
+                console.error('Failed to fetch platform stats:', error);
+                // Show zeros if fetch fails
+                const liveCarriers = document.getElementById('liveCarriers');
+                const liveShippers = document.getElementById('liveShippers');
+                const liveFreightValue = document.getElementById('liveFreightValue');
+                const liveLoads = document.getElementById('liveLoads');
+                
+                if (liveCarriers) liveCarriers.textContent = '0';
+                if (liveShippers) liveShippers.textContent = '0';
+                if (liveFreightValue) liveFreightValue.textContent = '$0';
+                if (liveLoads) liveLoads.textContent = '0';
+            }
+        }
+
+        // Fetch and display user dashboard statistics from database
+        async function fetchUserDashboardStats(user, elements) {
+            if (!user || !user.token) {
+                console.log('No user token, skipping stats fetch');
+                // Show zeros
+                if (elements.dashboardLoadsPosted) elements.dashboardLoadsPosted.textContent = '0';
+                if (elements.dashboardLoadsBooked) elements.dashboardLoadsBooked.textContent = '0';
+                if (elements.dashboardRevenue) elements.dashboardRevenue.textContent = '$0';
+                if (elements.dashboardRating) elements.dashboardRating.textContent = '5.0';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    
+                    // Update dashboard statistics with real data from database
+                    if (elements.dashboardLoadsPosted) {
+                        elements.dashboardLoadsPosted.textContent = stats.loadsPosted.toLocaleString();
+                    }
+                    if (elements.dashboardLoadsBooked) {
+                        elements.dashboardLoadsBooked.textContent = stats.loadsBooked.toLocaleString();
+                    }
+                    if (elements.dashboardRevenue) {
+                        elements.dashboardRevenue.textContent = `$${stats.totalRevenue.toLocaleString()}`;
+                    }
+                    if (elements.dashboardRating) {
+                        elements.dashboardRating.textContent = stats.rating.toFixed(1);
+                    }
+                    
+                    console.log('User dashboard stats updated from database:', stats);
+                } else {
+                    throw new Error('Failed to get stats from response');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user dashboard stats:', error);
+                // Show zeros if fetch fails
+                if (elements.dashboardLoadsPosted) elements.dashboardLoadsPosted.textContent = '0';
+                if (elements.dashboardLoadsBooked) elements.dashboardLoadsBooked.textContent = '0';
+                if (elements.dashboardRevenue) elements.dashboardRevenue.textContent = '$0';
+                if (elements.dashboardRating) elements.dashboardRating.textContent = '5.0';
+            }
+        }
+
         // Load settings data when settings page is opened
-        function loadSettingsData() {
+        async function loadSettingsData() {
             const user = getCurrentUser();
             if (!user) return;
             
@@ -8288,10 +8395,63 @@
                 if (mcContainer) mcContainer.style.display = 'block';
             }
             
+            // Load Notification Preferences from user data
+            const notifications = user.notifications || {};
+            const emailLoadsCheckbox = document.getElementById('notif-email-loads');
+            const emailBidsCheckbox = document.getElementById('notif-email-bids');
+            const emailRatesCheckbox = document.getElementById('notif-email-rates');
+            const emailUpdatesCheckbox = document.getElementById('notif-email-updates');
+            const emailMarketingCheckbox = document.getElementById('notif-email-marketing');
+            const frequencySelect = document.getElementById('notif-frequency');
+            
+            if (emailLoadsCheckbox) emailLoadsCheckbox.checked = notifications.emailLoads !== false;
+            if (emailBidsCheckbox) emailBidsCheckbox.checked = notifications.emailBids !== false;
+            if (emailRatesCheckbox) emailRatesCheckbox.checked = notifications.emailRates === true;
+            if (emailUpdatesCheckbox) emailUpdatesCheckbox.checked = notifications.emailUpdates !== false;
+            if (emailMarketingCheckbox) emailMarketingCheckbox.checked = notifications.emailMarketing === true;
+            if (frequencySelect) frequencySelect.value = notifications.frequency || 'instant';
+            
+            // Load User Preferences from user data
+            const preferences = user.preferences || {};
+            const unitsSelect = document.getElementById('pref-units');
+            const timezoneSelect = document.getElementById('pref-timezone');
+            const dateFormatSelect = document.getElementById('pref-date-format');
+            const searchRadiusSelect = document.getElementById('pref-search-radius');
+            const languageSelect = document.getElementById('pref-language');
+            
+            if (unitsSelect) unitsSelect.value = preferences.units || 'imperial';
+            if (timezoneSelect) timezoneSelect.value = preferences.timezone || 'America/New_York';
+            if (dateFormatSelect) dateFormatSelect.value = preferences.dateFormat || 'MM/DD/YYYY';
+            if (searchRadiusSelect) searchRadiusSelect.value = preferences.searchRadius || 500;
+            if (languageSelect) languageSelect.value = preferences.language || 'en';
+            
             // Load subscription info
             const planNameEl = document.getElementById('current-plan-name');
-            if (planNameEl && user.subscription) {
-                planNameEl.textContent = user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1);
+            if (planNameEl) {
+                planNameEl.textContent = user.subscriptionPlan ? user.subscriptionPlan.charAt(0).toUpperCase() + user.subscriptionPlan.slice(1) : 'Ultima';
+            }
+            const planExpiryEl = document.getElementById('plan-expiry');
+            if (planExpiryEl && user.premiumExpires) {
+                const expiryDate = new Date(user.premiumExpires);
+                planExpiryEl.textContent = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+            
+            // Load Active Sessions from backend
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/sessions`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Display active sessions (just keep current device for now)
+                    console.log('Active sessions loaded:', data.sessions);
+                }
+            } catch (error) {
+                console.error('Failed to load sessions:', error);
             }
         }
 
@@ -8313,29 +8473,90 @@
                         mcNumber: document.getElementById('settings-mc').value
                     };
                     
-                    // Update user data
-                    Object.assign(user, updatedData);
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    
-                    // Show success message
-                    alert('✅ Account settings updated successfully!');
+                    try {
+                        // Make REAL API call to backend
+                        const response = await fetch(`${API_BASE_URL}/users/settings`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(updatedData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update settings');
+                        }
+                        
+                        // Update local user data with response
+                        Object.assign(user, data.user);
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        alert('✅ Account settings saved to database successfully!');
+                    } catch (error) {
+                        console.error('Settings update error:', error);
+                        alert('❌ Failed to save settings: ' + error.message);
+                    }
                 });
             }
             
             // Handle Notification Settings Form
             const notificationForm = document.getElementById('notificationSettingsForm');
             if (notificationForm) {
-                notificationForm.addEventListener('submit', function(e) {
+                notificationForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    alert('✅ Notification preferences saved successfully!');
+                    
+                    const user = getCurrentUser();
+                    if (!user) return;
+                    
+                    const notificationData = {
+                        emailLoads: document.getElementById('notif-email-loads').checked,
+                        emailBids: document.getElementById('notif-email-bids').checked,
+                        emailRates: document.getElementById('notif-email-rates').checked,
+                        emailUpdates: document.getElementById('notif-email-updates').checked,
+                        emailMarketing: document.getElementById('notif-email-marketing').checked,
+                        frequency: document.getElementById('notif-frequency').value
+                    };
+                    
+                    try {
+                        // Make REAL API call to backend
+                        const response = await fetch(`${API_BASE_URL}/users/notifications`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(notificationData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update notification preferences');
+                        }
+                        
+                        // Update local user data
+                        user.notifications = data.notifications;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        alert('✅ Notification preferences saved to database successfully!');
+                    } catch (error) {
+                        console.error('Notification update error:', error);
+                        alert('❌ Failed to save notification preferences: ' + error.message);
+                    }
                 });
             }
             
             // Handle Change Password Form
             const passwordForm = document.getElementById('changePasswordForm');
             if (passwordForm) {
-                passwordForm.addEventListener('submit', function(e) {
+                passwordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
+                    
+                    const user = getCurrentUser();
+                    if (!user) return;
                     
                     const currentPassword = document.getElementById('current-password').value;
                     const newPassword = document.getElementById('new-password').value;
@@ -8351,17 +8572,43 @@
                         return;
                     }
                     
-                    // Here you would make an API call to update the password
-                    alert('✅ Password updated successfully!');
-                    passwordForm.reset();
+                    try {
+                        // Make REAL API call to backend
+                        const response = await fetch(`${API_BASE_URL}/users/password`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({
+                                currentPassword: currentPassword,
+                                newPassword: newPassword
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update password');
+                        }
+                        
+                        alert('✅ Password updated in database successfully!');
+                        passwordForm.reset();
+                    } catch (error) {
+                        console.error('Password update error:', error);
+                        alert('❌ Failed to update password: ' + error.message);
+                    }
                 });
             }
             
             // Handle Preferences Form
             const preferencesForm = document.getElementById('preferencesForm');
             if (preferencesForm) {
-                preferencesForm.addEventListener('submit', function(e) {
+                preferencesForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
+                    
+                    const user = getCurrentUser();
+                    if (!user) return;
                     
                     const preferences = {
                         units: document.getElementById('pref-units').value,
@@ -8371,10 +8618,32 @@
                         language: document.getElementById('pref-language').value
                     };
                     
-                    // Save to localStorage
-                    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-                    
-                    alert('✅ Preferences saved successfully!');
+                    try {
+                        // Make REAL API call to backend
+                        const response = await fetch(`${API_BASE_URL}/users/preferences`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(preferences)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update preferences');
+                        }
+                        
+                        // Update local user data
+                        user.preferences = data.preferences;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        alert('✅ Preferences saved to database successfully!');
+                    } catch (error) {
+                        console.error('Preferences update error:', error);
+                        alert('❌ Failed to save preferences: ' + error.message);
+                    }
                 });
             }
         });
@@ -10521,11 +10790,13 @@
                 }
             }
 
-            // Update statistics
-            if (dashboardLoadsPosted) dashboardLoadsPosted.textContent = user.loadsPosted || '0';
-            if (dashboardLoadsBooked) dashboardLoadsBooked.textContent = user.loadsBooked || '0';
-            if (dashboardRevenue) dashboardRevenue.textContent = user.totalRevenue ? `$${user.totalRevenue}` : '$0';
-            if (dashboardRating) dashboardRating.textContent = user.rating || '5.0';
+            // Fetch and update REAL statistics from database
+            fetchUserDashboardStats(user, {
+                dashboardLoadsPosted,
+                dashboardLoadsBooked,
+                dashboardRevenue,
+                dashboardRating
+            });
 
             // Add authority status to dashboard
             addAuthorityStatusToDashboard(user);
@@ -13364,6 +13635,11 @@
 
             // Initialize live statistics and activity feed
             initializeLiveFeatures();
+
+            // Fetch REAL platform statistics from database
+            fetchPlatformStats();
+            // Update platform stats every 30 seconds
+            setInterval(fetchPlatformStats, 30000);
 
             const backBtn = document.getElementById('navBackBtn');
             const forwardBtn = document.getElementById('navForwardBtn');
