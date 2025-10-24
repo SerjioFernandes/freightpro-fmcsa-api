@@ -8,16 +8,12 @@
   # No build command needed for static site
   command = ""
 
-# Redirect rules
+# Redirect rules - SPA fallback
 [[redirects]]
-  # SPA fallback - all routes go to index.html
+  # All routes go to index.html (single page app)
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
-  
-  # Don't apply SPA fallback to actual files
-  conditions = {Role = ["admin"]}
 
 # Custom headers are also defined in _headers file
 # But you can add global headers here too
@@ -38,12 +34,6 @@
     
     # Referrer policy
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-# Error pages
-[[redirects]]
-  from = "/404"
-  to = "/index.html"
-  status = 404
 
 # Optimize performance
 [build.processing]
