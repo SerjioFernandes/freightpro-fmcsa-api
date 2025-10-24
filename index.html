@@ -2716,6 +2716,9 @@
                             <button id="dashboardPostLoadBtn" onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors hidden">
                                 <i class="fas fa-plus mr-3 text-green-600"></i>Post a Load
                             </button>
+                            <button id="dashboardCreateShipmentBtn" onclick="showPage('shipment')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors hidden">
+                                <i class="fas fa-box mr-3 text-green-600"></i>Create Shipment
+                            </button>
                             <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
                                 <i class="fas fa-chart-line mr-3 text-purple-600"></i>Rate Analysis
                             </button>
@@ -9866,6 +9869,7 @@
 
             // Control visibility based on user role
             const dashboardPostLoadBtn = document.getElementById('dashboardPostLoadBtn');
+            const dashboardCreateShipmentBtn = document.getElementById('dashboardCreateShipmentBtn');
             const postedLoadsSection = document.getElementById('postedLoadsSection');
             
             // Show/hide Post Load button in Quick Actions (only for brokers)
@@ -9877,12 +9881,21 @@
                 }
             }
             
+            // Show/hide Create Shipment button in Quick Actions (only for shippers)
+            if (dashboardCreateShipmentBtn) {
+                if (user.accountType === 'shipper' || user.role === 'admin') {
+                    dashboardCreateShipmentBtn.classList.remove('hidden');
+                } else {
+                    dashboardCreateShipmentBtn.classList.add('hidden');
+                }
+            }
+            
             // Show/hide Posted Loads section (only for brokers)
             if (postedLoadsSection) {
                 if (user.accountType === 'broker' || user.role === 'admin') {
                     postedLoadsSection.classList.remove('hidden');
-            // Populate posted loads section
-            populatePostedLoadsSection(user);
+                    // Populate posted loads section
+                    populatePostedLoadsSection(user);
                 } else {
                     postedLoadsSection.classList.add('hidden');
                 }
@@ -9893,33 +9906,34 @@
 
         // Add authority status to dashboard
         function addAuthorityStatusToDashboard(user) {
+            // Remove any existing authority status first
+            const existingStatus = document.getElementById('dashboardAuthorityStatus');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+            
+            // ONLY show authority status for brokers and carriers
+            // Shippers don't need this information
             if (!user || (user.accountType !== 'broker' && user.accountType !== 'carrier')) {
+                console.log('Skipping authority status for account type:', user?.accountType);
                 return;
             }
 
             const statusMessage = getAuthorityStatusMessage(user);
             if (!statusMessage) return;
 
-            // Find or create authority status element in dashboard
-            let statusElement = document.getElementById('dashboardAuthorityStatus');
-            if (!statusElement) {
-                // Create status element in the profile card
-                const profileCard = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6');
-                if (profileCard) {
-                    statusElement = document.createElement('div');
-                    statusElement.id = 'dashboardAuthorityStatus';
-                    statusElement.className = 'mt-3 p-2 rounded text-xs';
-                    profileCard.appendChild(statusElement);
-                }
-            }
-
-            if (statusElement) {
+            // Create status element in the profile card
+            const profileCard = document.querySelector('#userDashboardSection .bg-white.rounded-xl.shadow-lg.p-6');
+            if (profileCard) {
+                const statusElement = document.createElement('div');
+                statusElement.id = 'dashboardAuthorityStatus';
                 statusElement.textContent = statusMessage;
                 statusElement.className = statusMessage.includes('✅') ? 
                     'mt-3 p-2 rounded text-xs text-green-700 bg-green-100' :
                     statusMessage.includes('⚠️') ?
                     'mt-3 p-2 rounded text-xs text-yellow-700 bg-yellow-100' :
                     'mt-3 p-2 rounded text-xs text-red-700 bg-red-100';
+                profileCard.appendChild(statusElement);
             }
         }
 
