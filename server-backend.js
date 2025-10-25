@@ -1354,6 +1354,46 @@ app.get('/api/stats/platform', asyncHandler(async (req, res) => {
     }
 }));
 
+// Admin-only middleware
+const authenticateAdmin = (req, res, next) => {
+    if (req.user.email !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+};
+
+// Get All Users (Admin Only)
+app.get('/api/admin/users', authenticateToken, authenticateAdmin, asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find({})
+            .select('-password') // Exclude password hash
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.json({
+            success: true,
+            users: users.map(user => ({
+                id: user._id,
+                companyName: user.companyName || user.username || 'N/A',
+                email: user.email,
+                accountType: user.accountType || 'N/A',
+                usdot: user.usdot || '-',
+                mc: user.mc || '-',
+                isVerified: user.isVerified || false,
+                role: user.email === process.env.ADMIN_EMAIL ? 'admin' : 'user',
+                createdAt: user.createdAt,
+                isActive: user.isActive !== false,
+                phone: user.phone || '-',
+                subscriptionPlan: user.subscriptionPlan || 'basic',
+                subscriptionExpiry: user.subscriptionExpiry || null
+            }))
+        });
+    } catch (error) {
+        console.error('Admin users fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+}));
+
 // Get User Dashboard Statistics
 app.get('/api/users/stats', authenticateToken, asyncHandler(async (req, res) => {
     const userId = req.user.userId;
