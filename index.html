@@ -8023,7 +8023,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(shipmentData)
                 });
@@ -8218,11 +8218,12 @@
 
             try {
                 const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                const authToken = localStorage.getItem('authToken');
                 const response = await fetch(`${apiBaseUrl}/shipments?scope=all&limit=100`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
 
@@ -9123,10 +9124,11 @@
             }
 
             try {
+                const authToken = localStorage.getItem('authToken');
                 const response = await fetch(`${API_BASE_URL}/users/stats`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${user.token}`
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
                 
@@ -9256,10 +9258,11 @@
             
             // Load Active Sessions from backend
             try {
+                const authToken = localStorage.getItem('authToken');
                 const response = await fetch(`${API_BASE_URL}/users/sessions`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${user.token}`
+                        'Authorization': `Bearer ${authToken}`
                     }
                 });
                 
@@ -9304,11 +9307,12 @@
                     try {
                         // Make REAL API call to backend
                         const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const authToken = localStorage.getItem('authToken');
                         const response = await fetch(`${apiBaseUrl}/users/settings`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${user.token}`
+                                'Authorization': `Bearer ${authToken}`
                             },
                             body: JSON.stringify(updatedData)
                         });
@@ -9366,11 +9370,12 @@
                     try {
                         // Make REAL API call to backend
                         const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const authToken = localStorage.getItem('authToken');
                         const response = await fetch(`${apiBaseUrl}/users/notifications`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${user.token}`
+                                'Authorization': `Bearer ${authToken}`
                             },
                             body: JSON.stringify(notificationData)
                         });
@@ -9433,11 +9438,12 @@
                     try {
                         // Make REAL API call to backend
                         const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const authToken = localStorage.getItem('authToken');
                         const response = await fetch(`${apiBaseUrl}/users/password`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${user.token}`
+                                'Authorization': `Bearer ${authToken}`
                             },
                             body: JSON.stringify({
                                 currentPassword: currentPassword,
@@ -9494,11 +9500,12 @@
                     try {
                         // Make REAL API call to backend
                         const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const authToken = localStorage.getItem('authToken');
                         const response = await fetch(`${apiBaseUrl}/users/preferences`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${user.token}`
+                                'Authorization': `Bearer ${authToken}`
                             },
                             body: JSON.stringify(preferences)
                         });
@@ -10933,11 +10940,12 @@
             console.log('Updating profile with data:', updateData);
 
             try {
+                const authToken = localStorage.getItem('authToken');
                 const response = await fetch(`${window.API_BASE_URL}/users/settings`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
+                        'Authorization': `Bearer ${authToken}`
                     },
                     body: JSON.stringify(updateData)
                 });
