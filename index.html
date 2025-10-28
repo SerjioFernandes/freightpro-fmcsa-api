@@ -400,10 +400,10 @@
         }
         
         @keyframes containerFloat {
-            0%, 100% { 
+            0%, 100% {
                 transform: translate3d(0, 0, 0);
             }
-            50% { 
+            50% {
                 transform: translate3d(0, -10px, 0);
             }
         }
@@ -457,11 +457,11 @@
         }
         
         @keyframes dotPulse {
-            0%, 100% {
+            0%, 100% { 
                 transform: scale(1);
                 opacity: 1;
             }
-            50% {
+            50% { 
                 transform: scale(1.4);
                 opacity: 0.75;
             }
@@ -501,6 +501,9 @@
         <!-- FontAwesome Icons with CDN optimization -->
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+        
+        <!-- Agora.io Video SDK (BEST FREE Video Chat - 10,000 mins/month FREE) -->
+        <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.19.3.js" defer></script>
         
         <!-- Google Fonts with display=swap for performance -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1181,6 +1184,12 @@
                     padding-top: 0 !important;
                 }
                 
+                /* Custom margin class */
+                .mt-12 {
+                    margin-top: 3rem;
+                    margin-bottom: 3rem;
+                }
+                
                 /* Force all pricing cards to have the same content height */
                 .pricing-card {
                     display: flex;
@@ -1477,7 +1486,6 @@
                             try {
                                 window.currentUser = JSON.parse(storedUser);
                                 isLoggedIn = true;
-                            console.log('User auto-logged in:', window.currentUser.email);
                             } catch (e) {
                             // Session was invalid, clear it
                             localStorage.removeItem('currentUser');
@@ -1490,7 +1498,11 @@
                     
                     // CRITICAL: Website ALWAYS starts from home page regardless of login status
                     // This ensures consistent user experience for all visitors
+                    if (typeof showPage === 'function') {
                     showPage('home');
+                    } else if (typeof showPageAsync === 'function') {
+                        showPageAsync('home');
+                    }
                     
                     let s = start;
                     if (!s || s <= 0) { s = now(); setStart(s); }
@@ -1665,7 +1677,7 @@
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', function() {
                     initBillingToggle();
-                    updateNavigation(); // Update navigation on page load
+                    // Navigation is handled by initNavigation() in main script
                     
                     // Initialize profile form
                     const profileForm = document.getElementById('profileForm');
@@ -2070,7 +2082,6 @@
         
         // Go forward to next page
         function navigateForward() {
-            console.log('🔜 Navigate Forward called. Current index:', currentHistoryIndex, 'History:', navigationHistory);
             if (currentHistoryIndex < navigationHistory.length - 1) {
                 // Add click feedback
                 const forwardBtn = document.getElementById('navForwardBtn');
@@ -2087,7 +2098,6 @@
                 
                 currentHistoryIndex++;
                 const pageName = navigationHistory[currentHistoryIndex];
-                console.log('🔄 Going forward to:', pageName);
                 
                 // Call the original showPage function directly
                 if (window.showPage && typeof window.showPage === 'function') {
@@ -2454,24 +2464,32 @@
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                     <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
-                        <div id="liveCarriers" class="text-3xl font-bold text-blue-600 mb-2">2,547</div>
+                        <div id="liveCarriers" class="text-3xl font-bold text-blue-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Active Carriers</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +12 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
-                        <div id="liveShippers" class="text-3xl font-bold text-green-600 mb-2">1,234</div>
+                        <div id="liveShippers" class="text-3xl font-bold text-green-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Active Shippers</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +8 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
-                        <div id="liveFreightValue" class="text-3xl font-bold text-purple-600 mb-2">$85M</div>
-                        <div class="text-gray-600">Annual Freight Value</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +$125K today</div>
+                        <div id="liveFreightValue" class="text-3xl font-bold text-purple-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="text-gray-600">Total Freight Value</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                     <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg">
-                        <div id="liveLoads" class="text-3xl font-bold text-orange-600 mb-2">285</div>
+                        <div id="liveLoads" class="text-3xl font-bold text-orange-600 mb-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                         <div class="text-gray-600">Available Loads</div>
-                        <div class="text-sm text-green-600 mt-1">↗ +18 today</div>
+                        <div class="text-xs text-gray-500 mt-1">Live from database</div>
                     </div>
                 </div>
             </div>
@@ -2647,47 +2665,7 @@
                     </div>
                 </div>
 
-                <!-- Live Platform Activity -->
-                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-2xl p-8 text-white">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold mb-2">Live Platform Activity</h3>
-                        <p class="text-blue-100">Real-time statistics updated every 5 seconds</p>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div class="text-center">
-                            <div class="flex items-center justify-center mb-2">
-                                <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></span>
-                                <span class="text-3xl font-bold" id="liveActiveLoads">285</span>
-                            </div>
-                            <p class="text-blue-100 text-sm">Active Loads</p>
-                            <p class="text-green-300 text-xs mt-1">↗ +18 today</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="flex items-center justify-center mb-2">
-                                <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></span>
-                                <span class="text-3xl font-bold" id="liveCarriersOnline">2,547</span>
-                            </div>
-                            <p class="text-blue-100 text-sm">Carriers Online</p>
-                            <p class="text-green-300 text-xs mt-1">↗ +12 today</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="flex items-center justify-center mb-2">
-                                <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></span>
-                                <span class="text-3xl font-bold" id="liveShippersActive">1,234</span>
-                            </div>
-                            <p class="text-blue-100 text-sm">Active Shippers</p>
-                            <p class="text-green-300 text-xs mt-1">↗ +8 today</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="flex items-center justify-center mb-2">
-                                <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></span>
-                                <span class="text-3xl font-bold" id="liveFreightValue">$85M</span>
-                            </div>
-                            <p class="text-blue-100 text-sm">Monthly Value</p>
-                            <p class="text-green-300 text-xs mt-1">↗ +$125K today</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Live Platform Activity - REMOVED: Now using unified platform statistics at top of page -->
             </div>
         </div>
 
@@ -2735,29 +2713,59 @@
                     <!-- Quick Profile Card -->
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                         <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl" id="dashboardUserInitials">U</div>
+                            <div class="relative group cursor-pointer" onclick="document.getElementById('profilePhotoInput').click()">
+                                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl overflow-hidden" id="dashboardUserInitials">U</div>
+                                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-camera text-white text-sm"></i>
+                                </div>
+                            </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-semibold text-gray-800" id="dashboardUserName">User Name</h3>
                                 <p class="text-sm text-gray-600" id="dashboardUserCompany">Company Name</p>
                             </div>
                         </div>
-                        <div class="space-y-2 text-sm">
+                        <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+                        <div class="space-y-2 text-sm" id="dashboardInfoFields">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Account Type:</span>
                                 <span class="font-semibold text-blue-600" id="dashboardAccountType">-</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">USDOT:</span>
-                                <span class="font-semibold" id="dashboardUSDOT">-</span>
+                            <div class="flex justify-between" id="dashboardField1Container">
+                                <span class="text-gray-600" id="dashboardField1Label">USDOT:</span>
+                                <span class="font-semibold" id="dashboardField1Value">-</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">MC Number:</span>
-                                <span class="font-semibold" id="dashboardMC">-</span>
+                            <div class="flex justify-between" id="dashboardField2Container">
+                                <span class="text-gray-600" id="dashboardField2Label">MC Number:</span>
+                                <span class="font-semibold" id="dashboardField2Value">-</span>
                             </div>
                         </div>
                         <button onclick="showPage('profile')" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                             <i class="fas fa-user mr-2"></i>View Full Profile
                         </button>
+                        
+                        <!-- Additional Account Details -->
+                        <div class="mt-4 pt-4 border-t border-gray-200 space-y-3" id="dashboardExtraInfo">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-check-circle mr-2 text-green-500"></i>Account Status
+                                </span>
+                                <span class="font-semibold text-green-600" id="dashboardAccountStatus">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm" id="dashboardExpiryContainer">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-blue-500"></i>Plan Expiry
+                                </span>
+                                <span class="font-semibold text-gray-700" id="dashboardPlanExpiry">-</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-shield-alt mr-2 text-purple-500"></i>Verification
+                                </span>
+                                <span class="font-semibold" id="dashboardVerificationStatus">
+                                    <span class="text-green-600">✓ Verified</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Quick Actions -->
@@ -2766,18 +2774,46 @@
                             <i class="fas fa-bolt mr-2 text-yellow-500"></i>Quick Actions
                         </h3>
                         <div class="space-y-3">
-                            <button onclick="showPage('loadboard'); initializeLoadBoard();" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
-                                <i class="fas fa-search mr-3 text-blue-600"></i>Browse Loads
+                            <button onclick="showPage('loadboard'); initializeLoadBoard();" class="w-full text-left bg-gray-50 hover:bg-blue-600 hover:text-white p-3 rounded-lg transition-all duration-300 group">
+                                <i class="fas fa-search mr-3 text-blue-600 group-hover:text-white"></i>Browse Loads
                             </button>
-                            <button id="dashboardPostLoadBtn" onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors hidden">
-                                <i class="fas fa-plus mr-3 text-green-600"></i>Post a Load
+                            <button onclick="showPage('videocall')" class="w-full text-left bg-gray-50 hover:bg-purple-600 hover:text-white p-3 rounded-lg transition-all duration-300 group">
+                                <i class="fas fa-video mr-3 text-purple-600 group-hover:text-white"></i>Video Call (FREE)
                             </button>
-                            <button id="dashboardCreateShipmentBtn" onclick="showPage('shipment')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors hidden">
-                                <i class="fas fa-box mr-3 text-green-600"></i>Create Shipment
+                            <button id="dashboardPostLoadBtn" onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-green-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
+                                <i class="fas fa-plus mr-3 text-green-600 group-hover:text-white"></i>Post a Load
                             </button>
-                            <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-colors">
-                                <i class="fas fa-chart-line mr-3 text-purple-600"></i>Rate Analysis
+                            <button id="dashboardCreateShipmentBtn" onclick="showPage('shipment')" class="w-full text-left bg-gray-50 hover:bg-green-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
+                                <i class="fas fa-box mr-3 text-green-600 group-hover:text-white"></i>Create Shipment
                             </button>
+                            <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-purple-600 hover:text-white p-3 rounded-lg transition-all duration-300 group">
+                                <i class="fas fa-chart-line mr-3 text-purple-600 group-hover:text-white"></i>Rate Analysis
+                            </button>
+                            <button onclick="showPage('settings')" class="w-full text-left bg-gray-50 hover:bg-gray-700 hover:text-white p-3 rounded-lg transition-all duration-300 group">
+                                <i class="fas fa-cog mr-3 text-gray-600 group-hover:text-white"></i>Settings
+                            </button>
+                        </div>
+                        
+                        <!-- Quick Stats Summary -->
+                        <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-clock mr-2 text-blue-500"></i>Last Login
+                                </span>
+                                <span class="font-semibold text-gray-700" id="dashboardLastLogin">Today</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-bell mr-2 text-yellow-500"></i>Notifications
+                                </span>
+                                <span class="font-semibold text-blue-600" id="dashboardNotifications">0 new</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-history mr-2 text-green-500"></i>Activity
+                                </span>
+                                <span class="font-semibold text-gray-700" id="dashboardActivity">View History</span>
+                            </div>
                         </div>
                     </div>
 
@@ -2802,6 +2838,28 @@
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-orange-600" id="dashboardRating">5.0</div>
                                 <div class="text-sm text-gray-600">Rating</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Insights -->
+                        <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-chart-line mr-2 text-green-500"></i>This Month
+                                </span>
+                                <span class="font-semibold text-green-600" id="dashboardMonthlyActivity">+0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-trophy mr-2 text-yellow-500"></i>Total Completed
+                                </span>
+                                <span class="font-semibold text-gray-700" id="dashboardTotalCompleted">0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center">
+                                    <i class="fas fa-star mr-2 text-orange-500"></i>Success Rate
+                                </span>
+                                <span class="font-semibold text-orange-600" id="dashboardSuccessRate">100%</span>
                             </div>
                         </div>
                     </div>
@@ -4937,6 +4995,105 @@
         </div>
     </div>
 
+    <!-- Browse Shipments Page (for Brokers) -->
+    <div id="browseshipments" class="page hidden">
+        <!-- Access Control Check for Brokers Only -->
+        <div id="browseShipmentsAccessDenied" class="max-w-4xl mx-auto px-4 py-8 hidden">
+            <div class="text-center">
+                <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Broker Access Only</h2>
+                <p class="text-lg text-gray-600 mb-6">Only registered brokers can browse shipments.</p>
+                <div class="space-y-3">
+                    <p class="text-gray-500">• Brokers can browse shipments and create loads from them</p>
+                    <p class="text-gray-500">• Shippers create shipments for brokers to view</p>
+                    <p class="text-gray-500">• Carriers use the load board to find loads</p>
+                </div>
+                <div class="mt-8">
+                    <button onclick="showPage('loadboard')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Go to Load Board
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipments Board for Brokers -->
+        <div id="browseShipmentsContent" class="max-w-screen-2xl mx-auto px-4 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-box-open mr-3 text-green-600"></i>Browse Shipments
+                </h1>
+                <p class="text-gray-600 text-lg">Find shipments from shippers and create loads to match carriers</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fas fa-filter mr-2 text-green-600"></i>Filter Shipments
+                    </h2>
+                    <div class="real-time-indicator">Real-time Results</div>
+                </div>
+                
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <label for="shipmentOriginFilter" class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+                        <input type="text" id="shipmentOriginFilter" placeholder="City, State or ZIP" 
+                               class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+                               oninput="filterShipments()">
+                    </div>
+                    <div class="relative">
+                        <label for="shipmentDestFilter" class="block text-sm font-medium text-gray-700 mb-1">Delivery Location</label>
+                        <input type="text" id="shipmentDestFilter" placeholder="City, State or ZIP" 
+                               class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+                               oninput="filterShipments()">
+                    </div>
+                    <div>
+                        <label for="shipmentStatusFilter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="shipmentStatusFilter" class="w-full px-3 py-2 border rounded-md focus:ring-green-500 focus:border-green-500" onchange="filterShipments()">
+                            <option value="">All Statuses</option>
+                            <option value="open" selected>Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="filterShipments()" class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-colors">
+                            <i class="fas fa-search mr-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button onclick="clearShipmentFilters()" class="text-gray-600 hover:text-gray-800 px-3 py-1 border rounded">
+                        <i class="fas fa-times mr-1"></i>Clear Filters
+                    </button>
+                    <button onclick="refreshShipments()" class="text-green-600 hover:text-green-800 px-3 py-1 border rounded">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shipments List -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-list mr-2 text-green-600"></i>Available Shipments
+                        <span class="real-time-indicator ml-2">Live Updates</span>
+                    </h3>
+                    <div class="text-sm text-gray-600">
+                        <span id="shipmentsCount">Loading...</span> shipments found
+                    </div>
+                </div>
+                <div id="shipmentsResults" class="divide-y divide-gray-200">
+                    <!-- Shipment cards will be populated here -->
+                    <div class="p-8 text-center text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                        <p>Loading shipments...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Rate Analysis Page -->
     <div id="rates" class="page hidden">
         <div class="max-w-7xl mx-auto px-4 py-8">
@@ -5370,13 +5527,29 @@
                     <!-- Main Content -->
                     <div class="relative z-10">
                         <div class="flex items-center space-x-8">
-                            <!-- Enhanced Avatar -->
-                            <div class="relative">
-                                <div id="profileAvatar" class="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white/30">
-                                    <div id="profileInitials" class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-3xl text-white shadow-lg">US</div>
+                            <!-- Enhanced Avatar with Photo Upload -->
+                            <div class="relative group">
+                                <!-- Avatar Container -->
+                                <div id="profileAvatar" class="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden cursor-pointer" onclick="document.getElementById('profilePhotoUpload').click()">
+                                    <div id="profileInitials" class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-3xl text-white shadow-lg">US</div>
                                 </div>
+                                
+                                <!-- Hover Overlay -->
+                                <div class="absolute inset-0 bg-black bg-opacity-60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer" onclick="document.getElementById('profilePhotoUpload').click()">
+                                    <i class="fas fa-camera text-white text-2xl mb-1"></i>
+                                    <span class="text-white text-xs font-semibold">Change Photo</span>
+                                </div>
+                                
+                                <!-- Hidden File Input -->
+                                <input type="file" id="profilePhotoUpload" accept="image/*" class="hidden" onchange="handleProfilePhotoUploadFromDashboard(event)">
+                                
+                                <!-- Delete Photo Button (shows only if photo exists) -->
+                                <button id="deletePhotoBtn" class="hidden absolute top-0 right-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow-lg border-2 border-white" onclick="event.stopPropagation(); deleteProfilePhoto();" title="Remove photo">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                                
                                 <!-- Status Indicator -->
-                                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center z-10">
                                     <i class="fas fa-check text-white text-xs"></i>
                                 </div>
                             </div>
@@ -5461,6 +5634,9 @@
                                     <i class="fas fa-user mr-2 text-blue-600"></i>Account Information
                                 </h3>
                                 <div class="flex space-x-3">
+                                    <button onclick="showPage('settings')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                        <i class="fas fa-cog mr-2"></i>Settings
+                                    </button>
                                     <button onclick="openProfileModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                                         <i class="fas fa-edit mr-2"></i>Edit Profile
                                         </button>
@@ -6068,6 +6244,257 @@
         </div>
     </div>
 
+    <!-- Video Call Page (Agora.io - 10,000 mins/month FREE) -->
+    <div id="videocall" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-t-xl p-6 text-white mb-6">
+                <h1 class="text-3xl font-bold flex items-center">
+                    <i class="fas fa-video mr-3"></i>Video Conference
+                </h1>
+                <p class="text-purple-100 mt-2">Connect face-to-face with shippers, carriers, and brokers</p>
+            </div>
+
+            <!-- Video Call Container -->
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                <!-- Before Call - Setup Screen -->
+                <div id="videoCallSetup" class="p-8">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="text-center mb-8">
+                            <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-video text-4xl text-purple-600"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Start a Video Call</h2>
+                            <p class="text-gray-600">High-quality HD video powered by Agora.io</p>
+                        </div>
+
+                        <!-- Call Setup Form -->
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-user mr-2 text-purple-600"></i>Your Name
+                                </label>
+                                <input type="text" id="videoCallName" placeholder="Enter your name" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-key mr-2 text-purple-600"></i>Room ID (or create new)
+                                </label>
+                                <input type="text" id="videoCallRoomID" placeholder="Enter room ID or leave blank for new" 
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                                <p class="text-sm text-gray-500 mt-2">
+                                    <i class="fas fa-info-circle mr-1"></i>Share the Room ID with others to join your call
+                                </p>
+                            </div>
+
+                            <!-- Device Selection -->
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-camera mr-2 text-purple-600"></i>Camera
+                                    </label>
+                                    <select id="cameraSelect" 
+                                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                                        <option value="">Default Camera</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-microphone mr-2 text-purple-600"></i>Microphone
+                                    </label>
+                                    <select id="microphoneSelect" 
+                                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                                        <option value="">Default Microphone</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Preview</label>
+                                <div id="localVideoPreview" class="relative bg-gray-900 rounded-lg overflow-hidden" style="height: 300px;">
+                                    <div class="absolute inset-0 flex items-center justify-center text-white">
+                                        <div class="text-center">
+                                            <i class="fas fa-video-slash text-4xl mb-2"></i>
+                                            <p>Camera preview will appear here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-4">
+                                <button onclick="startVideoCall()" 
+                                        class="flex-1 px-6 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                    <i class="fas fa-video mr-2"></i>Start Call
+                                </button>
+                                <button onclick="testDevices()" 
+                                        class="px-6 py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all">
+                                    <i class="fas fa-vial mr-2"></i>Test Devices
+                                </button>
+                            </div>
+
+                            <!-- Instructions -->
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h3 class="font-semibold text-blue-900 mb-2">
+                                    <i class="fas fa-lightbulb mr-2"></i>How to use:
+                                </h3>
+                                <ul class="text-sm text-blue-800 space-y-1">
+                                    <li>• Enter your name and optionally a Room ID</li>
+                                    <li>• If no Room ID is provided, a new room will be created</li>
+                                    <li>• Share the Room ID with others to invite them</li>
+                                    <li>• FREE: 10,000 minutes per month for all users!</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- During Call - Video Interface -->
+                <div id="videoCallActive" class="hidden flex">
+                    <!-- Main Video Grid -->
+                    <div class="flex-1 relative bg-gray-900" style="height: calc(100vh - 250px); min-height: 500px;">
+                        <!-- Remote Videos Container -->
+                        <div id="remoteVideosContainer" class="absolute inset-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
+                            <!-- Remote video streams will be added here dynamically -->
+                        </div>
+
+                        <!-- Local Video (Picture-in-Picture) -->
+                        <div id="localVideoPiP" class="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white z-10">
+                            <div id="localVideoStream" class="w-full h-full"></div>
+                            <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 px-2 py-1 rounded text-white text-xs">
+                                <i class="fas fa-user mr-1"></i>You
+                            </div>
+                        </div>
+
+                        <!-- Room Info Overlay -->
+                        <div class="absolute top-4 left-4 bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white z-10">
+                            <p class="text-sm flex items-center justify-between">
+                                <span><i class="fas fa-door-open mr-2"></i>Room: <span id="currentRoomID" class="font-semibold"></span></span>
+                                <button onclick="copyRoomLink()" class="ml-3 px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs transition-all" title="Copy Room Link">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </p>
+                            <p class="text-xs text-gray-300 mt-1">
+                                <i class="fas fa-users mr-1"></i><span id="participantCount">1</span> participant(s)
+                            </p>
+                            <p class="text-xs mt-1 flex items-center">
+                                <i id="connectionQualityIcon" class="fas fa-signal mr-1 text-green-400"></i>
+                                <span id="connectionQualityText" class="text-green-400">Excellent</span>
+                            </p>
+                        </div>
+
+                        <!-- Recording Indicator -->
+                        <div id="recordingIndicator" class="absolute top-4 right-4 bg-red-600 px-4 py-2 rounded-lg text-white z-10 hidden animate-pulse">
+                            <i class="fas fa-circle mr-2 text-xs"></i>Recording
+                        </div>
+                    </div>
+
+                    <!-- Chat Sidebar -->
+                    <div id="videoCallChatSidebar" class="hidden bg-gray-800 border-l border-gray-700" style="width: 350px; height: calc(100vh - 250px); min-height: 500px;">
+                        <div class="flex flex-col h-full">
+                            <!-- Chat Header -->
+                            <div class="bg-gray-900 p-4 flex items-center justify-between">
+                                <h3 class="text-white font-semibold"><i class="fas fa-comment mr-2"></i>Chat</h3>
+                                <button onclick="toggleChat()" class="text-gray-400 hover:text-white">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Chat Messages -->
+                            <div id="videoCallChatMessages" class="flex-1 overflow-y-auto p-4 space-y-3" style="max-height: calc(100% - 140px);">
+                                <div class="text-gray-400 text-sm text-center py-4">
+                                    <i class="fas fa-info-circle mr-1"></i>Chat messages will appear here
+                                </div>
+                            </div>
+                            
+                            <!-- Chat Input -->
+                            <div class="bg-gray-900 p-4">
+                                <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                                    <input type="text" id="videoCallChatInput" placeholder="Type a message..." 
+                                           class="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Call Controls Bar -->
+                    <div class="bg-gray-800 p-6">
+                        <div class="max-w-4xl mx-auto flex items-center justify-between">
+                            <!-- Left Controls -->
+                            <div class="flex items-center gap-3">
+                                <button id="toggleMicBtn" onclick="toggleMicrophone()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button id="toggleCameraBtn" onclick="toggleCamera()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-video"></i>
+                                </button>
+                                <button onclick="toggleScreenShare()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-desktop"></i>
+                                </button>
+                            </div>
+
+                            <!-- Center - End Call -->
+                            <button onclick="endVideoCall()" 
+                                    class="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-full text-white font-semibold transition-all transform hover:scale-105">
+                                <i class="fas fa-phone-slash mr-2"></i>End Call
+                            </button>
+
+                            <!-- Right Controls -->
+                            <div class="flex items-center gap-3">
+                                <button onclick="toggleChat()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                                <button onclick="toggleParticipants()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-users"></i>
+                                </button>
+                                <button onclick="toggleSettings()" 
+                                        class="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-all">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Call Duration -->
+                        <div class="text-center mt-3">
+                            <p class="text-sm text-gray-400">
+                                <i class="fas fa-clock mr-2"></i>Duration: <span id="callDuration">00:00</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Setup Instructions Notice -->
+            <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 class="font-semibold text-yellow-900 mb-3 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Setup Required (One-time)
+                </h3>
+                <div class="text-sm text-yellow-800 space-y-2">
+                    <p><strong>To enable video calls, you need an Agora.io App ID:</strong></p>
+                    <ol class="list-decimal list-inside space-y-1 ml-4">
+                        <li>Go to <a href="https://www.agora.io/" target="_blank" class="text-blue-600 hover:underline font-semibold">Agora.io</a> and create a FREE account</li>
+                        <li>Create a new project in the Agora Console</li>
+                        <li>Copy your "App ID" from the project</li>
+                        <li>Add it to your <code class="bg-yellow-200 px-2 py-1 rounded">.env</code> file: <code class="bg-yellow-200 px-2 py-1 rounded">AGORA_APP_ID=your_app_id_here</code></li>
+                    </ol>
+                    <p class="mt-3"><strong>✅ Benefits:</strong> 10,000 FREE minutes per month • HD video • Screen sharing • No credit card required</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Directory Page -->
     <div id="directory" class="page hidden">
         <div class="max-w-7xl mx-auto px-4 py-8 relative overflow-hidden">
@@ -6435,8 +6862,21 @@
         </div>
     </div>
     <script>
-        // Global variables
-        let currentUser = null;
+        // Global variables - Initialize currentUser
+        if (typeof window.currentUser === 'undefined') {
+            window.currentUser = null;
+        }
+        let currentUser = window.currentUser;
+        
+        // Early function declarations for functions called before full definition
+        window.showPage = window.showPage || function(pageId) {
+            console.log('showPage called early, deferring...', pageId);
+            // Will be replaced by actual showPage function later
+        };
+        window.updateNavigation = window.updateNavigation || function() {
+            console.log('updateNavigation called early, deferring...');
+            // Will be replaced by actual updateNavigation function later
+        };
         // Dynamic Load System - Generate 1000+ realistic loads
         // Optimized load generation with memory efficiency
         const CITY_POOL = [
@@ -7343,6 +7783,45 @@
 
         function searchLoads() {
             applyFiltersAndRender();
+            updateActiveFilterCount();
+            
+            // Show filter summary
+            const filters = getFilterValues();
+            const activeFilters = [];
+            if (filters.origin) activeFilters.push(`Origin: ${filters.origin}`);
+            if (filters.destination) activeFilters.push(`Dest: ${filters.destination}`);
+            if (filters.equipment) activeFilters.push(`Equipment: ${filters.equipment}`);
+            if (filters.minRate) activeFilters.push(`Min Rate: $${filters.minRate}`);
+            if (filters.maxMiles) activeFilters.push(`Max Miles: ${filters.maxMiles}`);
+            
+            if (activeFilters.length > 0) {
+                console.log('Filters applied:', activeFilters.join(', '));
+            }
+        }
+
+        function updateActiveFilterCount() {
+            const filters = getFilterValues();
+            let count = 0;
+            if (filters.origin) count++;
+            if (filters.destination) count++;
+            if (filters.equipment) count++;
+            if (filters.loadType) count++;
+            if (filters.minRate) count++;
+            if (filters.maxMiles) count++;
+            if (filters.date) count++;
+            if (filters.radius) count++;
+            
+            // Update clear filters button to show count
+            const clearButton = document.querySelector('button[onclick="clearFilters()"]');
+            if (clearButton && count > 0) {
+                clearButton.innerHTML = `<i class="fas fa-times mr-1"></i>Clear Filters (${count})`;
+                clearButton.classList.add('bg-red-50', 'text-red-600', 'border-red-300');
+                clearButton.classList.remove('text-gray-600');
+            } else if (clearButton) {
+                clearButton.innerHTML = '<i class="fas fa-times mr-1"></i>Clear Filters';
+                clearButton.classList.remove('bg-red-50', 'text-red-600', 'border-red-300');
+                clearButton.classList.add('text-gray-600');
+            }
         }
 
         function clearFilters() {
@@ -7355,7 +7834,8 @@
             const equipmentLabel = document.getElementById('equipmentLabel');
             if (equipmentLabel) equipmentLabel.textContent = 'All Equipment';
             applyFiltersAndRender();
-            // showNotification('Filters cleared. Showing all loads.', 'info');
+            updateActiveFilterCount();
+            showNotification('All filters cleared. Showing all available loads.', 'info');
         }
 
         function saveSearch() {
@@ -7751,6 +8231,13 @@
 
             const form = event.target;
             const formData = new FormData(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Disable button and show loading state
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Shipment...';
+            }
             
             const shipmentData = {
                 title: formData.get('title'),
@@ -7774,11 +8261,22 @@
                 !shipmentData.pickup.zip || !shipmentData.delivery.city || !shipmentData.delivery.state || 
                 !shipmentData.delivery.zip) {
                 showNotification('Please fill in all required fields.', 'error');
+                // Re-enable button
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-shipping-fast mr-2"></i>Create Shipment';
+                }
                 return;
             }
 
+            console.log('Creating shipment with data:', shipmentData);
+
             try {
-                const response = await fetch(`${window.API_BASE_URL}/shipments`, {
+                // Ensure API_BASE_URL is available
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                console.log('Using API URL:', apiBaseUrl);
+                
+                const response = await fetch(`${apiBaseUrl}/shipments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -7788,18 +8286,459 @@
                 });
 
                 const result = await response.json();
+                console.log('Shipment creation response:', result);
 
-                if (response.ok) {
-                    showNotification(`Shipment created successfully! Shipment ID: ${result.shipment.shipmentId}`, 'success');
+                if (response.ok && result.success) {
+                    showNotification(`✅ Shipment created successfully! Shipment ID: ${result.shipment.shipmentId}`, 'success');
                     form.reset();
-                    showPage('loadboard');
+                    setTimeout(() => {
+                        showPage('loadboard');
+                    }, 1500);
                 } else {
-                    showNotification(result.error || 'Failed to create shipment', 'error');
+                    showNotification(result.error || result.message || 'Failed to create shipment', 'error');
+                    console.error('Shipment creation failed:', result);
                 }
             } catch (error) {
                 console.error('Error creating shipment:', error);
-                showNotification('Network error. Please try again.', 'error');
+                showNotification('❌ Network error. Please check your connection and try again.', 'error');
+            } finally {
+                // Re-enable button
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-shipping-fast mr-2"></i>Create Shipment';
+                }
             }
+        }
+
+        // ========================================
+        // AUTOCOMPLETE: US STATES AND CITIES DATABASE
+        // ========================================
+        
+        const US_STATES = [
+            { abbr: 'AL', name: 'Alabama', major_cities: ['Birmingham', 'Montgomery', 'Mobile', 'Huntsville'] },
+            { abbr: 'AK', name: 'Alaska', major_cities: ['Anchorage', 'Fairbanks', 'Juneau'] },
+            { abbr: 'AZ', name: 'Arizona', major_cities: ['Phoenix', 'Tucson', 'Mesa', 'Scottsdale', 'Chandler'] },
+            { abbr: 'AR', name: 'Arkansas', major_cities: ['Little Rock', 'Fort Smith', 'Fayetteville', 'Springdale'] },
+            { abbr: 'CA', name: 'California', major_cities: ['Los Angeles', 'San Diego', 'San Jose', 'San Francisco', 'Fresno', 'Sacramento', 'Long Beach', 'Oakland', 'Bakersfield', 'Anaheim'] },
+            { abbr: 'CO', name: 'Colorado', major_cities: ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Lakewood'] },
+            { abbr: 'CT', name: 'Connecticut', major_cities: ['Bridgeport', 'New Haven', 'Hartford', 'Stamford'] },
+            { abbr: 'DE', name: 'Delaware', major_cities: ['Wilmington', 'Dover', 'Newark'] },
+            { abbr: 'FL', name: 'Florida', major_cities: ['Jacksonville', 'Miami', 'Tampa', 'Orlando', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Fort Lauderdale', 'Port St. Lucie', 'Cape Coral'] },
+            { abbr: 'GA', name: 'Georgia', major_cities: ['Atlanta', 'Augusta', 'Columbus', 'Macon', 'Savannah', 'Athens'] },
+            { abbr: 'HI', name: 'Hawaii', major_cities: ['Honolulu', 'Pearl City', 'Hilo', 'Kailua'] },
+            { abbr: 'ID', name: 'Idaho', major_cities: ['Boise', 'Meridian', 'Nampa', 'Idaho Falls'] },
+            { abbr: 'IL', name: 'Illinois', major_cities: ['Chicago', 'Aurora', 'Naperville', 'Joliet', 'Rockford', 'Springfield', 'Elgin', 'Peoria'] },
+            { abbr: 'IN', name: 'Indiana', major_cities: ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel'] },
+            { abbr: 'IA', name: 'Iowa', major_cities: ['Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City'] },
+            { abbr: 'KS', name: 'Kansas', major_cities: ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe'] },
+            { abbr: 'KY', name: 'Kentucky', major_cities: ['Louisville', 'Lexington', 'Bowling Green', 'Owensboro'] },
+            { abbr: 'LA', name: 'Louisiana', major_cities: ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles'] },
+            { abbr: 'ME', name: 'Maine', major_cities: ['Portland', 'Lewiston', 'Bangor', 'South Portland'] },
+            { abbr: 'MD', name: 'Maryland', major_cities: ['Baltimore', 'Frederick', 'Rockville', 'Gaithersburg', 'Bowie'] },
+            { abbr: 'MA', name: 'Massachusetts', major_cities: ['Boston', 'Worcester', 'Springfield', 'Lowell', 'Cambridge'] },
+            { abbr: 'MI', name: 'Michigan', major_cities: ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing'] },
+            { abbr: 'MN', name: 'Minnesota', major_cities: ['Minneapolis', 'St. Paul', 'Rochester', 'Duluth', 'Bloomington'] },
+            { abbr: 'MS', name: 'Mississippi', major_cities: ['Jackson', 'Gulfport', 'Southaven', 'Hattiesburg', 'Biloxi'] },
+            { abbr: 'MO', name: 'Missouri', major_cities: ['Kansas City', 'St. Louis', 'Springfield', 'Columbia', 'Independence'] },
+            { abbr: 'MT', name: 'Montana', major_cities: ['Billings', 'Missoula', 'Great Falls', 'Bozeman'] },
+            { abbr: 'NE', name: 'Nebraska', major_cities: ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island'] },
+            { abbr: 'NV', name: 'Nevada', major_cities: ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks'] },
+            { abbr: 'NH', name: 'New Hampshire', major_cities: ['Manchester', 'Nashua', 'Concord', 'Derry'] },
+            { abbr: 'NJ', name: 'New Jersey', major_cities: ['Newark', 'Jersey City', 'Paterson', 'Elizabeth', 'Edison', 'Trenton'] },
+            { abbr: 'NM', name: 'New Mexico', major_cities: ['Albuquerque', 'Las Cruces', 'Rio Rancho', 'Santa Fe'] },
+            { abbr: 'NY', name: 'New York', major_cities: ['New York City', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany', 'New Rochelle'] },
+            { abbr: 'NC', name: 'North Carolina', major_cities: ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary'] },
+            { abbr: 'ND', name: 'North Dakota', major_cities: ['Fargo', 'Bismarck', 'Grand Forks', 'Minot'] },
+            { abbr: 'OH', name: 'Ohio', major_cities: ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton'] },
+            { abbr: 'OK', name: 'Oklahoma', major_cities: ['Oklahoma City', 'Tulsa', 'Norman', 'Broken Arrow', 'Lawton'] },
+            { abbr: 'OR', name: 'Oregon', major_cities: ['Portland', 'Salem', 'Eugene', 'Gresham', 'Hillsboro', 'Beaverton'] },
+            { abbr: 'PA', name: 'Pennsylvania', major_cities: ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton'] },
+            { abbr: 'RI', name: 'Rhode Island', major_cities: ['Providence', 'Warwick', 'Cranston', 'Pawtucket'] },
+            { abbr: 'SC', name: 'South Carolina', major_cities: ['Charleston', 'Columbia', 'North Charleston', 'Mount Pleasant', 'Rock Hill'] },
+            { abbr: 'SD', name: 'South Dakota', major_cities: ['Sioux Falls', 'Rapid City', 'Aberdeen', 'Brookings'] },
+            { abbr: 'TN', name: 'Tennessee', major_cities: ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga', 'Clarksville', 'Murfreesboro'] },
+            { abbr: 'TX', name: 'Texas', major_cities: ['Houston', 'San Antonio', 'Dallas', 'Austin', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Laredo'] },
+            { abbr: 'UT', name: 'Utah', major_cities: ['Salt Lake City', 'West Valley City', 'Provo', 'West Jordan', 'Orem'] },
+            { abbr: 'VT', name: 'Vermont', major_cities: ['Burlington', 'South Burlington', 'Rutland', 'Barre'] },
+            { abbr: 'VA', name: 'Virginia', major_cities: ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Richmond', 'Newport News', 'Alexandria', 'Hampton'] },
+            { abbr: 'WA', name: 'Washington', major_cities: ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Everett'] },
+            { abbr: 'WV', name: 'West Virginia', major_cities: ['Charleston', 'Huntington', 'Morgantown', 'Parkersburg'] },
+            { abbr: 'WI', name: 'Wisconsin', major_cities: ['Milwaukee', 'Madison', 'Green Bay', 'Kenosha', 'Racine'] },
+            { abbr: 'WY', name: 'Wyoming', major_cities: ['Cheyenne', 'Casper', 'Laramie', 'Gillette'] }
+        ];
+
+        // Build flat list of all cities with state info for fast searching
+        const US_CITIES = [];
+        US_STATES.forEach(state => {
+            state.major_cities.forEach(city => {
+                US_CITIES.push({
+                    city: city,
+                    state: state.name,
+                    stateAbbr: state.abbr,
+                    display: `${city}, ${state.abbr}`
+                });
+            });
+        });
+
+        // Smart autocomplete suggestions for location inputs
+        function showSmartSuggestions(input, type) {
+            const query = input.value.trim().toLowerCase();
+            const suggestionsId = type === 'origin' ? 'originSuggestions' : 'destSuggestions';
+            const suggestionsDiv = document.getElementById(suggestionsId);
+            
+            if (!query || query.length < 2) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            let suggestions = [];
+            
+            // Search states
+            US_STATES.forEach(state => {
+                if (state.name.toLowerCase().includes(query) || state.abbr.toLowerCase().includes(query)) {
+                    suggestions.push({
+                        type: 'state',
+                        text: `${state.abbr} - ${state.name}`,
+                        value: `${state.name}`,
+                        icon: 'fa-flag'
+                    });
+                }
+            });
+            
+            // Search cities
+            US_CITIES.forEach(cityObj => {
+                if (cityObj.city.toLowerCase().includes(query) || 
+                    cityObj.display.toLowerCase().includes(query)) {
+                    suggestions.push({
+                        type: 'city',
+                        text: cityObj.display,
+                        value: cityObj.display,
+                        icon: 'fa-city'
+                    });
+                }
+            });
+            
+            // Limit to top 10 results
+            suggestions = suggestions.slice(0, 10);
+            
+            if (suggestions.length === 0) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            // Display suggestions
+            suggestionsDiv.innerHTML = suggestions.map(s => `
+                <div class="suggestion-item px-4 py-2 hover:bg-blue-50 cursor-pointer flex items-center" 
+                     onclick="selectSuggestion('${type}', '${s.value.replace(/'/g, "\\'")}')">
+                    <i class="fas ${s.icon} mr-2 text-blue-600"></i>
+                    <span>${s.text}</span>
+                    ${s.type === 'state' ? '<span class="ml-auto text-xs text-gray-500">State</span>' : ''}
+                </div>
+            `).join('');
+            
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectSuggestion(type, value) {
+            const inputId = type === 'origin' ? 'originFilter' : 'destFilter';
+            const suggestionsId = type === 'origin' ? 'originSuggestions' : 'destSuggestions';
+            
+            document.getElementById(inputId).value = value;
+            document.getElementById(suggestionsId).classList.add('hidden');
+            
+            // Trigger search
+            searchLoads();
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#originFilter') && !e.target.closest('#originSuggestions')) {
+                document.getElementById('originSuggestions')?.classList.add('hidden');
+            }
+            if (!e.target.closest('#destFilter') && !e.target.closest('#destSuggestions')) {
+                document.getElementById('destSuggestions')?.classList.add('hidden');
+            }
+        });
+
+        // ========================================
+        // BROWSE SHIPMENTS (FOR BROKERS)
+        // ========================================
+
+        let allShipments = [];
+
+        async function fetchShipmentsFromBackend() {
+            const user = getCurrentUser();
+            if (!user || !user.token) {
+                console.log('No user or token for fetching shipments');
+                return [];
+            }
+
+            try {
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                const response = await fetch(`${apiBaseUrl}/shipments?scope=all&limit=100`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch shipments:', response.status);
+                    return [];
+                }
+
+                const result = await response.json();
+                console.log('Shipments fetched:', result);
+                
+                return result.shipments || [];
+            } catch (error) {
+                console.error('Error fetching shipments:', error);
+                return [];
+            }
+        }
+
+        async function loadBrowseShipments() {
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to browse shipments.', 'warning');
+                showPage('login');
+                return;
+            }
+
+            // Check if user is broker
+            if (user.accountType !== 'broker' && user.role !== 'admin') {
+                document.getElementById('browseShipmentsAccessDenied').classList.remove('hidden');
+                document.getElementById('browseShipmentsContent').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('browseShipmentsAccessDenied').classList.add('hidden');
+            document.getElementById('browseShipmentsContent').classList.remove('hidden');
+
+            // Fetch shipments
+            allShipments = await fetchShipmentsFromBackend();
+            displayShipments(allShipments);
+        }
+
+        function displayShipments(shipments) {
+            const resultsDiv = document.getElementById('shipmentsResults');
+            const countSpan = document.getElementById('shipmentsCount');
+            
+            if (!shipments || shipments.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="p-8 text-center text-gray-500">
+                        <i class="fas fa-box-open text-6xl mb-4 text-gray-300"></i>
+                        <p class="text-lg font-semibold">No shipments found</p>
+                        <p class="text-sm mt-2">Check back later or adjust your filters</p>
+                    </div>
+                `;
+                countSpan.textContent = '0';
+                return;
+            }
+
+            countSpan.textContent = shipments.length;
+
+            resultsDiv.innerHTML = shipments.map(shipment => `
+                <div class="p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-900">${shipment.title || 'Untitled Shipment'}</h3>
+                                <span class="ml-3 px-2 py-1 text-xs font-semibold rounded-full ${shipment.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                    ${shipment.status || 'open'}
+                                </span>
+                            </div>
+                            
+                            ${shipment.description ? `
+                                <p class="text-gray-600 text-sm mb-3">${shipment.description}</p>
+                            ` : ''}
+                            
+                            <div class="grid md:grid-cols-2 gap-4 mb-3">
+                                <div class="flex items-start">
+                                    <i class="fas fa-map-marker-alt text-green-600 mt-1 mr-2"></i>
+                                    <div>
+                                        <div class="text-xs text-gray-500 uppercase">Pickup</div>
+                                        <div class="font-medium text-gray-900">
+                                            ${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'} ${shipment.pickup?.zip || ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-map-marker-alt text-red-600 mt-1 mr-2"></i>
+                                    <div>
+                                        <div class="text-xs text-gray-500 uppercase">Delivery</div>
+                                        <div class="font-medium text-gray-900">
+                                            ${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'} ${shipment.delivery?.zip || ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center text-xs text-gray-500 space-x-4">
+                                <span><i class="fas fa-calendar mr-1"></i>Posted: ${shipment.createdAt ? new Date(shipment.createdAt).toLocaleDateString() : 'Unknown'}</span>
+                                <span><i class="fas fa-hashtag mr-1"></i>ID: ${shipment.shipmentId || 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col space-y-2 ml-4">
+                            <button onclick="viewShipmentDetails('${shipment._id || shipment.shipmentId}')" 
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                                <i class="fas fa-eye mr-1"></i>View Details
+                            </button>
+                            <button onclick="createLoadFromShipment('${shipment._id || shipment.shipmentId}')" 
+                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                                <i class="fas fa-plus mr-1"></i>Create Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterShipments() {
+            const originFilter = document.getElementById('shipmentOriginFilter')?.value.toLowerCase() || '';
+            const destFilter = document.getElementById('shipmentDestFilter')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('shipmentStatusFilter')?.value || '';
+
+            const filtered = allShipments.filter(shipment => {
+                const originMatch = !originFilter || 
+                    (shipment.pickup?.city || '').toLowerCase().includes(originFilter) ||
+                    (shipment.pickup?.state || '').toLowerCase().includes(originFilter) ||
+                    (shipment.pickup?.zip || '').toLowerCase().includes(originFilter);
+                
+                const destMatch = !destFilter || 
+                    (shipment.delivery?.city || '').toLowerCase().includes(destFilter) ||
+                    (shipment.delivery?.state || '').toLowerCase().includes(destFilter) ||
+                    (shipment.delivery?.zip || '').toLowerCase().includes(destFilter);
+                
+                const statusMatch = !statusFilter || shipment.status === statusFilter;
+
+                return originMatch && destMatch && statusMatch;
+            });
+
+            displayShipments(filtered);
+        }
+
+        function clearShipmentFilters() {
+            document.getElementById('shipmentOriginFilter').value = '';
+            document.getElementById('shipmentDestFilter').value = '';
+            document.getElementById('shipmentStatusFilter').value = '';
+            displayShipments(allShipments);
+        }
+
+        async function refreshShipments() {
+            showNotification('Refreshing shipments...', 'info');
+            allShipments = await fetchShipmentsFromBackend();
+            displayShipments(allShipments);
+            showNotification('Shipments refreshed successfully!', 'success');
+        }
+
+        function viewShipmentDetails(shipmentId) {
+            const shipment = allShipments.find(s => s._id === shipmentId || s.shipmentId === shipmentId);
+            if (!shipment) {
+                showNotification('Shipment not found', 'error');
+                return;
+            }
+
+            // Show modal with shipment details
+            const modalHTML = `
+                <div id="shipmentDetailsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-8 relative">
+                        <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onclick="closeShipmentDetailsModal()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                        
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                            <i class="fas fa-box-open mr-2 text-green-600"></i>${shipment.title || 'Shipment Details'}
+                        </h2>
+                        
+                        ${shipment.description ? `
+                            <div class="mb-4">
+                                <h3 class="font-semibold text-gray-700 mb-2">Description</h3>
+                                <p class="text-gray-600">${shipment.description}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h3 class="font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-green-600 mr-1"></i>Pickup Location
+                                </h3>
+                                <p class="text-gray-900">${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'} ${shipment.pickup?.zip || ''}</p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-red-600 mr-1"></i>Delivery Location
+                                </h3>
+                                <p class="text-gray-900">${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'} ${shipment.delivery?.zip || ''}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mb-6 text-sm">
+                            <div><strong>Shipment ID:</strong> ${shipment.shipmentId || 'N/A'}</div>
+                            <div><strong>Status:</strong> <span class="px-2 py-1 rounded-full ${shipment.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${shipment.status || 'open'}</span></div>
+                            <div><strong>Posted:</strong> ${shipment.createdAt ? new Date(shipment.createdAt).toLocaleString() : 'Unknown'}</div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button onclick="closeShipmentDetailsModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                                Close
+                            </button>
+                            <button onclick="createLoadFromShipment('${shipmentId}'); closeShipmentDetailsModal();" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors">
+                                <i class="fas fa-plus mr-1"></i>Create Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function closeShipmentDetailsModal() {
+            const modal = document.getElementById('shipmentDetailsModal');
+            if (modal) modal.remove();
+        }
+
+        function createLoadFromShipment(shipmentId) {
+            const shipment = allShipments.find(s => s._id === shipmentId || s.shipmentId === shipmentId);
+            if (!shipment) {
+                showNotification('Shipment not found', 'error');
+                return;
+            }
+
+            // Pre-fill load form with shipment data
+            showPage('postload');
+            
+            setTimeout(() => {
+                const form = document.getElementById('loadPostForm');
+                if (form) {
+                    // Fill in origin
+                    const originCity = form.querySelector('[name="originCity"]');
+                    const originState = form.querySelector('[name="originState"]');
+                    const originZip = form.querySelector('[name="originZip"]');
+                    if (originCity) originCity.value = shipment.pickup?.city || '';
+                    if (originState) originState.value = shipment.pickup?.state || '';
+                    if (originZip) originZip.value = shipment.pickup?.zip || '';
+
+                    // Fill in destination
+                    const destCity = form.querySelector('[name="destinationCity"]');
+                    const destState = form.querySelector('[name="destinationState"]');
+                    const destZip = form.querySelector('[name="destinationZip"]');
+                    if (destCity) destCity.value = shipment.delivery?.city || '';
+                    if (destState) destState.value = shipment.delivery?.state || '';
+                    if (destZip) destZip.value = shipment.delivery?.zip || '';
+
+                    // Fill in title/description if fields exist
+                    const title = form.querySelector('[name="title"]');
+                    const description = form.querySelector('[name="description"]');
+                    if (title) title.value = shipment.title || '';
+                    if (description) description.value = shipment.description || '';
+
+                    showNotification(`Load form pre-filled from shipment: ${shipment.title}`, 'success');
+                }
+            }, 100);
         }
 
         function showPostLoadPage() {
@@ -8149,14 +9088,22 @@
                     const userInitial = displayName.charAt(0).toUpperCase();
                     
                     userInfo.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <div onclick="showPage('profile')" class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold cursor-pointer hover:bg-blue-700 transition-colors" title="Click to view profile">
+                        <div class="flex items-center space-x-4">
+                            <div onclick="showPage('profile')" class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-lg cursor-pointer hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105" title="Click to view profile">
                                 ${userInitial}
                             </div>
-                            <span class="text-base font-bold text-white">Welcome, ${displayName}</span>
-                            ${currentUser.role === 'admin' ? '<button onclick="showPage(\'admin\')" class="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-sm transition-colors"><i class="fas fa-cog mr-1"></i>Admin</button>' : ''}
-                            <button onclick="logout()" class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm transition-colors text-white">
-                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                            <span class="text-sm font-medium text-white hidden sm:block">Welcome, <span class="font-bold">${displayName}</span></span>
+                            
+                            <!-- Settings Button - Icon Only with Tooltip -->
+                            <button onclick="showPage('settings')" class="w-10 h-10 bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg border border-white border-opacity-20" title="Settings">
+                                <i class="fas fa-cog text-lg"></i>
+                            </button>
+                            
+                            ${currentUser.role === 'admin' ? '<button onclick="showPage(\'admin\')" class="w-10 h-10 bg-purple-500 bg-opacity-90 hover:bg-purple-600 rounded-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg" title="Admin Panel"><i class="fas fa-user-shield text-lg"></i></button>' : ''}
+                            
+                            <!-- Logout Button - Icon Only with Tooltip -->
+                            <button onclick="logout()" class="w-10 h-10 bg-red-500 bg-opacity-90 hover:bg-red-600 rounded-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg" title="Logout">
+                                <i class="fas fa-sign-out-alt text-lg"></i>
                             </button>
                         </div>
                     `;
@@ -8210,6 +9157,8 @@
         function showPage(pageId) {
             showPageAsync(pageId);
         }
+        // Make showPage globally accessible
+        window.showPage = showPage;
 
         // Show Terms of Service
         function showTerms() {
@@ -8247,8 +9196,157 @@
             }
         }
 
+        // Cache for previous stats to prevent unnecessary UI updates
+        let cachedPlatformStats = null;
+        
+        // Fetch and display platform statistics from database - REAL DATA ONLY
+        async function fetchPlatformStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats/platform`);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    
+                    // Check if data has actually changed
+                    const statsChanged = !cachedPlatformStats || 
+                        cachedPlatformStats.activeCarriers !== stats.activeCarriers ||
+                        cachedPlatformStats.activeShippers !== stats.activeShippers ||
+                        cachedPlatformStats.totalFreightValue !== stats.totalFreightValue ||
+                        cachedPlatformStats.availableLoads !== stats.availableLoads;
+                    
+                    if (!statsChanged) {
+                        return; // Don't update UI if nothing changed
+                    }
+                    
+                    // Cache the new stats
+                    cachedPlatformStats = { ...stats };
+                    
+                    // Update platform statistics with REAL data from database
+                    const liveCarriers = document.getElementById('liveCarriers');
+                    const liveShippers = document.getElementById('liveShippers');
+                    const liveFreightValue = document.getElementById('liveFreightValue');
+                    const liveLoads = document.getElementById('liveLoads');
+                    
+                    if (liveCarriers) {
+                        liveCarriers.textContent = stats.activeCarriers.toLocaleString();
+                    }
+                    if (liveShippers) {
+                        liveShippers.textContent = stats.activeShippers.toLocaleString();
+                    }
+                    if (liveFreightValue) {
+                        const value = stats.totalFreightValue;
+                        let displayValue;
+                        if (value >= 1000000) {
+                            displayValue = `$${(value / 1000000).toFixed(1)}M`;
+                        } else if (value >= 1000) {
+                            displayValue = `$${(value / 1000).toFixed(1)}K`;
+                        } else {
+                            displayValue = `$${value.toLocaleString()}`;
+                        }
+                        liveFreightValue.textContent = displayValue;
+                    }
+                    if (liveLoads) {
+                        liveLoads.textContent = stats.availableLoads.toLocaleString();
+                    }
+                } else {
+                    throw new Error('Invalid API response format');
+                }
+            } catch (error) {
+                console.error('❌ Failed to fetch platform stats:', error);
+                
+                // Only show zeros if we don't have cached data (first load failure)
+                if (!cachedPlatformStats) {
+                    const liveCarriers = document.getElementById('liveCarriers');
+                    const liveShippers = document.getElementById('liveShippers');
+                    const liveFreightValue = document.getElementById('liveFreightValue');
+                    const liveLoads = document.getElementById('liveLoads');
+                    
+                    if (liveCarriers) liveCarriers.textContent = '0';
+                    if (liveShippers) liveShippers.textContent = '0';
+                    if (liveFreightValue) liveFreightValue.textContent = '$0';
+                    if (liveLoads) liveLoads.textContent = '0';
+                }
+            }
+        }
+
+        // Fetch and display user dashboard statistics from database
+        async function fetchUserDashboardStats(user, elements) {
+            if (!user || !user.token) {
+                // Show zeros
+                if (elements.dashboardLoadsPosted) elements.dashboardLoadsPosted.textContent = '0';
+                if (elements.dashboardLoadsBooked) elements.dashboardLoadsBooked.textContent = '0';
+                if (elements.dashboardRevenue) elements.dashboardRevenue.textContent = '$0';
+                if (elements.dashboardRating) elements.dashboardRating.textContent = '5.0';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    
+                    // Update dashboard statistics with real data from database
+                    if (elements.dashboardLoadsPosted) {
+                        elements.dashboardLoadsPosted.textContent = stats.loadsPosted.toLocaleString();
+                    }
+                    if (elements.dashboardLoadsBooked) {
+                        elements.dashboardLoadsBooked.textContent = stats.loadsBooked.toLocaleString();
+                    }
+                    if (elements.dashboardRevenue) {
+                        elements.dashboardRevenue.textContent = `$${stats.totalRevenue.toLocaleString()}`;
+                    }
+                    if (elements.dashboardRating) {
+                        elements.dashboardRating.textContent = stats.rating.toFixed(1);
+                    }
+                    
+                    // Update performance insights
+                    const monthlyActivityEl = document.getElementById('dashboardMonthlyActivity');
+                    const totalCompletedEl = document.getElementById('dashboardTotalCompleted');
+                    const successRateEl = document.getElementById('dashboardSuccessRate');
+                    
+                    if (monthlyActivityEl) {
+                        const monthlyCount = stats.monthlyLoads || stats.loadsPosted || 0;
+                        monthlyActivityEl.textContent = `+${monthlyCount}`;
+                    }
+                    if (totalCompletedEl) {
+                        const totalCompleted = stats.completedLoads || stats.loadsBooked || 0;
+                        totalCompletedEl.textContent = totalCompleted.toLocaleString();
+                    }
+                    if (successRateEl) {
+                        const successRate = stats.successRate || 100;
+                        successRateEl.textContent = `${successRate}%`;
+                    }
+                    
+                    console.log('User dashboard stats updated from database:', stats);
+                } else {
+                    throw new Error('Failed to get stats from response');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user dashboard stats:', error);
+                // Show zeros if fetch fails
+                if (elements.dashboardLoadsPosted) elements.dashboardLoadsPosted.textContent = '0';
+                if (elements.dashboardLoadsBooked) elements.dashboardLoadsBooked.textContent = '0';
+                if (elements.dashboardRevenue) elements.dashboardRevenue.textContent = '$0';
+                if (elements.dashboardRating) elements.dashboardRating.textContent = '5.0';
+            }
+        }
+
         // Load settings data when settings page is opened
-        function loadSettingsData() {
+        async function loadSettingsData() {
             const user = getCurrentUser();
             if (!user) return;
             
@@ -8279,10 +9377,63 @@
                 if (mcContainer) mcContainer.style.display = 'block';
             }
             
+            // Load Notification Preferences from user data
+            const notifications = user.notifications || {};
+            const emailLoadsCheckbox = document.getElementById('notif-email-loads');
+            const emailBidsCheckbox = document.getElementById('notif-email-bids');
+            const emailRatesCheckbox = document.getElementById('notif-email-rates');
+            const emailUpdatesCheckbox = document.getElementById('notif-email-updates');
+            const emailMarketingCheckbox = document.getElementById('notif-email-marketing');
+            const frequencySelect = document.getElementById('notif-frequency');
+            
+            if (emailLoadsCheckbox) emailLoadsCheckbox.checked = notifications.emailLoads !== false;
+            if (emailBidsCheckbox) emailBidsCheckbox.checked = notifications.emailBids !== false;
+            if (emailRatesCheckbox) emailRatesCheckbox.checked = notifications.emailRates === true;
+            if (emailUpdatesCheckbox) emailUpdatesCheckbox.checked = notifications.emailUpdates !== false;
+            if (emailMarketingCheckbox) emailMarketingCheckbox.checked = notifications.emailMarketing === true;
+            if (frequencySelect) frequencySelect.value = notifications.frequency || 'instant';
+            
+            // Load User Preferences from user data
+            const preferences = user.preferences || {};
+            const unitsSelect = document.getElementById('pref-units');
+            const timezoneSelect = document.getElementById('pref-timezone');
+            const dateFormatSelect = document.getElementById('pref-date-format');
+            const searchRadiusSelect = document.getElementById('pref-search-radius');
+            const languageSelect = document.getElementById('pref-language');
+            
+            if (unitsSelect) unitsSelect.value = preferences.units || 'imperial';
+            if (timezoneSelect) timezoneSelect.value = preferences.timezone || 'America/New_York';
+            if (dateFormatSelect) dateFormatSelect.value = preferences.dateFormat || 'MM/DD/YYYY';
+            if (searchRadiusSelect) searchRadiusSelect.value = preferences.searchRadius || 500;
+            if (languageSelect) languageSelect.value = preferences.language || 'en';
+            
             // Load subscription info
             const planNameEl = document.getElementById('current-plan-name');
-            if (planNameEl && user.subscription) {
-                planNameEl.textContent = user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1);
+            if (planNameEl) {
+                planNameEl.textContent = user.subscriptionPlan ? user.subscriptionPlan.charAt(0).toUpperCase() + user.subscriptionPlan.slice(1) : 'Ultima';
+            }
+            const planExpiryEl = document.getElementById('plan-expiry');
+            if (planExpiryEl && user.premiumExpires) {
+                const expiryDate = new Date(user.premiumExpires);
+                planExpiryEl.textContent = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+            
+            // Load Active Sessions from backend
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/sessions`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Display active sessions (just keep current device for now)
+                    console.log('Active sessions loaded:', data.sessions);
+                }
+            } catch (error) {
+                console.error('Failed to load sessions:', error);
             }
         }
 
@@ -8294,7 +9445,17 @@
                     e.preventDefault();
                     
                     const user = getCurrentUser();
-                    if (!user) return;
+                    if (!user) {
+                        showNotification('Please log in to update settings', 'warning');
+                        return;
+                    }
+                    
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Disable button and show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
                     
                     // Get form values
                     const updatedData = {
@@ -8304,55 +9465,187 @@
                         mcNumber: document.getElementById('settings-mc').value
                     };
                     
-                    // Update user data
-                    Object.assign(user, updatedData);
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    
-                    // Show success message
-                    alert('✅ Account settings updated successfully!');
+                    try {
+                        // Make REAL API call to backend
+                        const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const response = await fetch(`${apiBaseUrl}/users/settings`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(updatedData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update settings');
+                        }
+                        
+                        // Update local user data with response
+                        Object.assign(user, data.user);
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        showNotification('Account settings saved successfully!', 'success');
+                    } catch (error) {
+                        console.error('Settings update error:', error);
+                        showNotification('Failed to save settings: ' + error.message, 'error');
+                    } finally {
+                        // Re-enable button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
                 });
             }
             
             // Handle Notification Settings Form
             const notificationForm = document.getElementById('notificationSettingsForm');
             if (notificationForm) {
-                notificationForm.addEventListener('submit', function(e) {
+                notificationForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    alert('✅ Notification preferences saved successfully!');
+                    
+                    const user = getCurrentUser();
+                    if (!user) {
+                        showNotification('Please log in to update settings', 'warning');
+                        return;
+                    }
+                    
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Disable button and show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+                    
+                    const notificationData = {
+                        emailLoads: document.getElementById('notif-email-loads').checked,
+                        emailBids: document.getElementById('notif-email-bids').checked,
+                        emailRates: document.getElementById('notif-email-rates').checked,
+                        emailUpdates: document.getElementById('notif-email-updates').checked,
+                        emailMarketing: document.getElementById('notif-email-marketing').checked,
+                        frequency: document.getElementById('notif-frequency').value
+                    };
+                    
+                    try {
+                        // Make REAL API call to backend
+                        const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const response = await fetch(`${apiBaseUrl}/users/notifications`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(notificationData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update notification preferences');
+                        }
+                        
+                        // Update local user data
+                        user.notifications = data.notifications;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        showNotification('Notification preferences saved successfully!', 'success');
+                    } catch (error) {
+                        console.error('Notification update error:', error);
+                        showNotification('Failed to save notification preferences: ' + error.message, 'error');
+                    } finally {
+                        // Re-enable button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
                 });
             }
             
             // Handle Change Password Form
             const passwordForm = document.getElementById('changePasswordForm');
             if (passwordForm) {
-                passwordForm.addEventListener('submit', function(e) {
+                passwordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
+                    
+                    const user = getCurrentUser();
+                    if (!user) {
+                        showNotification('Please log in to change password', 'warning');
+                        return;
+                    }
                     
                     const currentPassword = document.getElementById('current-password').value;
                     const newPassword = document.getElementById('new-password').value;
                     const confirmPassword = document.getElementById('confirm-password').value;
                     
                     if (newPassword !== confirmPassword) {
-                        alert('❌ New passwords do not match!');
+                        showNotification('New passwords do not match!', 'error');
                         return;
                     }
                     
                     if (newPassword.length < 8) {
-                        alert('❌ Password must be at least 8 characters long!');
+                        showNotification('Password must be at least 8 characters long!', 'error');
                         return;
                     }
                     
-                    // Here you would make an API call to update the password
-                    alert('✅ Password updated successfully!');
-                    passwordForm.reset();
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Disable button and show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+                    
+                    try {
+                        // Make REAL API call to backend
+                        const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const response = await fetch(`${apiBaseUrl}/users/password`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({
+                                currentPassword: currentPassword,
+                                newPassword: newPassword
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update password');
+                        }
+                        
+                        showNotification('Password updated successfully!', 'success');
+                        passwordForm.reset();
+                    } catch (error) {
+                        console.error('Password update error:', error);
+                        showNotification('Failed to update password: ' + error.message, 'error');
+                    } finally {
+                        // Re-enable button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
                 });
             }
             
             // Handle Preferences Form
             const preferencesForm = document.getElementById('preferencesForm');
             if (preferencesForm) {
-                preferencesForm.addEventListener('submit', function(e) {
+                preferencesForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
+                    
+                    const user = getCurrentUser();
+                    if (!user) {
+                        showNotification('Please log in to update preferences', 'warning');
+                        return;
+                    }
+                    
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Disable button and show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
                     
                     const preferences = {
                         units: document.getElementById('pref-units').value,
@@ -8362,10 +9655,37 @@
                         language: document.getElementById('pref-language').value
                     };
                     
-                    // Save to localStorage
-                    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-                    
-                    alert('✅ Preferences saved successfully!');
+                    try {
+                        // Make REAL API call to backend
+                        const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+                        const response = await fetch(`${apiBaseUrl}/users/preferences`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify(preferences)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update preferences');
+                        }
+                        
+                        // Update local user data
+                        user.preferences = data.preferences;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        
+                        showNotification('Preferences saved successfully!', 'success');
+                    } catch (error) {
+                        console.error('Preferences update error:', error);
+                        showNotification('Failed to save preferences: ' + error.message, 'error');
+                    } finally {
+                        // Re-enable button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
                 });
             }
         });
@@ -8954,7 +10274,7 @@
                 pageId = 'home';
             }
             
-            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin', 'settings'];
+            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin', 'settings', 'browseshipments', 'createshipment'];
             
             if (protectedPages.includes(pageId) && !currentUser) {
                 showNotification('Please log in to access this feature', 'warning');
@@ -8977,6 +10297,11 @@
                     page.classList.add('hidden');
                     page.style.display = 'none'; // Ensure display is set to none
                 });
+                // Hide dashboard section by default (will be shown only on home page)
+                const dashboardSection = document.getElementById('userDashboardSection');
+                if (dashboardSection) {
+                    dashboardSection.classList.add('hidden');
+                }
                 // clear inline login error when switching pages
                 try { const le = document.getElementById('loginError'); if (le) { le.textContent=''; le.classList.add('hidden'); } } catch(e){}
             }
@@ -9017,6 +10342,10 @@
             // Initialize page-specific content
             if (pageId === 'loadboard') {
                 initializeLoadBoard();
+            } else if (pageId === 'browseshipments') {
+                loadBrowseShipments();
+            } else if (pageId === 'createshipment') {
+                checkCreateShipmentAccess();
             } else if (pageId === 'rates') {
                 // initializeRateAnalysis may be defined only when the rates module is available.
                 if (typeof initializeRateAnalysis === 'function') {
@@ -9029,15 +10358,19 @@
             } else if (pageId === 'home') {
                 // Populate user dashboard if logged in
                 populateUserDashboard();
+                // Show dashboard section only on home page
+                const dashboardSection = document.getElementById('userDashboardSection');
+                if (dashboardSection && currentUser) {
+                    dashboardSection.classList.remove('hidden');
+                }
             } else if (pageId === 'profile') {
                 // Populate profile page with user data
                 populateProfilePage();
+            } else if (pageId === 'settings') {
+                // Settings page loads via loadSettingsData() above
             } else if (pageId === 'admin') {
                 // Ensure only admin can see and populate the admin users table
                 fetchAdminUsers();
-                
-                // Show profile page
-                console.log('Showing profile page');
                 
                 return;
             } else if (pageId === 'register') {
@@ -9866,7 +11199,27 @@
             if (profileInitials) {
                 const displayName = user.company || user.name || user.email;
                 const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                
+                // Check if user has profile photo
+                if (user.profilePhoto) {
+                    // Display profile photo
+                    profileInitials.style.backgroundImage = `url(${user.profilePhoto})`;
+                    profileInitials.style.backgroundSize = 'cover';
+                    profileInitials.style.backgroundPosition = 'center';
+                    profileInitials.textContent = '';
+                    
+                    // Show delete button
+                    const deleteBtn = document.getElementById('deletePhotoBtn');
+                    if (deleteBtn) deleteBtn.classList.remove('hidden');
+                } else {
+                    // Display initials
+                    profileInitials.style.backgroundImage = '';
                 profileInitials.textContent = initials;
+                    
+                    // Hide delete button
+                    const deleteBtn = document.getElementById('deletePhotoBtn');
+                    if (deleteBtn) deleteBtn.classList.add('hidden');
+                }
             }
             if (profileAccountType) profileAccountType.textContent = user.accountType || 'Free';
             if (profileMemberSince) {
@@ -10483,40 +11836,169 @@
             if (dashboardUserInitials) {
                 const displayName = user.company || user.name || user.email;
                 const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                
+                // Check if user has a profile photo
+                if (user.profilePhoto) {
+                    // Display profile photo
+                    dashboardUserInitials.style.backgroundImage = `url(${user.profilePhoto})`;
+                    dashboardUserInitials.style.backgroundSize = 'cover';
+                    dashboardUserInitials.style.backgroundPosition = 'center';
+                    dashboardUserInitials.textContent = '';
+                } else {
+                    // Display initials
+                    dashboardUserInitials.style.backgroundImage = '';
                 dashboardUserInitials.textContent = initials;
+                }
             }
             if (dashboardUserName) dashboardUserName.textContent = user.company || user.name || 'User';
             if (dashboardUserCompany) dashboardUserCompany.textContent = user.company || 'Company';
             if (dashboardAccountType) dashboardAccountType.textContent = user.accountType || 'Free';
             
-            // Show USDOT and MC only for brokers and carriers
-            if (dashboardUSDOT) {
-                if (user.accountType === 'broker' || user.accountType === 'carrier') {
+            // Dynamic fields based on account type
+            const field1Label = document.getElementById('dashboardField1Label');
+            const field1Value = document.getElementById('dashboardField1Value');
+            const field2Label = document.getElementById('dashboardField2Label');
+            const field2Value = document.getElementById('dashboardField2Value');
+            
+            if (user.accountType === 'shipper') {
+                // For shippers: Show Subscription Plan and Account Status
+                if (field1Label) field1Label.textContent = 'Subscription:';
+                if (field1Value) {
+                    const plan = user.subscriptionPlan || user.plan || 'Basic';
+                    field1Value.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+                    field1Value.className = 'font-semibold text-green-600';
+                }
+                
+                if (field2Label) field2Label.textContent = 'Member Since:';
+                if (field2Value) {
+                    const memberSince = user.createdAt || user.joinedDate || new Date().toISOString();
+                    const date = new Date(memberSince);
+                    const formattedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    field2Value.textContent = formattedDate;
+                    field2Value.className = 'font-semibold text-gray-700';
+                }
+            } else {
+                // For brokers and carriers: Show USDOT and MC Number
+                if (field1Label) field1Label.textContent = 'USDOT:';
+                if (field1Value) {
                     const usdotNumber = user.usdotNumber || '';
                     if (usdotNumber) {
-                        // Format as USDOT-XXXXXXX (remove any existing USDOT- prefix)
                         const cleanNumber = usdotNumber.replace(/^USDOT-?/i, '');
-                        dashboardUSDOT.textContent = `USDOT-${cleanNumber}`;
+                        field1Value.textContent = `USDOT-${cleanNumber}`;
+                        field1Value.className = 'font-semibold text-blue-600';
                     } else {
-                        dashboardUSDOT.textContent = '-';
+                        field1Value.textContent = '-';
+                        field1Value.className = 'font-semibold text-gray-500';
                     }
-                } else {
-                    dashboardUSDOT.textContent = 'N/A';
                 }
-            }
-            if (dashboardMC) {
-                if (user.accountType === 'broker' || user.accountType === 'carrier') {
-                    dashboardMC.textContent = user.mcNumber || '-';
-                } else {
-                    dashboardMC.textContent = 'N/A';
+                
+                if (field2Label) field2Label.textContent = 'MC Number:';
+                if (field2Value) {
+                    field2Value.textContent = user.mcNumber || '-';
+                    field2Value.className = user.mcNumber ? 'font-semibold text-blue-600' : 'font-semibold text-gray-500';
                 }
             }
 
-            // Update statistics
-            if (dashboardLoadsPosted) dashboardLoadsPosted.textContent = user.loadsPosted || '0';
-            if (dashboardLoadsBooked) dashboardLoadsBooked.textContent = user.loadsBooked || '0';
-            if (dashboardRevenue) dashboardRevenue.textContent = user.totalRevenue ? `$${user.totalRevenue}` : '$0';
-            if (dashboardRating) dashboardRating.textContent = user.rating || '5.0';
+            // Populate Additional Account Details
+            const accountStatus = document.getElementById('dashboardAccountStatus');
+            const planExpiry = document.getElementById('dashboardPlanExpiry');
+            const verificationStatus = document.getElementById('dashboardVerificationStatus');
+            const expiryContainer = document.getElementById('dashboardExpiryContainer');
+            
+            // Account Status
+            if (accountStatus) {
+                if (user.isActive !== false) {
+                    accountStatus.textContent = 'Active';
+                    accountStatus.className = 'font-semibold text-green-600';
+                } else {
+                    accountStatus.textContent = 'Inactive';
+                    accountStatus.className = 'font-semibold text-red-600';
+                }
+            }
+            
+            // Plan Expiry (show for all users with subscriptionPlan)
+            if (planExpiry && expiryContainer) {
+                const premiumExpires = user.premiumExpires || user.planExpiry;
+                if (premiumExpires) {
+                    const expiryDate = new Date(premiumExpires);
+                    const today = new Date();
+                    const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    const formattedExpiry = expiryDate.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    
+                    planExpiry.textContent = formattedExpiry;
+                    
+                    // Color code based on days remaining
+                    if (daysUntilExpiry < 7) {
+                        planExpiry.className = 'font-semibold text-red-600';
+                    } else if (daysUntilExpiry < 30) {
+                        planExpiry.className = 'font-semibold text-orange-600';
+                } else {
+                        planExpiry.className = 'font-semibold text-green-600';
+                    }
+                } else {
+                    // Hide expiry for free plans
+                    expiryContainer.classList.add('hidden');
+                }
+            }
+            
+            // Verification Status
+            if (verificationStatus) {
+                const isVerified = user.isEmailVerified || user.isVerified || false;
+                if (isVerified) {
+                    verificationStatus.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>Verified</span>';
+                } else {
+                    verificationStatus.innerHTML = '<span class="text-yellow-600"><i class="fas fa-exclamation-circle mr-1"></i>Pending</span>';
+                }
+            }
+
+            // Populate Quick Actions Summary
+            const lastLoginEl = document.getElementById('dashboardLastLogin');
+            const notificationsEl = document.getElementById('dashboardNotifications');
+            
+            if (lastLoginEl) {
+                const lastLogin = user.lastLogin || user.updatedAt || new Date();
+                const lastLoginDate = new Date(lastLogin);
+                const today = new Date();
+                const diffDays = Math.floor((today - lastLoginDate) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    lastLoginEl.textContent = 'Today';
+                } else if (diffDays === 1) {
+                    lastLoginEl.textContent = 'Yesterday';
+                } else if (diffDays < 7) {
+                    lastLoginEl.textContent = `${diffDays} days ago`;
+                } else {
+                    lastLoginEl.textContent = lastLoginDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            }
+            
+            if (notificationsEl) {
+                // Placeholder - can be updated to fetch real notification count from backend
+                notificationsEl.textContent = '0 new';
+            }
+
+            // Populate Performance Insights (Stats Card)
+            const monthlyActivityEl = document.getElementById('dashboardMonthlyActivity');
+            const totalCompletedEl = document.getElementById('dashboardTotalCompleted');
+            const successRateEl = document.getElementById('dashboardSuccessRate');
+            
+            // These will be updated by fetchUserDashboardStats with real data
+            if (monthlyActivityEl) monthlyActivityEl.textContent = '+0';
+            if (totalCompletedEl) totalCompletedEl.textContent = '0';
+            if (successRateEl) successRateEl.textContent = '100%';
+
+            // Fetch and update REAL statistics from database
+            fetchUserDashboardStats(user, {
+                dashboardLoadsPosted,
+                dashboardLoadsBooked,
+                dashboardRevenue,
+                dashboardRating
+            });
 
             // Add authority status to dashboard
             addAuthorityStatusToDashboard(user);
@@ -10548,14 +12030,306 @@
             if (postedLoadsSection) {
                 if (user.accountType === 'broker' || user.role === 'admin') {
                     postedLoadsSection.classList.remove('hidden');
-                    // Populate posted loads section
-                    populatePostedLoadsSection(user);
+            // Populate posted loads section
+            populatePostedLoadsSection(user);
                 } else {
                     postedLoadsSection.classList.add('hidden');
                 }
             }
+        }
 
-            console.log('User dashboard populated successfully');
+        // Handle Profile Photo Upload
+        async function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file (JPG, PNG, GIF, etc.)');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('Image size must be less than 5MB');
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (!user || !user.token) {
+                alert('Please log in to update your profile photo');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const initialsEl = document.getElementById('dashboardUserInitials');
+                if (initialsEl) {
+                    initialsEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                }
+
+                // Convert image to base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
+
+                    try {
+                        // Send to backend
+                        const response = await fetch(`${API_BASE_URL}/users/profile-photo`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({ profilePhoto: base64Image })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update user in localStorage
+                            user.profilePhoto = base64Image;
+                            localStorage.setItem('currentUser', JSON.stringify(user));
+
+                            // Update display immediately
+                            updateProfilePhotoDisplay(base64Image);
+
+                            showNotification('Profile photo updated successfully!', 'success');
+                        } else {
+                            throw new Error(data.error || 'Failed to update profile photo');
+                        }
+                    } catch (error) {
+                        console.error('❌ Profile photo upload error:', error);
+                        alert('Failed to update profile photo. Please try again.');
+                        
+                        // Restore initials on error
+                        if (initialsEl) {
+                            const displayName = user.company || user.name || user.email;
+                            const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                            initialsEl.textContent = initials;
+                        }
+                    }
+                };
+
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('❌ Error reading file:', error);
+                alert('Failed to read image file');
+            }
+        }
+
+        // Update profile photo display across the site
+        function updateProfilePhotoDisplay(photoUrl) {
+            // Update dashboard avatar (home page)
+            const dashboardInitials = document.getElementById('dashboardUserInitials');
+            if (dashboardInitials) {
+                if (photoUrl) {
+                    dashboardInitials.style.backgroundImage = `url(${photoUrl})`;
+                    dashboardInitials.style.backgroundSize = 'cover';
+                    dashboardInitials.style.backgroundPosition = 'center';
+                    dashboardInitials.textContent = '';
+                } else {
+                    // Reset to initials if no photo
+                    dashboardInitials.style.backgroundImage = '';
+                    const user = getCurrentUser();
+                    if (user) {
+                        const displayName = user.company || user.name || user.email;
+                        const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                        dashboardInitials.textContent = initials;
+                    }
+                }
+            }
+
+            // Update profile page avatar (User Dashboard)
+            const profileInitials = document.getElementById('profileInitials');
+            if (profileInitials) {
+                if (photoUrl) {
+                    profileInitials.style.backgroundImage = `url(${photoUrl})`;
+                    profileInitials.style.backgroundSize = 'cover';
+                    profileInitials.style.backgroundPosition = 'center';
+                    profileInitials.textContent = '';
+                    
+                    // Show delete button
+                    const deleteBtn = document.getElementById('deletePhotoBtn');
+                    if (deleteBtn) deleteBtn.classList.remove('hidden');
+                } else {
+                    // Reset to initials
+                    profileInitials.style.backgroundImage = '';
+                    const user = getCurrentUser();
+                    if (user) {
+                        const displayName = user.company || user.name || user.email;
+                        const initials = displayName.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2);
+                        profileInitials.textContent = initials;
+                    }
+                    
+                    // Hide delete button
+                    const deleteBtn = document.getElementById('deletePhotoBtn');
+                    if (deleteBtn) deleteBtn.classList.add('hidden');
+                }
+            }
+
+            // Update navbar avatar if it exists
+            const navbarAvatars = document.querySelectorAll('.user-avatar, [id*="userInitial"]');
+            navbarAvatars.forEach(avatar => {
+                if (photoUrl) {
+                    avatar.style.backgroundImage = `url(${photoUrl})`;
+                    avatar.style.backgroundSize = 'cover';
+                    avatar.style.backgroundPosition = 'center';
+                    avatar.textContent = '';
+                }
+            });
+        }
+
+        // Handle photo upload from User Dashboard (Profile Page)
+        async function handleProfilePhotoUploadFromDashboard(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('❌ Please select a valid image file (JPG, PNG, GIF, WebP)');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('❌ Image size must be less than 5MB\nPlease choose a smaller image.');
+                return;
+            }
+
+            // Get user with better error handling
+            let user = getCurrentUser();
+            
+            // If no user, try to get from window.currentUser or currentUser variable
+            if (!user) {
+                user = window.currentUser || currentUser;
+            }
+            
+            if (!user || !user.token) {
+                console.error('❌ User not found or no token');
+                alert('❌ Please log in to update your profile photo\n\nIf you are logged in, please try logging out and logging in again.');
+                return;
+            }
+
+            try {
+                // Show loading overlay
+                const profileInitials = document.getElementById('profileInitials');
+                const originalContent = profileInitials.innerHTML;
+                if (profileInitials) {
+                    profileInitials.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl"></i>';
+                }
+
+                // Convert image to base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
+
+                    try {
+                        // Send to backend
+                        const response = await fetch(`${API_BASE_URL}/users/profile-photo`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({ profilePhoto: base64Image })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update user in localStorage
+                            user.profilePhoto = base64Image;
+                            localStorage.setItem('currentUser', JSON.stringify(user));
+
+                            // Update display everywhere
+                            updateProfilePhotoDisplay(base64Image);
+
+                            // Show success message
+                            showNotification('✅ Profile photo updated successfully!', 'success');
+                        } else {
+                            throw new Error(data.error || 'Failed to update profile photo');
+                        }
+                    } catch (error) {
+                        console.error('❌ Profile photo upload error:', error);
+                        alert('❌ Failed to update profile photo. Please try again.');
+                        
+                        // Restore original content
+                        if (profileInitials) {
+                            profileInitials.innerHTML = originalContent;
+                        }
+                    }
+                };
+
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('❌ Error reading file:', error);
+                alert('❌ Failed to read image file');
+            }
+        }
+
+        // Delete profile photo
+        async function deleteProfilePhoto() {
+            // Get user with better error handling
+            let user = getCurrentUser();
+            
+            // If no user, try to get from window.currentUser or currentUser variable
+            if (!user) {
+                user = window.currentUser || currentUser;
+            }
+            
+            if (!user || !user.token) {
+                console.error('❌ User not found or no token');
+                alert('❌ Please log in to delete your profile photo\n\nIf you are logged in, please try logging out and logging in again.');
+                return;
+            }
+
+            // Confirm deletion
+            if (!confirm('Are you sure you want to remove your profile photo?')) {
+                return;
+            }
+
+            try {
+                // Show loading
+                const profileInitials = document.getElementById('profileInitials');
+                if (profileInitials) {
+                    profileInitials.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl"></i>';
+                }
+
+                // Send delete request to backend
+                const response = await fetch(`${API_BASE_URL}/users/profile-photo`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Remove photo from localStorage
+                    user.profilePhoto = '';
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+
+                    // Update display everywhere (show initials)
+                    updateProfilePhotoDisplay('');
+
+                    // Show success message
+                    showNotification('✅ Profile photo removed successfully', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to delete profile photo');
+                }
+            } catch (error) {
+                console.error('❌ Delete photo error:', error);
+                alert('❌ Failed to remove profile photo. Please try again.');
+                
+                // Restore current photo if exists
+                updateProfilePhotoDisplay(user.profilePhoto || '');
+            }
         }
 
         // Add authority status to dashboard
@@ -10576,11 +12350,11 @@
             const statusMessage = getAuthorityStatusMessage(user);
             if (!statusMessage) return;
 
-            // Create status element in the profile card
+                // Create status element in the profile card
             const profileCard = document.querySelector('#userDashboardSection .bg-white.rounded-xl.shadow-lg.p-6');
-            if (profileCard) {
+                if (profileCard) {
                 const statusElement = document.createElement('div');
-                statusElement.id = 'dashboardAuthorityStatus';
+                    statusElement.id = 'dashboardAuthorityStatus';
                 statusElement.textContent = statusMessage;
                 statusElement.className = statusMessage.includes('✅') ? 
                     'mt-3 p-2 rounded text-xs text-green-700 bg-green-100' :
@@ -13160,170 +14934,22 @@
         }
 
         function updateLiveStatistics() {
-            // Only update if page is visible
-            if (!isPageVisible) return;
+            // ❌ REMOVED FAKE DATA GENERATION
+            // This function previously generated fake statistics
+            // Now we ONLY show REAL data from database via fetchPlatformStats()
+            // This function does NOTHING to ensure honesty with users
             
-            // Use cached DOM elements
-            const carriersEl = getCachedElement('liveCarriers', 'liveStats');
-            const shippersEl = getCachedElement('liveShippers', 'liveStats');
-            const freightValueEl = getCachedElement('liveFreightValue', 'liveStats');
-            const loadsEl = getCachedElement('liveLoads', 'liveStats');
-            const totalLoadsEl = getCachedElement('totalLoads', 'liveStats');
-
-            // Batch DOM updates to reduce reflows
-            const updates = [];
-            
-            if (carriersEl) {
-                const baseValue = 1247892;
-                const variation = Math.floor(Math.random() * 100) - 50;
-                const newValue = baseValue + variation;
-                updates.push({ element: carriersEl, value: newValue.toLocaleString() });
-            }
-
-            if (shippersEl) {
-                const baseValue = 85432;
-                const variation = Math.floor(Math.random() * 20) - 10;
-                const newValue = baseValue + variation;
-                updates.push({ element: shippersEl, value: newValue.toLocaleString() });
-            }
-
-            if (freightValueEl) {
-                const baseValue = 180.2;
-                const variation = (Math.random() * 0.4) - 0.2;
-                const newValue = (baseValue + variation).toFixed(1);
-                updates.push({ element: freightValueEl, value: `$${newValue}B` });
-            }
-
-            // Calculate available loads once and reuse
-            const availableLoads = loads ? loads.filter(load => load.status === 'available').length : 0;
-            
-            if (loadsEl) {
-                const variation = Math.floor(Math.random() * 100) - 50;
-                const newValue = Math.max(800, availableLoads + variation);
-                updates.push({ element: loadsEl, value: newValue.toLocaleString() });
-            }
-
-            if (totalLoadsEl) {
-                const variation = Math.floor(Math.random() * 50) - 25;
-                const newValue = Math.max(800, availableLoads + variation);
-                updates.push({ element: totalLoadsEl, value: newValue.toLocaleString() });
-            }
-
-            // Apply all updates in a single batch
-            updates.forEach(update => {
-                if (update.element && update.element.textContent !== update.value) {
-                    update.element.textContent = update.value;
-                }
-            });
+            // Do NOT update anything here - let fetchPlatformStats handle ALL updates with REAL data
+            return;
         }
 
         function updateActivityFeed() {
-            const activityFeed = document.getElementById('activityFeed');
-            if (!activityFeed) return;
-
-            const activities = [
-                {
-                    type: 'load_posted',
-                    message: 'New load posted: Chicago → Atlanta',
-                    company: 'ABC Logistics',
-                    time: '2 minutes ago',
-                    amount: '$2,150',
-                    color: 'green'
-                },
-                {
-                    type: 'load_booked',
-                    message: 'Load booked: Miami → New York',
-                    company: 'Fresh Transport',
-                    time: '4 minutes ago',
-                    amount: '$3,840',
-                    color: 'blue'
-                },
-                {
-                    type: 'carrier_registered',
-                    message: 'New carrier registered: Texas Cold Chain',
-                    company: 'Houston, TX',
-                    time: '6 minutes ago',
-                    amount: 'Reefer',
-                    color: 'orange'
-                },
-                {
-                    type: 'load_posted',
-                    message: 'Load posted: Denver → Salt Lake City',
-                    company: 'Mountain Peak Transport',
-                    time: '8 minutes ago',
-                    amount: '$2,200',
-                    color: 'purple'
-                },
-                {
-                    type: 'load_booked',
-                    message: 'Load booked: New York → Boston',
-                    company: 'Northeast Express',
-                    time: '12 minutes ago',
-                    amount: '$1,800',
-                    color: 'green'
-                },
-                {
-                    type: 'shipper_registered',
-                    message: 'New shipper registered: Bay Area Logistics',
-                    company: 'San Francisco, CA',
-                    time: '15 minutes ago',
-                    amount: 'Technology',
-                    color: 'blue'
-                },
-                {
-                    type: 'load_posted',
-                    message: 'Load posted: Los Angeles → Phoenix',
-                    company: 'West Coast Freight',
-                    time: '18 minutes ago',
-                    amount: '$1,890',
-                    color: 'green'
-                },
-                {
-                    type: 'load_booked',
-                    message: 'Load booked: Dallas → Denver',
-                    company: 'Lone Star Logistics',
-                    time: '22 minutes ago',
-                    amount: '$2,340',
-                    color: 'blue'
-                }
-            ];
-
-            // Randomly select 6 activities
-            const selectedActivities = activities.sort(() => 0.5 - Math.random()).slice(0, 6);
+            // ❌ REMOVED FAKE ACTIVITY DATA
+            // This function previously generated fake activity feed
+            // TODO: Implement real activity feed from database when ready
             
-            // Update time stamps to be more recent
-            const timeOptions = ['1 minute ago', '2 minutes ago', '3 minutes ago', '4 minutes ago', '5 minutes ago', '7 minutes ago'];
-            selectedActivities.forEach((activity, index) => {
-                activity.time = timeOptions[index] || activity.time;
-            });
-
-            // Generate HTML for activities
-            const activitiesHTML = selectedActivities.map(activity => {
-                const colorClasses = {
-                    green: 'bg-green-50 border-green-500 text-green-600',
-                    blue: 'bg-blue-50 border-blue-500 text-blue-600',
-                    orange: 'bg-orange-50 border-orange-500 text-orange-600',
-                    purple: 'bg-purple-50 border-purple-500 text-purple-600'
-                };
-                
-                const colorClass = colorClasses[activity.color] || colorClasses.green;
-                const dotColor = activity.color === 'green' ? 'bg-green-500' : 
-                                activity.color === 'blue' ? 'bg-blue-500' :
-                                activity.color === 'orange' ? 'bg-orange-500' : 'bg-purple-500';
-
-                return `
-                    <div class="flex items-center space-x-3 p-3 ${colorClass.split(' ')[0]} rounded-lg border-l-4 ${colorClass.split(' ')[1]}">
-                        <div class="w-2 h-2 ${dotColor} rounded-full animate-pulse"></div>
-                        <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-800">${activity.message}</div>
-                            <div class="text-xs text-gray-500">${activity.company} • ${activity.time}</div>
-                        </div>
-                        <div class="text-xs ${colorClass.split(' ')[2]} font-medium">${activity.amount}</div>
-                    </div>
-                `;
-            }).join('');
-
-            activityFeed.innerHTML = activitiesHTML;
+            // Do NOT show fake activity - keep it empty or show real data when backend is ready
+            return;
         }
 
         // Initialize the application
@@ -13355,6 +14981,13 @@
 
             // Initialize live statistics and activity feed
             initializeLiveFeatures();
+
+            // Fetch REAL platform statistics from database immediately
+            console.log('🚀 Initializing REAL platform statistics...');
+            fetchPlatformStats();
+            // Update platform stats every 30 seconds (REAL data only)
+            setInterval(fetchPlatformStats, 30000);
+            console.log('✅ Platform stats will update every 30 seconds with REAL data');
 
             const backBtn = document.getElementById('navBackBtn');
             const forwardBtn = document.getElementById('navForwardBtn');
@@ -13498,33 +15131,26 @@
 
         // Missing functions that were referenced but not defined
         function useFMCSAData() {
-            console.log('useFMCSAData called - this function is no longer needed');
             // This function is no longer needed since we removed FMCSA integration
             proceedToRegistration();
         }
 
         function showManualCompanyInfo() {
-            console.log('showManualCompanyInfo called - this function is no longer needed');
             // This function is no longer needed since we always show manual entry
             proceedToRegistration();
         }
 
         function submitManualCompanyInfo() {
-            console.log('submitManualCompanyInfo called - redirecting to proceedToRegistration');
             // This function is no longer needed since we always show manual entry
             proceedToRegistration();
         }
 
         function showAPIKeyRequestForm() {
-            console.log('showAPIKeyRequestForm called - this function is no longer needed');
             // This function is no longer needed since we removed FMCSA integration
-            // showNotification('FMCSA API integration has been removed. Please enter company information manually.', 'info');
         }
 
         // Transfer authority and company data to main registration form
         function transferAuthorityDataToRegistration() {
-            console.log('Transferring authority data to registration form');
-            
             // Get authority form data
             const authorityUSDOT = document.getElementById('authorityUSDOT');
             const authorityMC = document.getElementById('authorityMC');
@@ -13573,22 +15199,10 @@
             if (companyPhone && companyPhone.value && regPhone) {
                 regPhone.value = companyPhone.value;
             }
-            
-            console.log('Authority data transferred:', {
-                usdot: window.storedUSDOT,
-                mc: window.storedMC,
-                ein: regEIN?.value,
-                company: regCompany?.value,
-                email: regEmail?.value,
-                address: window.storedBusinessAddress,
-                phone: regPhone?.value
-            });
         }
 
         // Reset all registration form state to start fresh
         function resetRegistrationForm() {
-            console.log('Resetting registration form to start fresh');
-            
             // Set flag to prevent notifications during reset
             window.isResettingForm = true;
             
@@ -13671,9 +15285,628 @@
             
             // Clear the reset flag
             window.isResettingForm = false;
-            
-            console.log('Registration form reset complete');
         }
+
+        // ==========================================
+        // AGORA.IO VIDEO CALL FUNCTIONS (BEST FREE - 10,000 mins/month)
+        // ==========================================
+        
+        // Agora Configuration (Replace with your App ID from Agora.io)
+        const AGORA_APP_ID = "b7e82605dd5f40d1aacd9acae08f8847"; // CargoLume App ID
+        
+        // Global Agora Variables
+        let agoraClient = null;
+        let localAudioTrack = null;
+        let localVideoTrack = null;
+        let localScreenTrack = null;
+        let currentRoomID = null;
+        let isCallActive = false;
+        let isMicMuted = false;
+        let isCameraOff = false;
+        let isScreenSharing = false;
+        let callStartTime = null;
+        let callDurationInterval = null;
+        
+        // Initialize Agora Client
+        async function initAgoraClient() {
+            if (typeof AgoraRTC === 'undefined') {
+                console.error('Agora SDK not loaded');
+                alert('❌ Video call feature is not available. Please refresh the page.');
+                return false;
+            }
+            
+            try {
+                agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+                
+                // Subscribe to remote users
+                agoraClient.on('user-published', async (user, mediaType) => {
+                    await agoraClient.subscribe(user, mediaType);
+                    
+                    if (mediaType === 'video') {
+                        const remoteVideoContainer = createRemoteVideoContainer(user.uid);
+                        user.videoTrack.play(remoteVideoContainer);
+                    }
+                    
+                    if (mediaType === 'audio') {
+                        user.audioTrack.play();
+                    }
+                    
+                    updateParticipantCount();
+                });
+                
+                agoraClient.on('user-unpublished', (user, mediaType) => {
+                    if (mediaType === 'video') {
+                        const container = document.getElementById(`remote-user-${user.uid}`);
+                        if (container) container.remove();
+                    }
+                    updateParticipantCount();
+                });
+                
+                agoraClient.on('user-left', (user) => {
+                    const container = document.getElementById(`remote-user-${user.uid}`);
+                    if (container) container.remove();
+                    updateParticipantCount();
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Agora client:', error);
+                return false;
+            }
+        }
+        
+        // Create Remote Video Container
+        function createRemoteVideoContainer(uid) {
+            const remoteContainer = document.getElementById('remoteVideosContainer');
+            if (!remoteContainer) return null;
+            
+            // Check if container already exists
+            let userContainer = document.getElementById(`remote-user-${uid}`);
+            if (!userContainer) {
+                userContainer = document.createElement('div');
+                userContainer.id = `remote-user-${uid}`;
+                userContainer.className = 'relative bg-gray-800 rounded-lg overflow-hidden';
+                userContainer.innerHTML = `
+                    <div class="absolute bottom-2 left-2 bg-black bg-opacity-60 px-2 py-1 rounded text-white text-xs z-10">
+                        <i class="fas fa-user mr-1"></i>User ${uid}
+                    </div>
+                `;
+                remoteContainer.appendChild(userContainer);
+            }
+            
+            return userContainer;
+        }
+        
+        // Start Video Call
+        async function startVideoCall() {
+            // Validate App ID
+            if (!AGORA_APP_ID || AGORA_APP_ID === 'YOUR_AGORA_APP_ID_HERE') {
+                alert('⚠️ Please configure your Agora App ID first!\n\n1. Go to https://www.agora.io/\n2. Create a FREE account\n3. Get your App ID\n4. Add it to .env file or update AGORA_APP_ID in the code');
+                return;
+            }
+            
+            const nameInput = document.getElementById('videoCallName');
+            const roomInput = document.getElementById('videoCallRoomID');
+            
+            const userName = nameInput?.value.trim() || getCurrentUser()?.name || 'Guest';
+            let roomID = roomInput?.value.trim() || `room-${Date.now()}`;
+            
+            if (!userName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            try {
+                // Initialize client
+                const initialized = await initAgoraClient();
+                if (!initialized) {
+                    alert('Failed to initialize video client');
+                    return;
+                }
+                
+                // Join channel
+                await agoraClient.join(AGORA_APP_ID, roomID, null, null);
+                currentRoomID = roomID;
+                
+                // Create local tracks
+                [localAudioTrack, localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+                
+                // Publish local tracks
+                await agoraClient.publish([localAudioTrack, localVideoTrack]);
+                
+                // Play local video in PiP
+                const localVideoStream = document.getElementById('localVideoStream');
+                if (localVideoStream) {
+                    localVideoTrack.play(localVideoStream);
+                }
+                
+                // Switch to active call UI
+                document.getElementById('videoCallSetup').classList.add('hidden');
+                document.getElementById('videoCallActive').classList.remove('hidden');
+                
+                // Update room info
+                document.getElementById('currentRoomID').textContent = roomID;
+                
+                // Start call duration timer
+                isCallActive = true;
+                callStartTime = Date.now();
+                startCallDurationTimer();
+                
+                // Start connection quality monitoring
+                startConnectionQualityMonitoring();
+                
+                // Update participant count
+                updateParticipantCount();
+                
+                console.log('✅ Video call started successfully');
+            } catch (error) {
+                console.error('❌ Error starting video call:', error);
+                alert(`Failed to start video call: ${error.message}`);
+            }
+        }
+        
+        // End Video Call
+        async function endVideoCall() {
+            if (!confirm('Are you sure you want to end the call?')) {
+                return;
+            }
+            
+            try {
+                // Stop local tracks
+                if (localAudioTrack) {
+                    localAudioTrack.stop();
+                    localAudioTrack.close();
+                    localAudioTrack = null;
+                }
+                
+                if (localVideoTrack) {
+                    localVideoTrack.stop();
+                    localVideoTrack.close();
+                    localVideoTrack = null;
+                }
+                
+                if (localScreenTrack) {
+                    localScreenTrack.stop();
+                    localScreenTrack.close();
+                    localScreenTrack = null;
+                }
+                
+                // Leave channel
+                if (agoraClient) {
+                    await agoraClient.leave();
+                }
+                
+                // Clear remote videos
+                const remoteContainer = document.getElementById('remoteVideosContainer');
+                if (remoteContainer) {
+                    remoteContainer.innerHTML = '';
+                }
+                
+                // Stop call duration timer
+                if (callDurationInterval) {
+                    clearInterval(callDurationInterval);
+                    callDurationInterval = null;
+                }
+                
+                // Stop connection quality monitoring
+                if (connectionQualityInterval) {
+                    clearInterval(connectionQualityInterval);
+                    connectionQualityInterval = null;
+                }
+                
+                // Clear chat messages
+                videoCallChatMessages = [];
+                
+                // Hide chat sidebar if open
+                const chatSidebar = document.getElementById('videoCallChatSidebar');
+                if (chatSidebar) {
+                    chatSidebar.classList.add('hidden');
+                }
+                
+                // Switch back to setup UI
+                document.getElementById('videoCallActive').classList.add('hidden');
+                document.getElementById('videoCallSetup').classList.remove('hidden');
+                
+                // Reset state
+                isCallActive = false;
+                isMicMuted = false;
+                isCameraOff = false;
+                isScreenSharing = false;
+                currentRoomID = null;
+                
+                console.log('✅ Video call ended successfully');
+            } catch (error) {
+                console.error('❌ Error ending video call:', error);
+            }
+        }
+        
+        // Toggle Microphone
+        async function toggleMicrophone() {
+            if (!localAudioTrack) return;
+            
+            isMicMuted = !isMicMuted;
+            await localAudioTrack.setMuted(isMicMuted);
+            
+            const micBtn = document.getElementById('toggleMicBtn');
+            if (micBtn) {
+                if (isMicMuted) {
+                    micBtn.classList.add('bg-red-600');
+                    micBtn.classList.remove('bg-gray-700');
+                    micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                } else {
+                    micBtn.classList.remove('bg-red-600');
+                    micBtn.classList.add('bg-gray-700');
+                    micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                }
+            }
+        }
+        
+        // Toggle Camera
+        async function toggleCamera() {
+            if (!localVideoTrack) return;
+            
+            isCameraOff = !isCameraOff;
+            await localVideoTrack.setMuted(isCameraOff);
+            
+            const cameraBtn = document.getElementById('toggleCameraBtn');
+            if (cameraBtn) {
+                if (isCameraOff) {
+                    cameraBtn.classList.add('bg-red-600');
+                    cameraBtn.classList.remove('bg-gray-700');
+                    cameraBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
+                } else {
+                    cameraBtn.classList.remove('bg-red-600');
+                    cameraBtn.classList.add('bg-gray-700');
+                    cameraBtn.innerHTML = '<i class="fas fa-video"></i>';
+                }
+            }
+        }
+        
+        // Toggle Screen Share
+        async function toggleScreenShare() {
+            try {
+                if (!isScreenSharing) {
+                    // Start screen sharing
+                    localScreenTrack = await AgoraRTC.createScreenVideoTrack();
+                    
+                    // Replace video track with screen track
+                    if (localVideoTrack) {
+                        await agoraClient.unpublish([localVideoTrack]);
+                    }
+                    
+                    await agoraClient.publish([localScreenTrack]);
+                    
+                    // Play screen in local PiP
+                    const localVideoStream = document.getElementById('localVideoStream');
+                    if (localVideoStream) {
+                        localScreenTrack.play(localVideoStream);
+                    }
+                    
+                    isScreenSharing = true;
+                    showNotification('✅ Screen sharing started', 'success');
+                    
+                    // Listen for screen share end
+                    localScreenTrack.on('track-ended', () => {
+                        toggleScreenShare();
+                    });
+                } else {
+                    // Stop screen sharing
+                    if (localScreenTrack) {
+                        await agoraClient.unpublish([localScreenTrack]);
+                        localScreenTrack.stop();
+                        localScreenTrack.close();
+                        localScreenTrack = null;
+                    }
+                    
+                    // Restore video track
+                    if (localVideoTrack) {
+                        await agoraClient.publish([localVideoTrack]);
+                        const localVideoStream = document.getElementById('localVideoStream');
+                        if (localVideoStream) {
+                            localVideoTrack.play(localVideoStream);
+                        }
+                    }
+                    
+                    isScreenSharing = false;
+                    showNotification('Screen sharing stopped', 'info');
+                }
+            } catch (error) {
+                console.error('Screen share error:', error);
+                alert('Failed to share screen: ' + error.message);
+            }
+        }
+        
+        // Test Devices
+        async function testDevices() {
+            try {
+                const devices = await AgoraRTC.getDevices();
+                
+                const cameras = devices.filter(d => d.kind === 'videoinput');
+                const microphones = devices.filter(d => d.kind === 'audioinput');
+                
+                // Populate device selects
+                const cameraSelect = document.getElementById('cameraSelect');
+                const micSelect = document.getElementById('microphoneSelect');
+                
+                if (cameraSelect) {
+                    cameraSelect.innerHTML = '<option value="">Default Camera</option>';
+                    cameras.forEach(camera => {
+                        const option = document.createElement('option');
+                        option.value = camera.deviceId;
+                        option.textContent = camera.label || `Camera ${cameras.indexOf(camera) + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+                }
+                
+                if (micSelect) {
+                    micSelect.innerHTML = '<option value="">Default Microphone</option>';
+                    microphones.forEach(mic => {
+                        const option = document.createElement('option');
+                        option.value = mic.deviceId;
+                        option.textContent = mic.label || `Microphone ${microphones.indexOf(mic) + 1}`;
+                        micSelect.appendChild(option);
+                    });
+                }
+                
+                showNotification(`✅ Found ${cameras.length} camera(s) and ${microphones.length} microphone(s)`, 'success');
+            } catch (error) {
+                console.error('Device test error:', error);
+                alert('Failed to test devices: ' + error.message);
+            }
+        }
+        
+        // Update Participant Count
+        function updateParticipantCount() {
+            if (!agoraClient) return;
+            
+            const participantCount = document.getElementById('participantCount');
+            if (participantCount && agoraClient.remoteUsers) {
+                participantCount.textContent = agoraClient.remoteUsers.length + 1;
+            }
+        }
+        
+        // Start Call Duration Timer
+        function startCallDurationTimer() {
+            if (callDurationInterval) {
+                clearInterval(callDurationInterval);
+            }
+            
+            callDurationInterval = setInterval(() => {
+                const durationEl = document.getElementById('callDuration');
+                if (durationEl && callStartTime) {
+                    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    durationEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        // Chat Messages Array
+        let videoCallChatMessages = [];
+        
+        // Toggle Chat Sidebar
+        function toggleChat() {
+            const chatSidebar = document.getElementById('videoCallChatSidebar');
+            if (!chatSidebar) return;
+            
+            if (chatSidebar.classList.contains('hidden')) {
+                chatSidebar.classList.remove('hidden');
+                // Mark chat button as active
+                const chatBtn = document.querySelector('button[onclick="toggleChat()"]');
+                if (chatBtn) {
+                    chatBtn.classList.add('bg-blue-600');
+                    chatBtn.classList.remove('bg-gray-700');
+                }
+            } else {
+                chatSidebar.classList.add('hidden');
+                // Mark chat button as inactive
+                const chatBtn = document.querySelector('button[onclick="toggleChat()"]');
+                if (chatBtn) {
+                    chatBtn.classList.remove('bg-blue-600');
+                    chatBtn.classList.add('bg-gray-700');
+                }
+            }
+        }
+        
+        // Send Chat Message
+        function sendChatMessage(event) {
+            event.preventDefault();
+            
+            const input = document.getElementById('videoCallChatInput');
+            if (!input || !input.value.trim()) return;
+            
+            const message = input.value.trim();
+            const user = getCurrentUser();
+            const userName = user?.name || user?.company || 'You';
+            
+            // Add message to array
+            videoCallChatMessages.push({
+                sender: userName,
+                message: message,
+                timestamp: new Date().toISOString(),
+                isLocal: true
+            });
+            
+            // Render messages
+            renderChatMessages();
+            
+            // Clear input
+            input.value = '';
+            
+            // TODO: Send message to other participants via Agora data stream
+            console.log('Chat message sent:', message);
+        }
+        
+        // Render Chat Messages
+        function renderChatMessages() {
+            const messagesContainer = document.getElementById('videoCallChatMessages');
+            if (!messagesContainer) return;
+            
+            if (videoCallChatMessages.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div class="text-gray-400 text-sm text-center py-4">
+                        <i class="fas fa-info-circle mr-1"></i>No messages yet. Start the conversation!
+                    </div>
+                `;
+                return;
+            }
+            
+            messagesContainer.innerHTML = videoCallChatMessages.map(msg => {
+                const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const bgColor = msg.isLocal ? 'bg-blue-600' : 'bg-gray-700';
+                const alignment = msg.isLocal ? 'ml-auto' : 'mr-auto';
+                
+                return `
+                    <div class="${alignment} max-w-xs">
+                        <div class="text-xs text-gray-400 mb-1 ${msg.isLocal ? 'text-right' : 'text-left'}">${msg.sender}</div>
+                        <div class="${bgColor} text-white px-3 py-2 rounded-lg">
+                            <p class="text-sm">${escapeHtml(msg.message)}</p>
+                            <p class="text-xs text-gray-300 mt-1">${time}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Copy Room Link
+        function copyRoomLink() {
+            if (!currentRoomID) {
+                showNotification('No active room', 'error');
+                return;
+            }
+            
+            const roomLink = `${window.location.origin}${window.location.pathname}?room=${currentRoomID}`;
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(roomLink).then(() => {
+                    showNotification('✅ Room link copied to clipboard!', 'success');
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    fallbackCopyTextToClipboard(roomLink);
+                });
+            } else {
+                fallbackCopyTextToClipboard(roomLink);
+            }
+        }
+        
+        // Fallback clipboard copy
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification('✅ Room link copied to clipboard!', 'success');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                showNotification('❌ Failed to copy link. Please copy manually: ' + text, 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // Monitor Connection Quality
+        let connectionQualityInterval = null;
+        
+        function startConnectionQualityMonitoring() {
+            if (connectionQualityInterval) {
+                clearInterval(connectionQualityInterval);
+            }
+            
+            connectionQualityInterval = setInterval(async () => {
+                if (!agoraClient || !isCallActive) {
+                    return;
+                }
+                
+                try {
+                    // Get network stats from Agora
+                    const stats = agoraClient.getRTCStats();
+                    
+                    // Calculate quality based on RTT and packet loss
+                    const rtt = stats.RTT || 0; // Round Trip Time in ms
+                    const quality = calculateConnectionQuality(rtt);
+                    
+                    updateConnectionQualityUI(quality);
+                } catch (error) {
+                    console.error('Failed to get connection quality:', error);
+                }
+            }, 3000); // Check every 3 seconds
+        }
+        
+        function calculateConnectionQuality(rtt) {
+            if (rtt < 100) {
+                return { level: 'excellent', color: 'green', text: 'Excellent' };
+            } else if (rtt < 200) {
+                return { level: 'good', color: 'blue', text: 'Good' };
+            } else if (rtt < 300) {
+                return { level: 'fair', color: 'yellow', text: 'Fair' };
+            } else {
+                return { level: 'poor', color: 'red', text: 'Poor' };
+            }
+        }
+        
+        function updateConnectionQualityUI(quality) {
+            const icon = document.getElementById('connectionQualityIcon');
+            const text = document.getElementById('connectionQualityText');
+            
+            if (!icon || !text) return;
+            
+            // Update colors
+            const colorClass = `text-${quality.color}-400`;
+            icon.className = `fas fa-signal mr-1 ${colorClass}`;
+            text.className = colorClass;
+            text.textContent = quality.text;
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Participants List Toggle
+        function toggleParticipants() {
+            if (!agoraClient || !isCallActive) {
+                showNotification('No active call', 'info');
+                return;
+            }
+            
+            const participantsList = agoraClient.remoteUsers.map((user, idx) => `${idx + 1}. User ${user.uid}`).join('\n');
+            const totalParticipants = agoraClient.remoteUsers.length + 1;
+            
+            alert(`📋 Participants (${totalParticipants}):\n\n1. You (Host)\n${participantsList || '(No other participants)'}`);
+        }
+        
+        // Call Settings Toggle
+        function toggleSettings() {
+            showNotification('Call settings coming soon!', 'info');
+        }
+        
+        // Make functions globally accessible
+        window.startVideoCall = startVideoCall;
+        window.endVideoCall = endVideoCall;
+        window.toggleMicrophone = toggleMicrophone;
+        window.toggleCamera = toggleCamera;
+        window.toggleScreenShare = toggleScreenShare;
+        window.testDevices = testDevices;
+        window.toggleChat = toggleChat;
+        window.sendChatMessage = sendChatMessage;
+        window.copyRoomLink = copyRoomLink;
+        window.toggleParticipants = toggleParticipants;
+        window.toggleSettings = toggleSettings;
 
     </script>
 </body>

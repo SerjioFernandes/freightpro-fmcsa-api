@@ -166,6 +166,37 @@ const userSchema = new mongoose.Schema({
         return expiry;
     }},
     
+    // Profile Photo (base64 encoded image)
+    profilePhoto: { type: String, default: '' },
+    
+    // User Preferences & Settings
+    preferences: {
+        units: { type: String, default: 'imperial', enum: ['imperial', 'metric'] },
+        timezone: { type: String, default: 'America/New_York' },
+        dateFormat: { type: String, default: 'MM/DD/YYYY', enum: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'] },
+        searchRadius: { type: Number, default: 500 }, // in miles
+        language: { type: String, default: 'en', enum: ['en', 'es', 'fr'] }
+    },
+    
+    // Notification Preferences
+    notifications: {
+        emailLoads: { type: Boolean, default: true },
+        emailBids: { type: Boolean, default: true },
+        emailRates: { type: Boolean, default: false },
+        emailUpdates: { type: Boolean, default: true },
+        emailMarketing: { type: Boolean, default: false },
+        frequency: { type: String, default: 'instant', enum: ['instant', 'hourly', 'daily', 'weekly'] }
+    },
+    
+    // Session Tracking
+    sessions: [{
+        token: { type: String },
+        device: { type: String },
+        ip: { type: String },
+        lastActivity: { type: Date, default: Date.now },
+        createdAt: { type: Date, default: Date.now }
+    }],
+    
     // Timestamps
     createdAt: { type: Date, default: Date.now },
     lastLogin: { type: Date, default: Date.now }
@@ -835,8 +866,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
         // Update last login
         user.lastLogin = new Date();
-        await user.save();
-
+        
         // Generate JWT token
         const token = jsonwebtoken.sign(
             { 
@@ -848,6 +878,26 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
             JWT_SECRET,
             { expiresIn: '7d' }
         );
+        
+        // Track session
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        const ip = req.ip || req.connection.remoteAddress || 'Unknown';
+        
+        if (!user.sessions) user.sessions = [];
+        user.sessions.push({
+            token: token.substring(0, 20), // Store first 20 chars for identification
+            device: userAgent.substring(0, 100), // Limit device string length
+            ip: ip,
+            lastActivity: new Date(),
+            createdAt: new Date()
+        });
+        
+        // Keep only last 10 sessions
+        if (user.sessions.length > 10) {
+            user.sessions = user.sessions.slice(-10);
+        }
+        
+        await user.save();
 
         res.json({
             success: true,
@@ -867,6 +917,9 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
                 role: user.role,
                 subscriptionPlan: user.subscriptionPlan,
                 premiumExpires: user.premiumExpires,
+                profilePhoto: user.profilePhoto || '',
+                preferences: user.preferences || {},
+                notifications: user.notifications || {},
                 createdAt: user.createdAt,
                 lastLogin: user.lastLogin
             }
@@ -1138,6 +1191,333 @@ app.put('/api/users/settings', authenticateToken, validateEINRequired, validateA
                 address: user.address
             }
         });
+}));
+
+// Update User Preferences
+app.put('/api/users/preferences', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { units, timezone, dateFormat, searchRadius, language } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Update preferences
+    if (!user.preferences) user.preferences = {};
+    if (units) user.preferences.units = units;
+    if (timezone) user.preferences.timezone = timezone;
+    if (dateFormat) user.preferences.dateFormat = dateFormat;
+    if (searchRadius !== undefined) user.preferences.searchRadius = parseInt(searchRadius);
+    if (language) user.preferences.language = language;
+
+    await user.save();
+
+    res.json({ 
+        success: true, 
+        message: 'Preferences updated successfully',
+        preferences: user.preferences
+    });
+}));
+
+// Update Notification Preferences
+app.put('/api/users/notifications', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { emailLoads, emailBids, emailRates, emailUpdates, emailMarketing, frequency } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Update notification preferences
+    if (!user.notifications) user.notifications = {};
+    if (emailLoads !== undefined) user.notifications.emailLoads = emailLoads;
+    if (emailBids !== undefined) user.notifications.emailBids = emailBids;
+    if (emailRates !== undefined) user.notifications.emailRates = emailRates;
+    if (emailUpdates !== undefined) user.notifications.emailUpdates = emailUpdates;
+    if (emailMarketing !== undefined) user.notifications.emailMarketing = emailMarketing;
+    if (frequency) user.notifications.frequency = frequency;
+
+    await user.save();
+
+    res.json({ 
+        success: true, 
+        message: 'Notification preferences updated successfully',
+        notifications: user.notifications
+    });
+}));
+
+// Change Password
+app.put('/api/users/password', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+        return res.status(400).json({ error: 'New password must be at least 8 characters long' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Verify current password
+    const isPasswordValid = await bcryptjs.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash and save new password
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordPlain = ''; // Clear plain text password if it exists
+    await user.save();
+
+    res.json({ 
+        success: true, 
+        message: 'Password updated successfully'
+    });
+}));
+
+// Update Profile Photo
+app.put('/api/users/profile-photo', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { profilePhoto } = req.body;
+
+    if (!profilePhoto) {
+        return res.status(400).json({ error: 'Profile photo data is required' });
+    }
+
+    // Validate base64 image format
+    if (!profilePhoto.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'Invalid image format' });
+    }
+
+    // Check size (base64 string length - rough estimate: ~5MB = ~6.7M characters)
+    const maxSize = 7 * 1024 * 1024; // 7MB to be safe
+    if (profilePhoto.length > maxSize) {
+        return res.status(400).json({ error: 'Image size too large. Maximum 5MB allowed' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Save profile photo
+    user.profilePhoto = profilePhoto;
+    await user.save();
+
+    console.log(`✅ Profile photo updated for user: ${user.email}`);
+
+    res.json({ 
+        success: true, 
+        message: 'Profile photo updated successfully',
+        profilePhoto: profilePhoto
+    });
+}));
+
+// Delete Profile Photo
+app.delete('/api/users/profile-photo', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Remove profile photo
+    user.profilePhoto = '';
+    await user.save();
+
+    console.log(`✅ Profile photo deleted for user: ${user.email}`);
+
+    res.json({ 
+        success: true, 
+        message: 'Profile photo removed successfully'
+    });
+}));
+
+// Get Active Sessions
+app.get('/api/users/sessions', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Clean up old sessions (older than 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const activeSessions = (user.sessions || []).filter(session => 
+        new Date(session.lastActivity) > thirtyDaysAgo
+    );
+
+    // Update user with cleaned sessions
+    user.sessions = activeSessions;
+    await user.save();
+
+    res.json({ 
+        success: true, 
+        sessions: activeSessions.map(s => ({
+            device: s.device || 'Unknown Device',
+            ip: s.ip || 'Unknown IP',
+            lastActivity: s.lastActivity,
+            createdAt: s.createdAt
+        }))
+    });
+}));
+
+// Get Platform Statistics (Real-time counts from database)
+app.get('/api/stats/platform', asyncHandler(async (req, res) => {
+    try {
+        // Get real counts from database
+        const [totalCarriers, totalShippers, totalBrokers, availableLoads, totalUsers] = await Promise.all([
+            User.countDocuments({ accountType: 'carrier', isActive: true }),
+            User.countDocuments({ accountType: 'shipper', isActive: true }),
+            User.countDocuments({ accountType: 'broker', isActive: true }),
+            Load.countDocuments({ status: 'available' }),
+            User.countDocuments({ isActive: true })
+        ]);
+
+        // Calculate total freight value from available loads
+        const loadsWithValue = await Load.aggregate([
+            { $match: { status: 'available' } },
+            { $group: { _id: null, totalValue: { $sum: '$rate' } } }
+        ]);
+        
+        const totalFreightValue = loadsWithValue.length > 0 ? loadsWithValue[0].totalValue : 0;
+
+        res.json({
+            success: true,
+            stats: {
+                activeCarriers: totalCarriers,
+                activeShippers: totalShippers,
+                activeBrokers: totalBrokers,
+                totalUsers: totalUsers,
+                availableLoads: availableLoads,
+                totalFreightValue: Math.round(totalFreightValue),
+                lastUpdated: new Date()
+            }
+        });
+    } catch (error) {
+        console.error('Platform stats error:', error);
+        // Return zeros if DB query fails
+        res.json({
+            success: true,
+            stats: {
+                activeCarriers: 0,
+                activeShippers: 0,
+                activeBrokers: 0,
+                totalUsers: 0,
+                availableLoads: 0,
+                totalFreightValue: 0,
+                lastUpdated: new Date()
+            }
+        });
+    }
+}));
+
+// Admin-only middleware
+const authenticateAdmin = (req, res, next) => {
+    if (req.user.email !== process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+};
+
+// Get All Users (Admin Only)
+app.get('/api/admin/users', authenticateToken, authenticateAdmin, asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find({})
+            .select('-password') // Exclude password hash
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.json({
+            success: true,
+            users: users.map(user => ({
+                id: user._id,
+                companyName: user.companyName || user.username || 'N/A',
+                email: user.email,
+                accountType: user.accountType || 'N/A',
+                usdot: user.usdot || '-',
+                mc: user.mc || '-',
+                isVerified: user.isVerified || false,
+                role: user.email === process.env.ADMIN_EMAIL ? 'admin' : 'user',
+                createdAt: user.createdAt,
+                isActive: user.isActive !== false,
+                phone: user.phone || '-',
+                subscriptionPlan: user.subscriptionPlan || 'basic',
+                subscriptionExpiry: user.subscriptionExpiry || null
+            }))
+        });
+    } catch (error) {
+        console.error('Admin users fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+}));
+
+// Get User Dashboard Statistics
+app.get('/api/users/stats', authenticateToken, asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    try {
+        let loadsPosted = 0;
+        let loadsBooked = 0;
+        let totalRevenue = 0;
+        let shipments = 0;
+
+        if (user.accountType === 'broker' || user.accountType === 'shipper') {
+            // Count loads posted by this user
+            loadsPosted = await Load.countDocuments({ postedBy: userId });
+            
+            // Calculate revenue from booked loads
+            const bookedLoads = await Load.find({ 
+                postedBy: userId, 
+                status: { $in: ['booked', 'in_transit', 'delivered'] }
+            });
+            totalRevenue = bookedLoads.reduce((sum, load) => sum + (load.rate || 0), 0);
+        }
+
+        if (user.accountType === 'carrier') {
+            // Count loads booked by this carrier
+            loadsBooked = await Load.countDocuments({ bookedBy: userId });
+            
+            // Calculate revenue from delivered loads
+            const deliveredLoads = await Load.find({ 
+                bookedBy: userId, 
+                status: 'delivered'
+            });
+            totalRevenue = deliveredLoads.reduce((sum, load) => sum + (load.rate || 0), 0);
+        }
+
+        if (user.accountType === 'shipper') {
+            // Count shipments created
+            shipments = await Shipment.countDocuments({ postedBy: userId });
+        }
+
+        res.json({
+            success: true,
+            stats: {
+                loadsPosted: loadsPosted,
+                loadsBooked: loadsBooked,
+                totalRevenue: Math.round(totalRevenue),
+                shipments: shipments,
+                rating: 5.0 // TODO: Implement real rating system
+            }
+        });
+    } catch (error) {
+        console.error('User stats error:', error);
+        res.json({
+            success: true,
+            stats: {
+                loadsPosted: 0,
+                loadsBooked: 0,
+                totalRevenue: 0,
+                shipments: 0,
+                rating: 5.0
+            }
+        });
+    }
 }));
 
 // Get Loads
