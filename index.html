@@ -10234,9 +10234,13 @@
             }
 
             if (!result || !result.token || !result.user) return;
+            // Store token separately
             localStorage.setItem('authToken', result.token);
-            localStorage.setItem('currentUser', JSON.stringify(result.user));
-            window.currentUser = result.user;
+            
+            // Add token to user object for convenience
+            const userWithToken = { ...result.user, token: result.token };
+            localStorage.setItem('currentUser', JSON.stringify(userWithToken));
+            window.currentUser = userWithToken;
         }
 
         function navigateAfterLogin(user) {
