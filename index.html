@@ -2325,6 +2325,9 @@
                 <button id="mobileCreateShipmentBtn" onclick="showCreateShipmentPage(); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
                     <i class="fas fa-shipping-fast mr-3"></i>Create Shipment
                 </button>
+                <button id="mobileBrowseShipmentsBtn" onclick="showPage('browseshipments'); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
+                    <i class="fas fa-box-open mr-3"></i>Browse Shipments
+                </button>
                 
                 <button onclick="showPage('rates'); toggleSidebar()" class="nav-item w-full text-left text-white px-4 py-3">
                     <i class="fas fa-chart-line mr-3"></i>Rate Analysis
@@ -2380,6 +2383,9 @@
                         </button>
                         <button id="desktopCreateShipmentBtn" onclick="showCreateShipmentPage();" class="nav-item text-white text-sm px-3 py-2 hidden">
                             <i class="fas fa-shipping-fast mr-1"></i>Create Shipment
+                        </button>
+                        <button id="desktopBrowseShipmentsBtn" onclick="showPage('browseshipments');" class="nav-item text-white text-sm px-3 py-2 hidden">
+                            <i class="fas fa-box-open mr-1"></i>Browse Shipments
                         </button>
                         <button onclick="showPage('rates')" class="nav-item text-white text-sm px-3 py-2">
                             <i class="fas fa-chart-line mr-1"></i>Rates
@@ -2776,6 +2782,9 @@
                             </button>
                             <button id="dashboardPostLoadBtn" onclick="showPage('postload')" class="w-full text-left bg-gray-50 hover:bg-green-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
                                 <i class="fas fa-plus mr-3 text-green-600 group-hover:text-white"></i>Post a Load
+                            </button>
+                            <button id="dashboardBrowseShipmentsBtn" onclick="showPage('browseshipments')" class="w-full text-left bg-gray-50 hover:bg-purple-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
+                                <i class="fas fa-box-open mr-3 text-purple-600 group-hover:text-white"></i>Browse Shipments
                             </button>
                             <button id="dashboardCreateShipmentBtn" onclick="showPage('createshipment')" class="w-full text-left bg-gray-50 hover:bg-green-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
                                 <i class="fas fa-box mr-3 text-green-600 group-hover:text-white"></i>Create Shipment
@@ -7934,6 +7943,18 @@
             }
         }
 
+        function checkBrowseShipmentsAccess() {
+            const user = getCurrentUser();
+            const mobileButton = document.getElementById('mobileBrowseShipmentsBtn');
+            const desktopButton = document.getElementById('desktopBrowseShipmentsBtn');
+            const dashboardButton = document.getElementById('dashboardBrowseShipmentsBtn');
+            const canBrowse = !!(user && (user.accountType === 'broker' || user.role === 'admin'));
+
+            if (mobileButton) mobileButton.classList.toggle('hidden', !user || !canBrowse);
+            if (desktopButton) desktopButton.classList.toggle('hidden', !user || !canBrowse);
+            if (dashboardButton) dashboardButton.classList.toggle('hidden', !user || !canBrowse);
+        }
+
         function showCreateShipmentPage() {
             const user = getCurrentUser();
             if (!user) {
@@ -8854,6 +8875,7 @@
                 // Check Post Load access
                 checkPostLoadAccess();
                 checkCreateShipmentAccess();
+                checkBrowseShipmentsAccess();
                 checkLoadBoardAccess();
                 displayAuthorityStatus();
             } else {
@@ -8861,15 +8883,21 @@
                 if (authButtons) authButtons.classList.remove('hidden');
                 if (userInfo) userInfo.classList.add('hidden');
                 
-                // Hide Post Load and Create Shipment buttons for non-logged in users
+                // Hide Post Load, Create Shipment, and Browse Shipments buttons for non-logged in users
                 const mobilePostLoadBtn = document.getElementById('mobilePostLoadBtn');
                 const desktopPostLoadBtn = document.getElementById('desktopPostLoadBtn');
                 const mobileCreateShipmentBtn = document.getElementById('mobileCreateShipmentBtn');
                 const desktopCreateShipmentBtn = document.getElementById('desktopCreateShipmentBtn');
+                const mobileBrowseShipmentsBtn = document.getElementById('mobileBrowseShipmentsBtn');
+                const desktopBrowseShipmentsBtn = document.getElementById('desktopBrowseShipmentsBtn');
+                const dashboardBrowseShipmentsBtn = document.getElementById('dashboardBrowseShipmentsBtn');
                 if (mobilePostLoadBtn) mobilePostLoadBtn.classList.add('hidden');
                 if (desktopPostLoadBtn) desktopPostLoadBtn.classList.add('hidden');
                 if (mobileCreateShipmentBtn) mobileCreateShipmentBtn.classList.add('hidden');
                 if (desktopCreateShipmentBtn) desktopCreateShipmentBtn.classList.add('hidden');
+                if (mobileBrowseShipmentsBtn) mobileBrowseShipmentsBtn.classList.add('hidden');
+                if (desktopBrowseShipmentsBtn) desktopBrowseShipmentsBtn.classList.add('hidden');
+                if (dashboardBrowseShipmentsBtn) dashboardBrowseShipmentsBtn.classList.add('hidden');
             }
         }
 
