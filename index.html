@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8035,7 +8035,7 @@
                     showNotification(`✅ Shipment created successfully! Shipment ID: ${result.shipment.shipmentId}`, 'success');
                     form.reset();
                     setTimeout(() => {
-                        showPage('loadboard');
+                    showPage('loadboard');
                     }, 1500);
                 } else {
                     showNotification(result.error || result.message || 'Failed to create shipment', 'error');
@@ -8526,6 +8526,99 @@
             checkLoadBoardAccess();
             displayAuthorityStatus();
         }
+        // Handle Create Shipment Form Submission
+        async function handleCreateShipment(event) {
+            event.preventDefault();
+            
+            // Check if user is logged in
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to create shipments.', 'warning');
+                showPage('login');
+                return;
+            }
+
+            // Check if user is a shipper
+            if (user.accountType !== 'shipper' && user.role !== 'admin') {
+                showNotification('Only shippers can create shipments.', 'error');
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Get submit button to show loading state
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonContent = submitButton.innerHTML;
+            
+            try {
+                // Show loading state
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Shipment...';
+                
+                // Extract form data
+                const shipmentData = {
+                    title: formData.get('title'),
+                    description: formData.get('description') || '',
+                    pickup: {
+                        city: formData.get('pickupCity'),
+                        state: formData.get('pickupState'),
+                        zip: formData.get('pickupZip'),
+                        country: 'US'
+                    },
+                    delivery: {
+                        city: formData.get('deliveryCity'),
+                        state: formData.get('deliveryState'),
+                        zip: formData.get('deliveryZip'),
+                        country: 'US'
+                    }
+                };
+
+                console.log('Creating shipment with data:', shipmentData);
+                console.log('Using API URL:', API_BASE_URL);
+
+                // Get auth token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No authentication token found. Please log in again.');
+                }
+
+                // Send to backend
+                const response = await fetch(`${API_BASE_URL}/shipments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(shipmentData)
+                });
+
+                const data = await response.json();
+                console.log('Shipment creation response:', data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create shipment');
+                }
+
+                // Success!
+                showNotification(`✅ Shipment created successfully! ID: ${data.shipment.shipmentId}`, 'success');
+                form.reset();
+                
+                // Redirect to home/dashboard after a brief delay
+                setTimeout(() => {
+                    showPage('home');
+                }, 1500);
+
+            } catch (error) {
+                console.error('Shipment creation failed:', error);
+                showNotification(`❌ Failed to create shipment: ${error.message}`, 'error');
+            } finally {
+                // Restore button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonContent;
+            }
+        }
+
         async function handlePostLoad(event) {
             event.preventDefault();
             
