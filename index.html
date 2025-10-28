@@ -2328,6 +2328,9 @@
                 <button id="mobileBrowseShipmentsBtn" onclick="showPage('browseshipments'); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
                     <i class="fas fa-box-open mr-3"></i>Browse Shipments
                 </button>
+                <button id="mobileShipmentRequestsBtn" onclick="showPage('shipmentrequests'); toggleSidebar();" class="nav-item w-full text-left text-white px-4 py-3 hidden">
+                    <i class="fas fa-clipboard-check mr-3"></i>Requests
+                </button>
                 
                 <button onclick="showPage('rates'); toggleSidebar()" class="nav-item w-full text-left text-white px-4 py-3">
                     <i class="fas fa-chart-line mr-3"></i>Rate Analysis
@@ -2386,6 +2389,9 @@
                         </button>
                         <button id="desktopBrowseShipmentsBtn" onclick="showPage('browseshipments');" class="nav-item text-white text-sm px-3 py-2 hidden">
                             <i class="fas fa-box-open mr-1"></i>Browse Shipments
+                        </button>
+                        <button id="desktopShipmentRequestsBtn" onclick="showPage('shipmentrequests');" class="nav-item text-white text-sm px-3 py-2 hidden">
+                            <i class="fas fa-clipboard-check mr-1"></i>Requests
                         </button>
                         <button onclick="showPage('rates')" class="nav-item text-white text-sm px-3 py-2">
                             <i class="fas fa-chart-line mr-1"></i>Rates
@@ -2789,6 +2795,45 @@
                             <button id="dashboardCreateShipmentBtn" onclick="showPage('createshipment')" class="w-full text-left bg-gray-50 hover:bg-green-600 hover:text-white p-3 rounded-lg transition-all duration-300 group hidden">
                                 <i class="fas fa-box mr-3 text-green-600 group-hover:text-white"></i>Create Shipment
                             </button>
+                            
+                            <!-- Shipper Request Stats -->
+                            <button id="dashboardShipperRequestsBtn" onclick="showPage('shipmentrequests')" class="w-full text-left bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 p-4 rounded-lg transition-all duration-300 border-2 border-blue-200 hidden">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-clipboard-check mr-2 text-blue-600"></i>
+                                        <span class="font-semibold">Shipment Requests</span>
+                                    </div>
+                                    <span id="dashboardPendingRequestsCount" class="px-3 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full">0</span>
+                                </div>
+                                <div class="text-xs text-gray-600 mt-1 ml-6">
+                                    <span id="dashboardPendingRequestsText">No pending requests</span>
+                                </div>
+                            </button>
+
+                            <!-- Broker Request Stats -->
+                            <div id="dashboardBrokerRequestsWidget" class="w-full bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-200 hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="font-semibold text-gray-800">
+                                        <i class="fas fa-paper-plane mr-2 text-purple-600"></i>
+                                        My Requests
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                    <div class="bg-white rounded p-2">
+                                        <div class="text-2xl font-bold text-yellow-600" id="dashboardBrokerPendingCount">0</div>
+                                        <div class="text-gray-600">Pending</div>
+                                    </div>
+                                    <div class="bg-white rounded p-2">
+                                        <div class="text-2xl font-bold text-green-600" id="dashboardBrokerApprovedCount">0</div>
+                                        <div class="text-gray-600">Approved</div>
+                                    </div>
+                                    <div class="bg-white rounded p-2">
+                                        <div class="text-2xl font-bold text-gray-500" id="dashboardBrokerRejectedCount">0</div>
+                                        <div class="text-gray-600">Rejected</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button onclick="showPage('rates')" class="w-full text-left bg-gray-50 hover:bg-purple-600 hover:text-white p-3 rounded-lg transition-all duration-300 group">
                                 <i class="fas fa-chart-line mr-3 text-purple-600 group-hover:text-white"></i>Rate Analysis
                             </button>
@@ -5092,6 +5137,120 @@
                         <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
                         <p>Loading shipments...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Shipment Modal (for Brokers) -->
+    <div id="requestShipmentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        <i class="fas fa-hand-paper text-purple-600 mr-2"></i>Request Shipment Access
+                    </h2>
+                    <button onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Shipment Summary -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-3">Shipment Details (Limited View)</h3>
+                    <div id="modalShipmentSummary" class="space-y-2 text-sm">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Message to Shipper -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Message to Shipper (Optional)
+                        <span class="text-gray-500 font-normal ml-2">Max 500 characters</span>
+                    </label>
+                    <textarea 
+                        id="brokerRequestMessage" 
+                        rows="4" 
+                        maxlength="500"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                        placeholder="Introduce yourself and explain why you'd like to handle this shipment..."></textarea>
+                    <div class="text-right text-xs text-gray-500 mt-1">
+                        <span id="charCount">0</span> / 500
+                    </div>
+                </div>
+
+                <!-- Info Banner -->
+                <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                        <div class="text-sm text-blue-900">
+                            <p class="font-semibold mb-1">Your request will be sent to the shipper</p>
+                            <p>They'll review your credentials (USDOT, MC) and message before deciding. You'll be notified of their decision.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button 
+                        onclick="closeRequestModal()" 
+                        class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                    <button 
+                        id="submitRequestBtn"
+                        onclick="submitShipmentRequest()" 
+                        class="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipment Requests Page (for Shippers) -->
+    <div id="shipmentrequests" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-clipboard-check mr-3 text-blue-600"></i>Shipment Requests
+                </h1>
+                <p class="text-gray-600 text-lg">Review and manage broker access requests for your shipments</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="filterRequestsByStatus('pending')" 
+                            id="pendingTab"
+                            class="request-tab border-b-2 border-blue-500 text-blue-600 py-4 px-1 text-sm font-medium">
+                        Pending
+                        <span id="pendingCount" class="ml-2 bg-blue-100 text-blue-600 py-1 px-2 rounded-full text-xs">0</span>
+                    </button>
+                    <button onclick="filterRequestsByStatus('approved')" 
+                            id="approvedTab"
+                            class="request-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        Approved
+                        <span id="approvedCount" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">0</span>
+                    </button>
+                    <button onclick="filterRequestsByStatus('rejected')" 
+                            id="rejectedTab"
+                            class="request-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        Rejected
+                        <span id="rejectedCount" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">0</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Requests Container -->
+            <div id="requestsContainer" class="space-y-4">
+                <!-- Requests will be loaded here -->
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-500">Loading requests...</p>
                 </div>
             </div>
         </div>
@@ -7955,6 +8114,16 @@
             if (dashboardButton) dashboardButton.classList.toggle('hidden', !user || !canBrowse);
         }
 
+        function checkShipmentRequestsAccess() {
+            const user = getCurrentUser();
+            const mobileButton = document.getElementById('mobileShipmentRequestsBtn');
+            const desktopButton = document.getElementById('desktopShipmentRequestsBtn');
+            const canView = !!(user && (user.accountType === 'shipper' || user.role === 'admin'));
+
+            if (mobileButton) mobileButton.classList.toggle('hidden', !user || !canView);
+            if (desktopButton) desktopButton.classList.toggle('hidden', !user || !canView);
+        }
+
         function showCreateShipmentPage() {
             const user = getCurrentUser();
             if (!user) {
@@ -8194,6 +8363,8 @@
         function displayShipments(shipments) {
             const resultsDiv = document.getElementById('shipmentsResults');
             const countSpan = document.getElementById('shipmentsCount');
+            const user = getCurrentUser();
+            const isBroker = user && user.accountType === 'broker';
             
             if (!shipments || shipments.length === 0) {
                 resultsDiv.innerHTML = `
@@ -8209,61 +8380,473 @@
 
             countSpan.textContent = shipments.length;
 
-            resultsDiv.innerHTML = shipments.map(shipment => `
-                <div class="p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-900">${shipment.title || 'Untitled Shipment'}</h3>
-                                <span class="ml-3 px-2 py-1 text-xs font-semibold rounded-full ${shipment.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                    ${shipment.status || 'open'}
-                                </span>
-                            </div>
-                            
-                            ${shipment.description ? `
-                                <p class="text-gray-600 text-sm mb-3">${shipment.description}</p>
-                            ` : ''}
-                            
-                            <div class="grid md:grid-cols-2 gap-4 mb-3">
-                                <div class="flex items-start">
-                                    <i class="fas fa-map-marker-alt text-green-600 mt-1 mr-2"></i>
-                                    <div>
-                                        <div class="text-xs text-gray-500 uppercase">Pickup</div>
-                                        <div class="font-medium text-gray-900">
-                                            ${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'} ${shipment.pickup?.zip || ''}
+            resultsDiv.innerHTML = shipments.map(shipment => {
+                const hasAccess = shipment.hasAccess !== false; // Default true for shippers/admins
+                const isLimitedView = isBroker && !hasAccess;
+                
+                // Determine button actions
+                let actionButtons = '';
+                if (isLimitedView) {
+                    // Limited view - show "Request Access" button
+                    actionButtons = `
+                        <button onclick="requestShipmentAccess('${shipment._id}')" 
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                            <i class="fas fa-hand-paper mr-1"></i>Request Access
+                        </button>
+                    `;
+                } else {
+                    // Full access - show original buttons
+                    actionButtons = `
+                        <button onclick="viewShipmentDetails('${shipment._id || shipment.shipmentId}')" 
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                            <i class="fas fa-eye mr-1"></i>View Details
+                        </button>
+                        <button onclick="createLoadFromShipment('${shipment._id || shipment.shipmentId}')" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                            <i class="fas fa-plus mr-1"></i>Create Load
+                        </button>
+                    `;
+                }
+
+                // Build limited or full view
+                const locationDetails = isLimitedView ? 
+                    // Limited: Only city and state
+                    `${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'}` :
+                    // Full: Include ZIP
+                    `${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'} ${shipment.pickup?.zip || ''}`;
+
+                const deliveryDetails = isLimitedView ?
+                    `${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'}` :
+                    `${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'} ${shipment.delivery?.zip || ''}`;
+
+                return `
+                    <div class="p-6 hover:bg-gray-50 transition-colors ${isLimitedView ? 'bg-gray-50 border-l-4 border-yellow-400' : ''}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="text-lg font-semibold text-gray-900">${shipment.title || 'Untitled Shipment'}</h3>
+                                    <span class="ml-3 px-2 py-1 text-xs font-semibold rounded-full ${shipment.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${shipment.status || 'open'}
+                                    </span>
+                                    ${isLimitedView ? `
+                                        <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-lock mr-1"></i>Limited View
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                
+                                ${!isLimitedView && shipment.description ? `
+                                    <p class="text-gray-600 text-sm mb-3">${shipment.description}</p>
+                                ` : ''}
+                                ${isLimitedView ? `
+                                    <p class="text-gray-500 text-sm mb-3 italic">
+                                        <i class="fas fa-info-circle mr-1"></i>Request access to view full details
+                                    </p>
+                                ` : ''}
+                                
+                                <div class="grid md:grid-cols-2 gap-4 mb-3">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt text-green-600 mt-1 mr-2"></i>
+                                        <div>
+                                            <div class="text-xs text-gray-500 uppercase">Pickup</div>
+                                            <div class="font-medium text-gray-900">${locationDetails}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt text-red-600 mt-1 mr-2"></i>
+                                        <div>
+                                            <div class="text-xs text-gray-500 uppercase">Delivery</div>
+                                            <div class="font-medium text-gray-900">${deliveryDetails}</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-start">
-                                    <i class="fas fa-map-marker-alt text-red-600 mt-1 mr-2"></i>
-                                    <div>
-                                        <div class="text-xs text-gray-500 uppercase">Delivery</div>
-                                        <div class="font-medium text-gray-900">
-                                            ${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'} ${shipment.delivery?.zip || ''}
-                                        </div>
-                                    </div>
+
+                                <div class="flex items-center text-xs text-gray-500 space-x-4">
+                                    <span><i class="fas fa-calendar mr-1"></i>Posted: ${shipment.createdAt ? new Date(shipment.createdAt).toLocaleDateString() : 'Unknown'}</span>
+                                    ${!isLimitedView ? `<span><i class="fas fa-hashtag mr-1"></i>ID: ${shipment.shipmentId || 'N/A'}</span>` : ''}
                                 </div>
                             </div>
 
-                            <div class="flex items-center text-xs text-gray-500 space-x-4">
-                                <span><i class="fas fa-calendar mr-1"></i>Posted: ${shipment.createdAt ? new Date(shipment.createdAt).toLocaleDateString() : 'Unknown'}</span>
-                                <span><i class="fas fa-hashtag mr-1"></i>ID: ${shipment.shipmentId || 'N/A'}</span>
+                            <div class="flex flex-col space-y-2 ml-4">
+                                ${actionButtons}
                             </div>
-                        </div>
-
-                        <div class="flex flex-col space-y-2 ml-4">
-                            <button onclick="viewShipmentDetails('${shipment._id || shipment.shipmentId}')" 
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
-                                <i class="fas fa-eye mr-1"></i>View Details
-                            </button>
-                            <button onclick="createLoadFromShipment('${shipment._id || shipment.shipmentId}')" 
-                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
-                                <i class="fas fa-plus mr-1"></i>Create Load
-                            </button>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        // Request Shipment Access (for brokers) - Opens Modal
+        let currentRequestShipmentId = null;
+
+        function requestShipmentAccess(shipmentId) {
+            const user = getCurrentUser();
+            if (!user || user.accountType !== 'broker') {
+                showNotification('Only brokers can request access', 'error');
+                return;
+            }
+
+            // Store shipment ID for later
+            currentRequestShipmentId = shipmentId;
+
+            // Find shipment details
+            const shipment = allShipments.find(s => s._id === shipmentId || s.shipmentId === shipmentId);
+            
+            if (shipment) {
+                // Populate modal with shipment summary
+                const summaryDiv = document.getElementById('modalShipmentSummary');
+                summaryDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">${shipment.title || 'Untitled Shipment'}</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${shipment.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${shipment.status || 'open'}
+                        </span>
+                    </div>
+                    <div class="flex items-center text-gray-700 mt-2">
+                        <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                        <span>${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'}</span>
+                        <i class="fas fa-arrow-right mx-3 text-gray-400"></i>
+                        <i class="fas fa-map-marker-alt text-red-600 mr-2"></i>
+                        <span>${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Full details will be visible after approval
+                    </div>
+                `;
+            }
+
+            // Clear previous message
+            document.getElementById('brokerRequestMessage').value = '';
+            document.getElementById('charCount').textContent = '0';
+
+            // Show modal
+            document.getElementById('requestShipmentModal').classList.remove('hidden');
+        }
+
+        function closeRequestModal() {
+            document.getElementById('requestShipmentModal').classList.add('hidden');
+            currentRequestShipmentId = null;
+        }
+
+        // Character counter for request message
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('brokerRequestMessage');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    document.getElementById('charCount').textContent = this.value.length;
+                });
+            }
+        });
+
+        async function submitShipmentRequest() {
+            const user = getCurrentUser();
+            if (!user || user.accountType !== 'broker') {
+                showNotification('Only brokers can request access', 'error');
+                return;
+            }
+
+            if (!currentRequestShipmentId) {
+                showNotification('Invalid shipment', 'error');
+                return;
+            }
+
+            const message = document.getElementById('brokerRequestMessage').value;
+            const submitBtn = document.getElementById('submitRequestBtn');
+
+            try {
+                // Disable button and show loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+
+                const authToken = localStorage.getItem('authToken');
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+
+                const response = await fetch(`${apiBaseUrl}/shipments/${currentRequestShipmentId}/request`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ message: message || '' })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Access request sent successfully! The shipper will be notified.', 'success');
+                    closeRequestModal();
+                    // Reload shipments to update UI
+                    await loadBrowseShipments();
+                } else {
+                    showNotification(result.error || 'Failed to send request', 'error');
+                }
+            } catch (error) {
+                console.error('Request access error:', error);
+                showNotification('Failed to send request. Please try again.', 'error');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Request';
+            }
+        }
+
+        // Shipment Requests Management (for Shippers)
+        let allRequests = [];
+        let currentRequestStatus = 'pending';
+
+        async function loadShipmentRequests() {
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please log in to view requests', 'warning');
+                showPage('login');
+                return;
+            }
+
+            if (user.accountType !== 'shipper' && user.role !== 'admin') {
+                showNotification('Only shippers can view shipment requests', 'error');
+                showPage('home');
+                return;
+            }
+
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+
+                const response = await fetch(`${apiBaseUrl}/shipments/requests`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    allRequests = result.requests || [];
+                    updateRequestCounts();
+                    filterRequestsByStatus(currentRequestStatus);
+                } else {
+                    showNotification(result.error || 'Failed to load requests', 'error');
+                    displayRequests([]);
+                }
+            } catch (error) {
+                console.error('Load requests error:', error);
+                showNotification('Failed to load requests. Please try again.', 'error');
+                displayRequests([]);
+            }
+        }
+
+        function updateRequestCounts() {
+            const pending = allRequests.filter(r => r.status === 'pending').length;
+            const approved = allRequests.filter(r => r.status === 'approved').length;
+            const rejected = allRequests.filter(r => r.status === 'rejected').length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        function filterRequestsByStatus(status) {
+            currentRequestStatus = status;
+
+            // Update tab styles
+            document.querySelectorAll('.request-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            const activeTab = document.getElementById(`${status}Tab`);
+            if (activeTab) {
+                activeTab.classList.remove('border-transparent', 'text-gray-500');
+                activeTab.classList.add('border-blue-500', 'text-blue-600');
+            }
+
+            // Filter and display
+            const filtered = allRequests.filter(r => r.status === status);
+            displayRequests(filtered);
+        }
+
+        function displayRequests(requests) {
+            const container = document.getElementById('requestsContainer');
+
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-semibold text-gray-600">No ${currentRequestStatus} requests</p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            ${currentRequestStatus === 'pending' ? 'New requests will appear here when brokers want to handle your shipments' : ''}
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = requests.map(request => {
+                const broker = request.brokerId || {};
+                const shipment = request.shipmentId || {};
+                const requestDate = new Date(request.requestedAt).toLocaleString();
+
+                return `
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <!-- Broker Info -->
+                                <div class="mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 mb-1">
+                                        <i class="fas fa-building text-purple-600 mr-2"></i>${broker.company || 'Unknown Broker'}
+                                    </h3>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                        ${broker.usdotNumber ? `
+                                            <span>
+                                                <i class="fas fa-shield-alt text-blue-600 mr-1"></i>
+                                                USDOT: ${broker.usdotNumber}
+                                            </span>
+                                        ` : ''}
+                                        ${broker.mcNumber ? `
+                                            <span>
+                                                <i class="fas fa-certificate text-green-600 mr-1"></i>
+                                                MC: ${broker.mcNumber}
+                                            </span>
+                                        ` : ''}
+                                        <span>
+                                            <i class="fas fa-envelope text-gray-400 mr-1"></i>
+                                            ${broker.email || 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Shipment Info -->
+                                <div class="mb-4 bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-xs text-gray-500 uppercase mb-1">Shipment</div>
+                                    <div class="font-semibold text-gray-900 mb-2">${shipment.title || 'Untitled Shipment'}</div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt text-green-600 mr-1"></i>
+                                        ${shipment.pickup?.city || 'N/A'}, ${shipment.pickup?.state || 'N/A'}
+                                        <i class="fas fa-arrow-right mx-3 text-gray-400"></i>
+                                        <i class="fas fa-map-marker-alt text-red-600 mr-1"></i>
+                                        ${shipment.delivery?.city || 'N/A'}, ${shipment.delivery?.state || 'N/A'}
+                                    </div>
+                                </div>
+
+                                <!-- Broker Message -->
+                                ${request.brokerMessage ? `
+                                    <div class="mb-4">
+                                        <div class="text-xs text-gray-500 uppercase mb-1">Message from Broker</div>
+                                        <p class="text-gray-700 italic">"${request.brokerMessage}"</p>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Request Info -->
+                                <div class="flex items-center text-xs text-gray-500 space-x-4">
+                                    <span><i class="fas fa-clock mr-1"></i>Requested: ${requestDate}</span>
+                                    ${request.respondedAt ? `
+                                        <span><i class="fas fa-check-circle mr-1"></i>Responded: ${new Date(request.respondedAt).toLocaleString()}</span>
+                                    ` : ''}
+                                </div>
+
+                                ${request.shipperResponse ? `
+                                    <div class="mt-3 p-3 bg-blue-50 rounded border-l-4 border-blue-500">
+                                        <div class="text-xs text-blue-700 uppercase mb-1">Your Response</div>
+                                        <p class="text-sm text-blue-900">${request.shipperResponse}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="ml-6">
+                                ${request.status === 'pending' ? `
+                                    <div class="flex flex-col space-y-2">
+                                        <button onclick="approveRequest('${request._id}')" 
+                                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                                            <i class="fas fa-check mr-1"></i>Approve
+                                        </button>
+                                        <button onclick="rejectRequest('${request._id}')" 
+                                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                                            <i class="fas fa-times mr-1"></i>Reject
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <span class="px-4 py-2 rounded-lg text-sm font-semibold ${
+                                        request.status === 'approved' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }">
+                                        <i class="fas fa-${request.status === 'approved' ? 'check-circle' : 'times-circle'} mr-1"></i>
+                                        ${request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                    </span>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function approveRequest(requestId) {
+            const response = prompt('Optional: Add a response message to the broker');
+            if (response === null) return; // User cancelled
+
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+
+                const res = await fetch(`${apiBaseUrl}/shipments/requests/${requestId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ response: response || '' })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    showNotification('Request approved successfully! Broker has been notified.', 'success');
+                    await loadShipmentRequests();
+                } else {
+                    showNotification(result.error || 'Failed to approve request', 'error');
+                }
+            } catch (error) {
+                console.error('Approve request error:', error);
+                showNotification('Failed to approve request. Please try again.', 'error');
+            }
+        }
+
+        async function rejectRequest(requestId) {
+            const response = prompt('Optional: Add a response message to the broker');
+            if (response === null) return; // User cancelled
+
+            if (!confirm('Are you sure you want to reject this request?')) return;
+
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+
+                const res = await fetch(`${apiBaseUrl}/shipments/requests/${requestId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ response: response || '' })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    showNotification('Request rejected. Broker has been notified.', 'info');
+                    await loadShipmentRequests();
+                } else {
+                    showNotification(result.error || 'Failed to reject request', 'error');
+                }
+            } catch (error) {
+                console.error('Reject request error:', error);
+                showNotification('Failed to reject request. Please try again.', 'error');
+            }
         }
 
         function filterShipments() {
@@ -8915,6 +9498,10 @@
             
             // Clear any session timers or intervals
             console.log('User logged out, session cleared');
+
+            // Update navigation button visibility
+            checkBrowseShipmentsAccess();
+            checkShipmentRequestsAccess();
         }
 
         // Enhanced notification system
@@ -10050,7 +10637,7 @@
                 pageId = 'home';
             }
             
-            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin', 'settings', 'browseshipments', 'createshipment'];
+            const protectedPages = ['loadboard', 'postload', 'rates', 'marketplace', 'reports', 'directory', 'admin', 'settings', 'browseshipments', 'createshipment', 'shipmentrequests'];
             
             if (protectedPages.includes(pageId) && !currentUser) {
                 showNotification('Please log in to access this feature', 'warning');
@@ -10120,6 +10707,8 @@
                 initializeLoadBoard();
             } else if (pageId === 'browseshipments') {
                 loadBrowseShipments();
+            } else if (pageId === 'shipmentrequests') {
+                loadShipmentRequests();
             } else if (pageId === 'createshipment') {
                 checkCreateShipmentAccess();
             } else if (pageId === 'rates') {
@@ -11816,6 +12405,82 @@
                 } else {
                     postedLoadsSection.classList.add('hidden');
                 }
+            }
+
+            // Update navigation button visibility
+            checkBrowseShipmentsAccess();
+            checkShipmentRequestsAccess();
+
+            // Load request stats
+            loadDashboardRequestStats();
+        }
+
+        // Load Dashboard Request Stats
+        async function loadDashboardRequestStats() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const apiBaseUrl = window.API_BASE_URL || 'https://freightpro-fmcsa-api.onrender.com/api';
+
+                // Fetch requests
+                const response = await fetch(`${apiBaseUrl}/shipments/requests`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const requests = result.requests || [];
+
+                    // Calculate stats
+                    const pendingCount = requests.filter(r => r.status === 'pending').length;
+                    const approvedCount = requests.filter(r => r.status === 'approved').length;
+                    const rejectedCount = requests.filter(r => r.status === 'rejected').length;
+
+                    // Update UI based on role
+                    if (user.accountType === 'shipper') {
+                        // Shipper: Show pending requests button
+                        const shipperBtn = document.getElementById('dashboardShipperRequestsBtn');
+                        const countBadge = document.getElementById('dashboardPendingRequestsCount');
+                        const textSpan = document.getElementById('dashboardPendingRequestsText');
+
+                        if (shipperBtn && countBadge && textSpan) {
+                            if (pendingCount > 0) {
+                                shipperBtn.classList.remove('hidden');
+                                countBadge.textContent = pendingCount;
+                                textSpan.textContent = `${pendingCount} ${pendingCount === 1 ? 'request' : 'requests'} awaiting review`;
+                            } else {
+                                shipperBtn.classList.add('hidden');
+                            }
+                        }
+                    } else if (user.accountType === 'broker') {
+                        // Broker: Show request stats widget
+                        const brokerWidget = document.getElementById('dashboardBrokerRequestsWidget');
+                        const pendingEl = document.getElementById('dashboardBrokerPendingCount');
+                        const approvedEl = document.getElementById('dashboardBrokerApprovedCount');
+                        const rejectedEl = document.getElementById('dashboardBrokerRejectedCount');
+
+                        if (brokerWidget && pendingEl && approvedEl && rejectedEl) {
+                            const totalRequests = pendingCount + approvedCount + rejectedCount;
+                            if (totalRequests > 0) {
+                                brokerWidget.classList.remove('hidden');
+                                pendingEl.textContent = pendingCount;
+                                approvedEl.textContent = approvedCount;
+                                rejectedEl.textContent = rejectedCount;
+                            } else {
+                                brokerWidget.classList.add('hidden');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard request stats:', error);
+                // Silently fail - not critical
             }
         }
 

@@ -227,6 +227,21 @@ const shipmentSchema = new mongoose.Schema({
 });
 
 const Shipment = mongoose.model('Shipment', shipmentSchema);
+
+// Shipment Request Schema (for broker-shipper authorization)
+const shipmentRequestSchema = new mongoose.Schema({
+    shipmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shipment', required: true },
+    brokerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    shipperId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    brokerMessage: { type: String, maxlength: 500, default: '' },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    requestedAt: { type: Date, default: Date.now },
+    respondedAt: { type: Date },
+    shipperResponse: { type: String, maxlength: 500, default: '' }
+});
+
+const ShipmentRequest = mongoose.model('ShipmentRequest', shipmentRequestSchema);
+
 const loadSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -1758,7 +1773,51 @@ app.get('/api/shipments', authenticateToken, asyncHandler(async (req, res) => {
         }
         const shipments = await Shipment.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit));
         const total = await Shipment.countDocuments(query);
-        res.json({ success: true, shipments, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } });
+
+        // For brokers: Check access and return limited fields for non-approved shipments
+        if (req.user.accountType === 'broker') {
+            const shipmentIds = shipments.map(s => s._id);
+            const approvedRequests = await ShipmentRequest.find({
+                shipmentId: { $in: shipmentIds },
+                brokerId: req.user.userId,
+                status: 'approved'
+            });
+
+            const approvedShipmentIds = approvedRequests.map(r => r.shipmentId.toString());
+
+            // Create access map for frontend
+            const shipmentsWithAccess = shipments.map(shipment => {
+                const hasAccess = approvedShipmentIds.includes(shipment._id.toString());
+                
+                if (!hasAccess) {
+                    // Return limited fields
+                    return {
+                        _id: shipment._id,
+                        shipmentId: shipment.shipmentId,
+                        title: shipment.title,
+                        pickup: { city: shipment.pickup.city, state: shipment.pickup.state },
+                        delivery: { city: shipment.delivery.city, state: shipment.delivery.state },
+                        status: shipment.status,
+                        createdAt: shipment.createdAt,
+                        hasAccess: false
+                    };
+                }
+                // Return full details
+                return {
+                    ...shipment.toObject(),
+                    hasAccess: true
+                };
+            });
+
+            return res.json({ 
+                success: true, 
+                shipments: shipmentsWithAccess, 
+                pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) } 
+            });
+        }
+
+        // For shippers and admins: Full access
+        res.json({ success: true, shipments, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) } });
 }));
 
 // Get shipment by shipmentId
@@ -1766,6 +1825,214 @@ app.get('/api/shipments/:shipmentId', authenticateToken, asyncHandler(async (req
         const shipment = await Shipment.findOne({ shipmentId: req.params.shipmentId });
         if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
         res.json({ success: true, shipment });
+}));
+
+// Shipment Request Endpoints (Broker-Shipper Authorization)
+
+// POST /api/shipments/:id/request - Broker requests access to shipment
+app.post('/api/shipments/:id/request', authenticateToken, asyncHandler(async (req, res) => {
+        // Only brokers can request access
+        if (req.user.accountType !== 'broker' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only brokers can request access to shipments' });
+        }
+
+        const shipment = await Shipment.findById(req.params.id);
+        if (!shipment) {
+            return res.status(404).json({ error: 'Shipment not found' });
+        }
+
+        // Check if request already exists
+        const existingRequest = await ShipmentRequest.findOne({
+            shipmentId: req.params.id,
+            brokerId: req.user.userId
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({ 
+                error: 'You have already requested access to this shipment', 
+                status: existingRequest.status 
+            });
+        }
+
+        // Create new request
+        const newRequest = new ShipmentRequest({
+            shipmentId: req.params.id,
+            brokerId: req.user.userId,
+            shipperId: shipment.postedBy,
+            brokerMessage: req.body.message || '',
+            status: 'pending'
+        });
+
+        await newRequest.save();
+
+        // TODO: Send email notification to shipper
+        console.log(`Broker ${req.user.company} requested access to shipment ${shipment.shipmentId}`);
+
+        res.json({ 
+            success: true, 
+            message: 'Request sent successfully',
+            request: newRequest 
+        });
+}));
+
+// GET /api/shipments/requests - Get shipment requests (role-based)
+app.get('/api/shipments/requests', authenticateToken, asyncHandler(async (req, res) => {
+        const { status, page = 1, limit = 20 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        let query = {};
+
+        // Shippers see requests for their shipments
+        if (req.user.accountType === 'shipper') {
+            query.shipperId = req.user.userId;
+        }
+        // Brokers see their own requests
+        else if (req.user.accountType === 'broker') {
+            query.brokerId = req.user.userId;
+        }
+        // Admins see all
+        else if (req.user.role === 'admin') {
+            // No filter
+        } else {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        // Filter by status if provided
+        if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+            query.status = status;
+        }
+
+        const requests = await ShipmentRequest.find(query)
+            .populate('shipmentId', 'shipmentId title pickup delivery status')
+            .populate('brokerId', 'company email usdotNumber mcNumber')
+            .populate('shipperId', 'company email')
+            .sort({ requestedAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await ShipmentRequest.countDocuments(query);
+
+        res.json({ 
+            success: true, 
+            requests,
+            pagination: { 
+                page: parseInt(page), 
+                limit: parseInt(limit), 
+                total, 
+                pages: Math.ceil(total / parseInt(limit)) 
+            }
+        });
+}));
+
+// POST /api/shipments/requests/:id/approve - Shipper approves request
+app.post('/api/shipments/requests/:id/approve', authenticateToken, asyncHandler(async (req, res) => {
+        // Only shippers can approve
+        if (req.user.accountType !== 'shipper' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only shippers can approve requests' });
+        }
+
+        const request = await ShipmentRequest.findById(req.params.id)
+            .populate('shipmentId')
+            .populate('brokerId', 'company email');
+
+        if (!request) {
+            return res.status(404).json({ error: 'Request not found' });
+        }
+
+        // Verify ownership
+        if (req.user.accountType === 'shipper' && request.shipperId.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({ error: 'You can only approve requests for your own shipments' });
+        }
+
+        // Check if already responded
+        if (request.status !== 'pending') {
+            return res.status(400).json({ error: `Request already ${request.status}` });
+        }
+
+        // Update request
+        request.status = 'approved';
+        request.respondedAt = new Date();
+        request.shipperResponse = req.body.response || '';
+        await request.save();
+
+        // TODO: Send email notification to broker
+        console.log(`Shipper approved request from ${request.brokerId.company} for shipment ${request.shipmentId.shipmentId}`);
+
+        res.json({ 
+            success: true, 
+            message: 'Request approved successfully',
+            request 
+        });
+}));
+
+// POST /api/shipments/requests/:id/reject - Shipper rejects request
+app.post('/api/shipments/requests/:id/reject', authenticateToken, asyncHandler(async (req, res) => {
+        // Only shippers can reject
+        if (req.user.accountType !== 'shipper' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only shippers can reject requests' });
+        }
+
+        const request = await ShipmentRequest.findById(req.params.id)
+            .populate('shipmentId')
+            .populate('brokerId', 'company email');
+
+        if (!request) {
+            return res.status(404).json({ error: 'Request not found' });
+        }
+
+        // Verify ownership
+        if (req.user.accountType === 'shipper' && request.shipperId.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({ error: 'You can only reject requests for your own shipments' });
+        }
+
+        // Check if already responded
+        if (request.status !== 'pending') {
+            return res.status(400).json({ error: `Request already ${request.status}` });
+        }
+
+        // Update request
+        request.status = 'rejected';
+        request.respondedAt = new Date();
+        request.shipperResponse = req.body.response || '';
+        await request.save();
+
+        // TODO: Send email notification to broker
+        console.log(`Shipper rejected request from ${request.brokerId.company} for shipment ${request.shipmentId.shipmentId}`);
+
+        res.json({ 
+            success: true, 
+            message: 'Request rejected',
+            request 
+        });
+}));
+
+// GET /api/shipments/:id/access - Check if broker has access to shipment
+app.get('/api/shipments/:id/access', authenticateToken, asyncHandler(async (req, res) => {
+        // Only brokers need to check access
+        if (req.user.accountType !== 'broker') {
+            return res.json({ hasAccess: true }); // Shippers and admins have full access
+        }
+
+        const approvedRequest = await ShipmentRequest.findOne({
+            shipmentId: req.params.id,
+            brokerId: req.user.userId,
+            status: 'approved'
+        });
+
+        const hasAccess = !!approvedRequest;
+        const requestStatus = approvedRequest ? approvedRequest.status : 'none';
+
+        // Check if there's a pending request
+        const pendingRequest = await ShipmentRequest.findOne({
+            shipmentId: req.params.id,
+            brokerId: req.user.userId,
+            status: 'pending'
+        });
+
+        res.json({ 
+            hasAccess,
+            requestStatus: pendingRequest ? 'pending' : requestStatus,
+            requestId: pendingRequest?._id || approvedRequest?._id
+        });
 }));
 
 // Initialize server
