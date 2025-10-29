@@ -1,0 +1,149 @@
+import { useEffect } from 'react';
+import { useAuthStore } from '../store/authStore';
+import { useLoadStore } from '../store/loadStore';
+import { TrendingUp, Package, Truck, DollarSign, ArrowRight, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../utils/constants';
+
+const Dashboard = () => {
+  const { user } = useAuthStore();
+  const { loads, fetchLoads } = useLoadStore();
+
+  useEffect(() => {
+    fetchLoads(1, 5);
+  }, [fetchLoads]);
+
+  const stats = [
+    {
+      label: 'Active Loads',
+      value: loads.length,
+      icon: <Package className="h-12 w-12" />,
+      color: 'text-saffron-gold',
+      bgColor: 'bg-saffron-gold/10'
+    },
+    {
+      label: 'Total Revenue',
+      value: '$0',
+      icon: <DollarSign className="h-12 w-12" />,
+      color: 'text-emerald-dark',
+      bgColor: 'bg-emerald-dark/10'
+    },
+    {
+      label: 'Loads Booked',
+      value: '0',
+      icon: <Truck className="h-12 w-12" />,
+      color: 'text-saffron-gold',
+      bgColor: 'bg-saffron-gold/10'
+    },
+    {
+      label: 'Performance',
+      value: '5.0',
+      icon: <TrendingUp className="h-12 w-12" />,
+      color: 'text-emerald-dark',
+      bgColor: 'bg-emerald-dark/10'
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-soft-ivory">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean">
+            Dashboard
+          </h1>
+          <p className="text-xl text-gray-700 mt-2">
+            Welcome back, <span className="text-saffron-gold font-semibold">{user?.company}</span>! 👋
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <div 
+              key={stat.label}
+              className="card card-hover group animate-scale-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm font-medium uppercase tracking-wide mb-2">
+                    {stat.label}
+                  </p>
+                  <p className="text-3xl md:text-4xl font-heading font-bold text-midnight-ocean">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`${stat.color} ${stat.bgColor} p-3 rounded-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
+                  {stat.icon}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent Loads */}
+        <div className="card animate-slide-up">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-heading font-bold text-midnight-ocean">
+              Recent Loads
+            </h2>
+            <Link to={ROUTES.LOAD_BOARD} className="text-emerald-dark hover:text-saffron-gold font-medium flex items-center gap-2 transition-colors">
+              View All <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          
+          {loads.length > 0 ? (
+            <div className="space-y-4">
+              {loads.slice(0, 5).map((load, index) => (
+                <div 
+                  key={load._id} 
+                  className="border-2 border-emerald-whisper/30 rounded-lg p-5 hover:border-saffron-gold hover:shadow-lg transition-all duration-200 bg-light-ivory animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex justify-between items-start flex-wrap gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-heading font-semibold text-midnight-ocean text-lg mb-2">
+                        {load.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <MapPin className="h-4 w-4 text-emerald-dark flex-shrink-0" />
+                        <p className="text-sm">
+                          <span className="font-medium">{load.origin.city}, {load.origin.state}</span>
+                          {' → '}
+                          <span className="font-medium">{load.destination.city}, {load.destination.state}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-heading font-bold text-saffron-gold">
+                        ${load.rate.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {load.rateType === 'per_mile' ? '/mile' : 'flat rate'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg mb-4">No loads available yet</p>
+              <Link to={ROUTES.LOAD_BOARD}>
+                <button className="btn btn-primary">
+                  Browse Load Board
+                </button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+

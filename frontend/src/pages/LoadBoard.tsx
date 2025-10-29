@@ -1,0 +1,199 @@
+import { useEffect } from 'react';
+import { useLoadStore } from '../store/loadStore';
+import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation } from 'lucide-react';
+
+const LoadBoard = () => {
+  const { loads, isLoading, fetchLoads, bookLoad } = useLoadStore();
+  const { user } = useAuthStore();
+  const { addNotification } = useUIStore();
+
+  useEffect(() => {
+    fetchLoads();
+  }, [fetchLoads]);
+
+  const handleBookLoad = async (loadId: string) => {
+    try {
+      await bookLoad(loadId);
+      addNotification({ type: 'success', message: 'Load booked successfully!' });
+    } catch (error) {
+      addNotification({ type: 'error', message: 'Failed to book load. Please try again.' });
+    }
+  };
+
+  const canBookLoads = user?.accountType === 'carrier';
+
+  return (
+    <div className="min-h-screen bg-soft-ivory">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean">
+            Load Board
+          </h1>
+          <p className="text-xl text-gray-700 mt-2">
+            Browse and book available freight loads in real-time
+          </p>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-20 card">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-emerald-whisper border-t-saffron-gold"></div>
+            <p className="text-gray-700 text-lg mt-6 font-medium">Loading loads...</p>
+          </div>
+        ) : loads.length > 0 ? (
+          <div className="grid gap-6">
+            {loads.map((load, index) => (
+              <div 
+                key={load._id} 
+                className="card card-hover border-2 border-emerald-whisper/30 hover:border-saffron-gold animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                  {/* Load Details */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-2xl font-heading font-bold text-midnight-ocean">
+                        {load.title}
+                      </h3>
+                      <span className={`badge ${load.status === 'available' ? 'badge-success' : 'badge-warning'} ml-4`}>
+                        {load.status}
+                      </span>
+                    </div>
+                    
+                    <p className="text-gray-700 mb-6">{load.description}</p>
+                    
+                    {/* Route Information */}
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-emerald-dark/10 p-2 rounded-lg">
+                          <MapPin className="h-5 w-5 text-emerald-dark" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            Origin
+                          </p>
+                          <p className="text-midnight-ocean font-medium">
+                            {load.origin.city}, {load.origin.state} {load.origin.zip}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-saffron-gold/10 p-2 rounded-lg">
+                          <Navigation className="h-5 w-5 text-saffron-gold" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            Destination
+                          </p>
+                          <p className="text-midnight-ocean font-medium">
+                            {load.destination.city}, {load.destination.state} {load.destination.zip}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-emerald-dark/10 p-2 rounded-lg">
+                          <Calendar className="h-5 w-5 text-emerald-dark" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            Pickup Date
+                          </p>
+                          <p className="text-midnight-ocean font-medium">
+                            {new Date(load.pickupDate).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-saffron-gold/10 p-2 rounded-lg">
+                          <Weight className="h-5 w-5 text-saffron-gold" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            Weight
+                          </p>
+                          <p className="text-midnight-ocean font-medium">
+                            {load.weight.toLocaleString()} lbs
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Load Metadata */}
+                    <div className="flex items-center flex-wrap gap-3">
+                      <div className="flex items-center space-x-2 text-sm text-gray-700 bg-light-ivory px-3 py-2 rounded-lg">
+                        <Truck className="h-4 w-4 text-emerald-dark" />
+                        <span className="font-medium">{load.equipmentType}</span>
+                      </div>
+                      {load.isInterstate && (
+                        <span className="badge badge-success">Interstate</span>
+                      )}
+                      {load.distance && (
+                        <span className="text-sm text-gray-600 bg-light-ivory px-3 py-2 rounded-lg">
+                          📍 {load.distance} miles
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pricing & Action */}
+                  <div className="flex flex-col items-center lg:items-end justify-between min-w-[220px] space-y-4">
+                    <div className="text-center lg:text-right bg-gradient-ocean rounded-xl p-6 w-full">
+                      <p className="text-sm text-emerald-whisper font-medium uppercase tracking-wide mb-2">
+                        Rate
+                      </p>
+                      <p className="text-4xl font-heading font-bold text-saffron-gold mb-1">
+                        ${load.rate.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-soft-ivory">
+                        {load.rateType === 'per_mile' ? 'per mile' : 'flat rate'}
+                      </p>
+                    </div>
+
+                    {canBookLoads && load.status === 'available' && (
+                      <button
+                        onClick={() => handleBookLoad(load._id)}
+                        className="btn btn-accent w-full group"
+                      >
+                        Book Load
+                        <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      </button>
+                    )}
+                    
+                    {!canBookLoads && (
+                      <div className="text-center text-sm text-gray-600 bg-light-ivory px-4 py-2 rounded-lg">
+                        Carrier accounts only
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 card">
+            <Package className="h-20 w-20 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-2xl font-heading font-bold text-midnight-ocean mb-3">
+              No Loads Available
+            </h3>
+            <p className="text-lg text-gray-600 mb-6">
+              Check back soon for new freight opportunities
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LoadBoard;
+

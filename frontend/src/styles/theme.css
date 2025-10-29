@@ -1,0 +1,201 @@
+/* CargoLume Premium Theme - Grok AI Color Scheme */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Primary Colors - Grok AI Theme */
+  --midnight-ocean: #001F3F;
+  --soft-ivory: #F5F5F0;
+  --emerald-whisper: #A8DADC;
+  --saffron-gold: #F4C430;
+  
+  /* Supporting Colors */
+  --dark-navy: #001829;
+  --light-ivory: #FAFAF7;
+  --emerald-dark: #7FB8BA;
+  --gold-bright: #FFD700;
+  
+  /* Semantic Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+  
+  /* Typography */
+  --font-heading: 'Futura', 'Trebuchet MS', Arial, sans-serif;
+  --font-body: 'Montserrat', 'Segoe UI', Tahoma, sans-serif;
+  --font-accent: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+  
+  /* Spacing System (8px grid) */
+  --space-xs: 0.5rem;   /* 8px */
+  --space-sm: 1rem;     /* 16px */
+  --space-md: 1.5rem;   /* 24px */
+  --space-lg: 2rem;     /* 32px */
+  --space-xl: 3rem;     /* 48px */
+  --space-2xl: 4rem;    /* 64px */
+  --space-3xl: 6rem;    /* 96px */
+  
+  /* Shadow System */
+  --shadow-sm: 0 1px 2px rgba(0, 31, 63, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 31, 63, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 31, 63, 0.15);
+  --shadow-xl: 0 20px 25px rgba(0, 31, 63, 0.2);
+  --shadow-2xl: 0 25px 50px rgba(0, 31, 63, 0.25);
+  --shadow-glow: 0 0 20px rgba(244, 196, 48, 0.3);
+  --shadow-glow-strong: 0 0 30px rgba(244, 196, 48, 0.5);
+  
+  /* Border Radius */
+  --radius-sm: 0.375rem;  /* 6px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(245, 245, 240, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 218, 220, 0.2);
+}
+
+.glass-dark {
+  background: rgba(0, 31, 63, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 218, 220, 0.3);
+}
+
+/* Gradient Backgrounds */
+.gradient-ocean {
+  background: linear-gradient(135deg, var(--midnight-ocean) 0%, var(--dark-navy) 100%);
+}
+
+.gradient-emerald {
+  background: linear-gradient(135deg, var(--emerald-whisper) 0%, var(--emerald-dark) 100%);
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, var(--saffron-gold) 0%, var(--gold-bright) 100%);
+}
+
+.gradient-ocean-emerald {
+  background: linear-gradient(135deg, var(--emerald-whisper) 0%, var(--midnight-ocean) 100%);
+}
+
+/* Text Gradients */
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--saffron-gold), var(--gold-bright));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-ocean {
+  background: linear-gradient(135deg, var(--midnight-ocean), var(--emerald-whisper));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow Effects */
+.glow-gold {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-gold-strong {
+  box-shadow: var(--shadow-glow-strong);
+}
+
+/* Smooth Animations */
+.animate-fade-in {
+  animation: fadeIn var(--transition-slow) ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp var(--transition-slow) ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown var(--transition-slow) ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--transition-base) ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Spin Animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+
+

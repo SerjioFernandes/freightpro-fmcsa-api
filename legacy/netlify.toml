@@ -1,0 +1,55 @@
+# Netlify Configuration File
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  # Publish directory (root of your site)
+  publish = "."
+  
+  # No build command needed for static site
+  command = ""
+
+# Redirect rules - SPA fallback
+[[redirects]]
+  # All routes go to index.html (single page app)
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Custom headers are also defined in _headers file
+# But you can add global headers here too
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Strict Transport Security (HSTS) - force HTTPS
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+    
+    # Clickjacking protection
+    X-Frame-Options = "DENY"
+    
+    # XSS protection
+    X-XSS-Protection = "1; mode=block"
+    
+    # Referrer policy
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Optimize performance
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
