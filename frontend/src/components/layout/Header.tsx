@@ -1,8 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package } from 'lucide-react';
 import { useState } from 'react';
+import { 
+  canViewLoadBoard, 
+  canPostLoad, 
+  canViewShipments 
+} from '../../utils/permissions';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -14,6 +19,11 @@ const Header = () => {
     navigate(ROUTES.HOME);
     setMobileMenuOpen(false);
   };
+
+  // Determine which nav items to show based on account type
+  const showLoadBoard = isAuthenticated && canViewLoadBoard(user?.accountType);
+  const showPostLoad = isAuthenticated && canPostLoad(user?.accountType);
+  const showShipments = isAuthenticated && canViewShipments(user?.accountType);
 
   return (
     <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 sticky top-0 z-50 shadow-xl border-b border-blue-700">
@@ -37,22 +47,40 @@ const Header = () => {
               </svg>
               Home
             </Link>
-            <Link
-              to={ROUTES.LOAD_BOARD}
-              className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
-            >
-              <Truck className="w-4 h-4 mr-1" />
-              Load Board
-            </Link>
+            {showLoadBoard && (
+              <Link
+                to={ROUTES.LOAD_BOARD}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+              >
+                <Truck className="w-4 h-4 mr-1" />
+                Load Board
+              </Link>
+            )}
+            {showPostLoad && (
+              <Link
+                to={ROUTES.POST_LOAD}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Post Load
+              </Link>
+            )}
+            {showShipments && (
+              <Link
+                to={ROUTES.SHIPMENTS}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+              >
+                <Package className="w-4 h-4 mr-1" />
+                Shipments
+              </Link>
+            )}
             {isAuthenticated && (
-              <>
-                <Link
-                  to={ROUTES.DASHBOARD}
-                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
-                >
-                  Dashboard
-                </Link>
-              </>
+              <Link
+                to={ROUTES.DASHBOARD}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
+              >
+                Dashboard
+              </Link>
             )}
             <Link
               to={ROUTES.PRICING}
@@ -130,13 +158,33 @@ const Header = () => {
                   >
                     Home
                   </Link>
-                  <Link
-                    to={ROUTES.LOAD_BOARD}
-                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Load Board
-                  </Link>
+                  {showLoadBoard && (
+                    <Link
+                      to={ROUTES.LOAD_BOARD}
+                      className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Load Board
+                    </Link>
+                  )}
+                  {showPostLoad && (
+                    <Link
+                      to={ROUTES.POST_LOAD}
+                      className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Post Load
+                    </Link>
+                  )}
+                  {showShipments && (
+                    <Link
+                      to={ROUTES.SHIPMENTS}
+                      className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Shipments
+                    </Link>
+                  )}
                   <Link
                     to={ROUTES.DASHBOARD}
                     className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"

@@ -14,6 +14,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   LOAD_BOARD: '/loads',
   POST_LOAD: '/post-load',
+  SHIPMENTS: '/shipments',
   PROFILE: '/profile',
   SETTINGS: '/settings',
   ABOUT: '/about',

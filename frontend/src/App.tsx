@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { ROUTES } from './utils/constants';
+import type { AccountType } from './types/user.types';
 
 // Layout
 import MainLayout from './components/layout/MainLayout';
@@ -14,18 +15,20 @@ import Register from './pages/Auth/Register';
 import VerifyEmail from './pages/Auth/VerifyEmail';
 import Dashboard from './pages/Dashboard';
 import LoadBoard from './pages/LoadBoard';
+import PostLoad from './pages/PostLoad';
+import Shipments from './pages/Shipments';
 import Profile from './pages/Profile';
 import Pricing from './pages/Pricing';
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
-  
-  if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
-  }
-  
-  return <>{children}</>;
+import ProtectedRouteComponent from './components/auth/ProtectedRoute';
+
+function ProtectedRoute({ children, allowedAccountTypes }: { children: React.ReactNode; allowedAccountTypes?: AccountType[] }) {
+  return (
+    <ProtectedRouteComponent allowedAccountTypes={allowedAccountTypes}>
+      {children}
+    </ProtectedRouteComponent>
+  );
 }
 
 function App() {
@@ -60,6 +63,22 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><LoadBoard /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.POST_LOAD}
+          element={
+            <ProtectedRoute allowedAccountTypes={['broker']}>
+              <MainLayout><PostLoad /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SHIPMENTS}
+          element={
+            <ProtectedRoute allowedAccountTypes={['shipper', 'broker']}>
+              <MainLayout><Shipments /></MainLayout>
             </ProtectedRoute>
           }
         />

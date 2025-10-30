@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
-import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation } from 'lucide-react';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock } from 'lucide-react';
+import { canViewLoadBoard } from '../utils/permissions';
 
 const LoadBoard = () => {
   const { loads, isLoading, fetchLoads, bookLoad } = useLoadStore();
@@ -12,6 +13,26 @@ const LoadBoard = () => {
   useEffect(() => {
     fetchLoads();
   }, [fetchLoads]);
+
+  // Access control: Only carriers and brokers can view the load board
+  if (!canViewLoadBoard(user?.accountType)) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="card text-center animate-fade-in">
+            <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h2>
+            <p className="text-gray-600 mb-6">
+              Only carriers and brokers can access the Load Board.
+            </p>
+            <p className="text-sm text-gray-500">
+              Shippers can create shipments instead. Check your dashboard for shipment management options.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleBookLoad = async (loadId: string) => {
     try {
