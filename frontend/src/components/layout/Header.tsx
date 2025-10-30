@@ -3,7 +3,6 @@ import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
 import { Truck, User, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import Button from '../common/Button';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -17,79 +16,101 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-primary-blue-darker sticky top-0 z-50 border-b border-primary-blue/20">
+    <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 sticky top-0 z-50 shadow-xl border-b border-blue-700">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between py-3">
           {/* Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center space-x-3 group">
-            <Truck className="h-10 w-10 text-orange-accent transition-transform group-hover:scale-110" />
-            <div className="flex flex-col">
-              <span className="text-2xl font-heading font-bold text-white">CargoLume</span>
-              <span className="text-xs text-gray-300 font-accent uppercase tracking-wider">Professional Freight</span>
-            </div>
-          </Link>
+          <div className="flex items-center space-x-2 group cursor-pointer">
+            <Truck className="h-6 w-6 text-white transition-transform group-hover:scale-110" />
+            <span className="text-xl font-bold text-white">CargoLume</span>
+            <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">LIVE</span>
+          </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {isAuthenticated ? (
+          <nav className="hidden lg:flex items-center space-x-1">
+            <Link
+              to={ROUTES.HOME}
+              className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Home
+            </Link>
+            <Link
+              to={ROUTES.LOAD_BOARD}
+              className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+            >
+              <Truck className="w-4 h-4 mr-1" />
+              Load Board
+            </Link>
+            {isAuthenticated && (
               <>
                 <Link
                   to={ROUTES.DASHBOARD}
-                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
                 >
                   Dashboard
                 </Link>
-                <Link
-                  to={ROUTES.LOAD_BOARD}
-                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
-                >
-                  Load Board
-                </Link>
-                <Link
-                  to={ROUTES.PRICING}
-                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
-                >
-                  Pricing
-                </Link>
+              </>
+            )}
+            <Link
+              to={ROUTES.PRICING}
+              className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Pricing
+            </Link>
+          </nav>
+
+          {/* Right Side: Auth Buttons */}
+          <div className="flex items-center space-x-2">
+            {isAuthenticated ? (
+              <>
                 <Link
                   to={ROUTES.PROFILE}
-                  className="flex items-center space-x-2 text-white hover:text-orange-accent font-body font-medium transition-colors"
+                  className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 transition-colors"
                 >
                   <User className="h-4 w-4" />
-                  <span>{user?.company || 'Profile'}</span>
+                  <span className="text-sm">{user?.company || 'Profile'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-2 text-soft-ivory hover:text-red-400 font-body font-medium transition-colors"
+                  className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span className="text-sm">Logout</span>
                 </button>
               </>
             ) : (
               <>
                 <Link
-                  to={ROUTES.PRICING}
-                  className="text-white hover:text-orange-accent font-body font-medium transition-colors"
-                >
-                  Pricing
-                </Link>
-                <Link
                   to={ROUTES.LOGIN}
-                  className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                  className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded text-sm transition-colors flex items-center"
                 >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
                   Login
                 </Link>
-                <Button variant="accent" size="md">
-                  <Link to={ROUTES.REGISTER}>Get Started</Link>
-                </Button>
+                <Link
+                  to={ROUTES.REGISTER}
+                  className="bg-green-700 hover:bg-green-600 px-4 py-2 rounded text-sm transition-colors flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Register
+                </Link>
               </>
             )}
-          </nav>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
-                    className="md:hidden text-white hover:text-orange-accent transition-colors"
+            className="lg:hidden text-white hover:text-gray-300"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -98,41 +119,48 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-primary-blue/20 animate-fade-in">
-            <nav className="flex flex-col space-y-4">
+          <div className="lg:hidden py-4 border-t border-blue-700 animate-fade-in">
+            <nav className="flex flex-col space-y-2">
               {isAuthenticated ? (
                 <>
                   <Link
-                    to={ROUTES.DASHBOARD}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    to={ROUTES.HOME}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Dashboard
+                    Home
                   </Link>
                   <Link
                     to={ROUTES.LOAD_BOARD}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Load Board
                   </Link>
                   <Link
+                    to={ROUTES.DASHBOARD}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
                     to={ROUTES.PRICING}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Pricing
                   </Link>
                   <Link
                     to={ROUTES.PROFILE}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="text-left text-soft-ivory hover:text-red-400 font-body font-medium transition-colors"
+                    className="text-left text-white px-4 py-2 hover:bg-red-700 rounded transition-colors"
                   >
                     Logout
                   </button>
@@ -140,25 +168,39 @@ const Header = () => {
               ) : (
                 <>
                   <Link
+                    to={ROUTES.HOME}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to={ROUTES.LOAD_BOARD}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Load Board
+                  </Link>
+                  <Link
                     to={ROUTES.PRICING}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Pricing
                   </Link>
                   <Link
                     to={ROUTES.LOGIN}
-                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to={ROUTES.REGISTER}
-                    className="btn btn-accent w-full"
+                    className="text-white px-4 py-2 bg-green-700 hover:bg-green-600 rounded transition-colors text-center"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Get Started
+                    Register
                   </Link>
                 </>
               )}

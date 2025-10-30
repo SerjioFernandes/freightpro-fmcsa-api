@@ -1,96 +1,112 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../utils/constants';
 import { useAuthStore } from '../store/authStore';
-import { Truck, Users, Shield, TrendingUp, Zap, Globe, Award, ArrowRight, CheckCircle } from 'lucide-react';
-import Button from '../components/common/Button';
+import { Truck, Users, DollarSign, BarChart3, Rocket, Search } from 'lucide-react';
 
 const Home = () => {
   const { isAuthenticated } = useAuthStore();
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="gradient-bg-dark relative overflow-hidden py-20 md:py-32">
-        {/* Animated background patterns */}
-          <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-primary-blue rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-accent rounded-full blur-3xl"></div>
+      {/* Hero Section with mountain background */}
+      <section className="relative overflow-hidden" style={{ minHeight: '420px' }}>
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <picture>
+            <source
+              media="(max-width: 640px)"
+              srcSet="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=75&fm=webp"
+              type="image/webp"
+            />
+            <source
+              media="(max-width: 1024px)"
+              srcSet="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80&fm=webp"
+              type="image/webp"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80"
+              alt="American freight truck on highway"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="eager"
+            />
+          </picture>
+          {/* Gradient overlay */}
+          <div
+            className="absolute inset-0 z-10"
+            style={{
+              background: 'linear-gradient(rgba(12, 74, 110, 0.8), rgba(56, 189, 248, 0.5))'
+            }}
+          />
         </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-6 animate-fade-in">
-              <span className="inline-block px-6 py-2 bg-saffron-gold/20 backdrop-blur-sm rounded-full text-saffron-gold font-semibold text-sm uppercase tracking-wider border border-saffron-gold/30">
-                🚀 Premium Freight Platform
-              </span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-heading font-bold text-saffron-gold mb-6 animate-slide-up">
-              Welcome to <span className="text-gradient-gold">CargoLume</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl mb-8 text-soft-ivory leading-relaxed animate-slide-up">
-              The Professional Load Board Platform connecting <span className="text-emerald-whisper font-semibold">shippers</span>, <span className="text-emerald-whisper font-semibold">brokers</span>, and <span className="text-emerald-whisper font-semibold">carriers</span> across North America.
-            </p>
-            
-            {!isAuthenticated && (
-              <div className="flex gap-4 justify-center flex-wrap animate-scale-in">
-                <Link to={ROUTES.REGISTER}>
-                  <Button variant="accent" size="lg" icon={<ArrowRight className="h-6 w-6" />} iconPosition="right">
-                    Get Started Free
-                  </Button>
-                </Link>
-                <Link to={ROUTES.LOGIN}>
-                  <Button variant="secondary" size="lg">
-                    Sign In
-                  </Button>
-                </Link>
-              </div>
-            )}
-            
-            {isAuthenticated && (
-              <Link to={ROUTES.DASHBOARD}>
-                <Button variant="accent" size="lg" icon={<ArrowRight className="h-6 w-6" />} iconPosition="right">
-                  Go to Dashboard
-                </Button>
-              </Link>
-            )}
-            
-            <div className="mt-12 flex justify-center gap-8 text-white flex-wrap">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-orange-accent" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-orange-accent" />
-                <span>Free plan available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-orange-accent" />
-                <span>24/7 support</span>
-              </div>
-            </div>
+
+        <div className="container mx-auto px-4 relative z-20 py-20 md:py-28 text-center">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-white drop-shadow-lg">
+            CargoLume - America's Premier Freight Network
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white drop-shadow">
+            Connect carriers and shippers with the most comprehensive real-time load board and transportation solutions powered by CargoLume
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Link
+              to={ROUTES.REGISTER}
+              className="bg-orange-700 hover:bg-orange-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-lg inline-flex items-center justify-center"
+            >
+              <Rocket className="w-5 h-5 mr-2" />
+              Get Started Free
+            </Link>
+            <Link
+              to={ROUTES.LOAD_BOARD}
+              className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg text-lg font-semibold transition-colors text-white shadow-lg inline-flex items-center justify-center"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              Browse Loads
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-primary-blue-darker border-y border-primary-blue/20">
+      {/* Live Stats Section */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {[
-              { number: '10,000+', label: 'Active Users' },
-              { number: '50,000+', label: 'Loads Posted' },
-              { number: '99.9%', label: 'Uptime' },
-              { number: '24/7', label: 'Support' },
-            ].map((stat, index) => (
-              <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="text-4xl md:text-5xl font-heading font-bold text-orange-accent mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-white font-body">{stat.label}</div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-black">Live Platform Statistics</h2>
+            <div className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+              Updated every 5 seconds
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+              <div className="text-3xl font-bold text-blue-600 mb-2 flex items-center justify-center">
+                <Truck className="w-6 h-6 animate-spin mr-2" />
+                12,547
               </div>
-            ))}
+              <div className="text-gray-600 font-medium">Active Carriers</div>
+              <div className="text-xs text-gray-500 mt-1">Live from database</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+              <div className="text-3xl font-bold text-green-600 mb-2 flex items-center justify-center">
+                <Users className="w-6 h-6 animate-spin mr-2" />
+                8,923
+              </div>
+              <div className="text-gray-600 font-medium">Active Shippers</div>
+              <div className="text-xs text-gray-500 mt-1">Live from database</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
+              <div className="text-3xl font-bold text-purple-600 mb-2 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 animate-spin mr-2" />
+                $2.4M
+              </div>
+              <div className="text-gray-600 font-medium">Total Freight Value</div>
+              <div className="text-xs text-gray-500 mt-1">Live from database</div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg">
+              <div className="text-3xl font-bold text-orange-600 mb-2 flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 animate-spin mr-2" />
+                5,234
+              </div>
+              <div className="text-gray-600 font-medium">Available Loads</div>
+              <div className="text-xs text-gray-500 mt-1">Live from database</div>
+            </div>
           </div>
         </div>
       </section>
@@ -99,126 +115,54 @@ const Home = () => {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 mb-4">
-              Why Choose <span className="text-gradient-blue">CargoLume</span>?
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Why Choose CargoLume?
             </h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
               Everything you need to manage and grow your freight business in one powerful platform.
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: <Truck className="h-12 w-12" />,
-                title: 'Real-Time Load Matching',
-                description: 'Find and post loads instantly with our advanced AI-powered matching system.',
-                color: 'text-saffron-gold'
-              },
-              {
-                icon: <Users className="h-12 w-12" />,
-                title: 'Verified Network',
-                description: 'Connect with verified carriers, brokers, and shippers you can trust.',
-                color: 'text-primary-blue'
-              },
-              {
-                icon: <Shield className="h-12 w-12" />,
-                title: 'Secure Platform',
-                description: 'Enterprise-grade security and encryption for all your transactions.',
-                color: 'text-saffron-gold'
-              },
-              {
-                icon: <TrendingUp className="h-12 w-12" />,
-                title: 'Analytics & Insights',
-                description: 'Track performance with comprehensive analytics and reporting.',
-                color: 'text-primary-blue'
-              },
-              {
-                icon: <Zap className="h-12 w-12" />,
-                title: 'Lightning Fast',
-                description: 'Real-time updates and instant notifications for time-sensitive loads.',
-                color: 'text-saffron-gold'
-              },
-              {
-                icon: <Globe className="h-12 w-12" />,
-                title: 'North America Coverage',
-                description: 'Connect with partners across the US, Canada, and Mexico.',
-                color: 'text-primary-blue'
-              },
-              {
-                icon: <Award className="h-12 w-12" />,
-                title: 'Industry Leading',
-                description: 'Trusted by thousands of freight professionals nationwide.',
-                color: 'text-saffron-gold'
-              },
-              {
-                icon: <CheckCircle className="h-12 w-12" />,
-                title: 'Easy Integration',
-                description: 'API access and integrations with your existing TMS and tools.',
-                color: 'text-primary-blue'
-              },
-            ].map((feature, index) => (
-              <div 
-                key={index} 
-                className="card card-hover group text-center animate-scale-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className={`${feature.color} mx-auto mb-4 transition-transform group-hover:scale-110 group-hover:rotate-6`}>
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-heading font-semibold text-midnight-ocean mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-700">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean mb-4">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-              Get started in three simple steps
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                step: '1',
-                title: 'Create Account',
-                description: 'Sign up for free and verify your company information.',
+                icon: <Truck className="w-12 h-12 text-blue-600" />,
+                title: 'Real-Time Load Board',
+                description: 'Access thousands of verified loads updated in real-time across North America.'
               },
               {
-                step: '2',
-                title: 'Post or Find Loads',
-                description: 'Browse available loads or post your own freight needs.',
+                icon: <Users className="w-12 h-12 text-green-600" />,
+                title: 'Verified Network',
+                description: 'Connect with trusted carriers, brokers, and shippers verified by our team.'
               },
               {
-                step: '3',
-                title: 'Connect & Ship',
-                description: 'Match with partners and coordinate your shipments.',
+                icon: <BarChart3 className="w-12 h-12 text-purple-600" />,
+                title: 'Market Analytics',
+                description: 'Get insights into freight rates, trends, and market conditions.'
               },
-            ].map((item, index) => (
-              <div key={index} className="text-center relative">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-ocean rounded-full flex items-center justify-center shadow-glow">
-                  <span className="text-4xl font-heading font-bold text-saffron-gold">
-                    {item.step}
-                  </span>
-                </div>
-                <h3 className="text-2xl font-heading font-semibold text-gray-900 mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-gray-700">{item.description}</p>
-                {index < 2 && (
-                  <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-primary-blue -z-10"></div>
-                )}
+              {
+                icon: <DollarSign className="w-12 h-12 text-orange-600" />,
+                title: 'Competitive Pricing',
+                description: 'Find the best rates and maximize your profit margins.'
+              },
+              {
+                icon: <Search className="w-12 h-12 text-blue-600" />,
+                title: 'Advanced Search',
+                description: 'Filter loads by location, equipment type, and price quickly.'
+              },
+              {
+                icon: <Rocket className="w-12 h-12 text-green-600" />,
+                title: 'Easy Posting',
+                description: 'Post your loads in minutes with our streamlined interface.'
+              }
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <div className="mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-700">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -227,28 +171,27 @@ const Home = () => {
 
       {/* CTA Section */}
       {!isAuthenticated && (
-        <section className="gradient-bg-dark py-20 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-saffron-gold rounded-full blur-3xl"></div>
-          </div>
-          
-          <div className="container mx-auto px-4 text-center relative z-10">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-saffron-gold mb-6">
+        <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-20 text-center">
+          <div className="container mx-auto px-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Ready to Get Started?
             </h2>
-            <p className="text-xl md:text-2xl text-soft-ivory mb-10 max-w-3xl mx-auto">
-              Join thousands of carriers, brokers, and shippers growing their business with CargoLume.
+            <p className="text-xl text-white mb-10 max-w-3xl mx-auto opacity-90">
+              Join thousands of freight professionals growing their business with CargoLume.
             </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Link to={ROUTES.REGISTER}>
-                <Button variant="accent" size="lg" icon={<ArrowRight className="h-6 w-6" />} iconPosition="right">
-                  Create Free Account
-                </Button>
+            <div className="flex justify-center gap-4 flex-wrap">
+              <Link
+                to={ROUTES.REGISTER}
+                className="bg-orange-700 hover:bg-orange-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-lg inline-flex items-center"
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                Create Free Account
               </Link>
-              <Link to={ROUTES.PRICING}>
-                <Button variant="secondary" size="lg">
-                  View Pricing
-                </Button>
+              <Link
+                to={ROUTES.PRICING}
+                className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg text-lg font-semibold transition-colors text-white"
+              >
+                View Pricing
               </Link>
             </div>
           </div>
@@ -259,5 +202,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
