@@ -29,7 +29,6 @@ const LoadBoard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
-ases/h1>
           <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900">
             Load Board
           </h1>
