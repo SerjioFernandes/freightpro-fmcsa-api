@@ -40,23 +40,25 @@ const Home = () => {
         </div>
 
         <div className="container mx-auto px-4 relative z-20 py-20 md:py-28 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-white drop-shadow-lg">
-            CargoLume - America's Premier Freight Network
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-white drop-shadow-lg animate-fade-in gradient-text-animated">
+            <span className="bg-gradient-to-r from-white via-orange-200 to-white bg-clip-text text-transparent">
+              CargoLume - America's Premier Freight Network
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white drop-shadow">
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white drop-shadow animate-slide-up">
             Connect carriers and shippers with the most comprehensive real-time load board and transportation solutions powered by CargoLume
           </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 animate-fade-in-slide">
             <Link
               to={ROUTES.REGISTER}
-              className="bg-orange-700 hover:bg-orange-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-lg inline-flex items-center justify-center"
+              className="bg-gradient-to-r from-orange-700 to-orange-600 hover:from-orange-600 hover:to-orange-500 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-colored-orange hover:shadow-glow-orange transform hover:scale-105 inline-flex items-center justify-center"
             >
               <Rocket className="w-5 h-5 mr-2" />
               Get Started Free
             </Link>
             <Link
               to={ROUTES.LOAD_BOARD}
-              className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg text-lg font-semibold transition-colors text-white shadow-lg inline-flex items-center justify-center"
+              className="bg-white/10 backdrop-blur-sm border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-lg hover:shadow-glow-blue transform hover:scale-105 inline-flex items-center justify-center"
             >
               <Search className="w-5 h-5 mr-2" />
               Browse Loads
@@ -75,33 +77,33 @@ const Home = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg transition-all duration-300 hover:shadow-depth-3 hover:scale-105 border border-transparent hover:border-blue-200">
               <div className="text-3xl font-bold text-blue-600 mb-2 flex items-center justify-center">
-                <Truck className="w-6 h-6 animate-spin mr-2" />
+                <Truck className="w-6 h-6 animate-pulse mr-2" />
                 12,547
               </div>
               <div className="text-gray-600 font-medium">Active Carriers</div>
               <div className="text-xs text-gray-500 mt-1">Live from database</div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg transition-all duration-300 hover:shadow-depth-3 hover:scale-105 border border-transparent hover:border-green-200">
               <div className="text-3xl font-bold text-green-600 mb-2 flex items-center justify-center">
-                <Users className="w-6 h-6 animate-spin mr-2" />
+                <Users className="w-6 h-6 animate-pulse mr-2" />
                 8,923
               </div>
               <div className="text-gray-600 font-medium">Active Shippers</div>
               <div className="text-xs text-gray-500 mt-1">Live from database</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg transition-all duration-300 hover:shadow-depth-3 hover:scale-105 border border-transparent hover:border-purple-200">
               <div className="text-3xl font-bold text-purple-600 mb-2 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 animate-spin mr-2" />
+                <DollarSign className="w-6 h-6 animate-pulse mr-2" />
                 $2.4M
               </div>
               <div className="text-gray-600 font-medium">Total Freight Value</div>
               <div className="text-xs text-gray-500 mt-1">Live from database</div>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg transition-all duration-300 hover:shadow-depth-3 hover:scale-105 border border-transparent hover:border-orange-200">
               <div className="text-3xl font-bold text-orange-600 mb-2 flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 animate-spin mr-2" />
+                <BarChart3 className="w-6 h-6 animate-pulse mr-2" />
                 5,234
               </div>
               <div className="text-gray-600 font-medium">Available Loads</div>

@@ -42,11 +42,25 @@ const Button: React.FC<ButtonProps> = ({
     ${className}
   `.trim();
 
-  return (
-    <button className={classes} {...props}>
+  const content = (
+    <>
       {icon && iconPosition === 'left' && <span>{icon}</span>}
       <span>{children}</span>
       {icon && iconPosition === 'right' && <span>{icon}</span>}
+    </>
+  );
+
+  return (
+    <button className={classes} {...props}>
+      {variant === 'secondary' ? (
+        <div className="relative z-10 flex items-center gap-2">
+          {content}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          {content}
+        </div>
+      )}
     </button>
   );
 };

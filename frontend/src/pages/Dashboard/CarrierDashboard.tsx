@@ -4,10 +4,12 @@ import { useAuthStore } from '../../store/authStore';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
 import { Truck, DollarSign, TrendingUp, Package, MapPin, ArrowRight } from 'lucide-react';
+import EmptyState from '../../components/common/EmptyState';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const CarrierDashboard = () => {
   const { user } = useAuthStore();
-  const { loads, fetchLoads } = useLoadStore();
+  const { loads, isLoading, fetchLoads } = useLoadStore();
 
   useEffect(() => {
     fetchLoads(1, 10);
@@ -101,12 +103,16 @@ const CarrierDashboard = () => {
             </Link>
           </div>
           
-          {bookedLoads.length > 0 ? (
+          {isLoading ? (
+            <div className="py-16">
+              <LoadingSpinner size="lg" className="mx-auto" />
+            </div>
+          ) : bookedLoads.length > 0 ? (
             <div className="space-y-4">
               {bookedLoads.slice(0, 5).map((load, index) => (
                 <div 
                   key={load._id} 
-                  className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in"
+                  className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in card-hover"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex justify-between items-start flex-wrap gap-4">
@@ -136,15 +142,18 @@ const CarrierDashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16">
-              <Truck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg mb-4">No booked loads yet</p>
-              <Link to={ROUTES.LOAD_BOARD}>
-                <button className="btn btn-primary">
-                  Browse Load Board
-                </button>
-              </Link>
-            </div>
+            <EmptyState
+              icon={<Truck className="h-8 w-8" />}
+              title="No Booked Loads Yet"
+              description="Start browsing our load board to find freight opportunities that match your capacity."
+              action={
+                <Link to={ROUTES.LOAD_BOARD}>
+                  <button className="btn btn-primary">
+                    Browse Load Board
+                  </button>
+                </Link>
+              }
+            />
           )}
         </div>
       </div>
