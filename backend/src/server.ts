@@ -40,6 +40,9 @@ app.use(compression());
 // CORS configuration
 const allowedOrigins = [
   config.FRONTEND_URL,
+  'https://frontend-gamma-nine-61.vercel.app',
+  'https://frontend-serjiofernandes-projects.vercel.app',
+  'https://frontend-git-main-serjiofernandes-projects.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:8000',
