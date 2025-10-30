@@ -17,15 +17,15 @@ const Header = () => {
   };
 
   return (
-    <header className="glass-dark sticky top-0 z-50 border-b border-emerald-whisper/20">
+    <header className="bg-primary-blue-darker sticky top-0 z-50 border-b border-primary-blue/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to={ROUTES.HOME} className="flex items-center space-x-3 group">
-            <Truck className="h-10 w-10 text-saffron-gold transition-transform group-hover:scale-110" />
+            <Truck className="h-10 w-10 text-orange-accent transition-transform group-hover:scale-110" />
             <div className="flex flex-col">
-              <span className="text-2xl font-heading font-bold text-saffron-gold">CargoLume</span>
-              <span className="text-xs text-emerald-whisper font-accent uppercase tracking-wider">Premium Freight</span>
+              <span className="text-2xl font-heading font-bold text-white">CargoLume</span>
+              <span className="text-xs text-gray-300 font-accent uppercase tracking-wider">Professional Freight</span>
             </div>
           </Link>
 
@@ -35,25 +35,25 @@ const Header = () => {
               <>
                 <Link
                   to={ROUTES.DASHBOARD}
-                  className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-saffron-gold hover:after:w-full after:transition-all"
+                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to={ROUTES.LOAD_BOARD}
-                  className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-saffron-gold hover:after:w-full after:transition-all"
+                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
                 >
                   Load Board
                 </Link>
                 <Link
                   to={ROUTES.PRICING}
-                  className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-saffron-gold hover:after:w-full after:transition-all"
+                  className="text-white hover:text-orange-accent font-body font-medium transition-all duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-accent hover:after:w-full after:transition-all"
                 >
                   Pricing
                 </Link>
                 <Link
                   to={ROUTES.PROFILE}
-                  className="flex items-center space-x-2 text-soft-ivory hover:text-emerald-whisper font-body font-medium transition-colors"
+                  className="flex items-center space-x-2 text-white hover:text-orange-accent font-body font-medium transition-colors"
                 >
                   <User className="h-4 w-4" />
                   <span>{user?.company || 'Profile'}</span>
@@ -70,13 +70,13 @@ const Header = () => {
               <>
                 <Link
                   to={ROUTES.PRICING}
-                  className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                  className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                 >
                   Pricing
                 </Link>
                 <Link
                   to={ROUTES.LOGIN}
-                  className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                  className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                 >
                   Login
                 </Link>
@@ -89,7 +89,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-soft-ivory hover:text-saffron-gold transition-colors"
+                    className="md:hidden text-white hover:text-orange-accent transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -98,34 +98,34 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-emerald-whisper/20 animate-fade-in">
+          <div className="md:hidden py-4 border-t border-primary-blue/20 animate-fade-in">
             <nav className="flex flex-col space-y-4">
               {isAuthenticated ? (
                 <>
                   <Link
                     to={ROUTES.DASHBOARD}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <Link
                     to={ROUTES.LOAD_BOARD}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Load Board
                   </Link>
                   <Link
                     to={ROUTES.PRICING}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Pricing
                   </Link>
                   <Link
                     to={ROUTES.PROFILE}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
@@ -141,14 +141,14 @@ const Header = () => {
                 <>
                   <Link
                     to={ROUTES.PRICING}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Pricing
                   </Link>
                   <Link
                     to={ROUTES.LOGIN}
-                    className="text-soft-ivory hover:text-saffron-gold font-body font-medium transition-colors"
+                    className="text-white hover:text-orange-accent font-body font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login

@@ -48,21 +48,21 @@ const Register = () => {
   const needsAuthority = formData.accountType === 'carrier' || formData.accountType === 'broker';
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-soft-ivory">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-gray-50">
       <div className="max-w-2xl w-full">
-        <div className="card border-2 border-emerald-whisper/30 shadow-xl animate-scale-in">
+        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in">
           <div className="text-center mb-8">
-            <div className="bg-gradient-ocean w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-              <UserPlus className="h-10 w-10 text-saffron-gold" />
+            <div className="gradient-blue w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
+              <UserPlus className="h-10 w-10 text-orange-accent" />
             </div>
-            <h2 className="text-4xl font-heading font-bold text-midnight-ocean">Create Account</h2>
-            <p className="text-gray-700 mt-2 text-lg">Join <span className="text-saffron-gold font-semibold">CargoLume</span> today</p>
+            <h2 className="text-4xl font-heading font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-700 mt-2 text-lg">Join <span className="text-orange-accent font-semibold">CargoLume</span> today</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Account Type */}
             <div>
-              <label className="block text-sm font-semibold text-midnight-ocean mb-2 uppercase tracking-wide">
+              <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                 Account Type
               </label>
               <select
@@ -184,7 +184,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-primary py-3 text-lg"
+              className="w-full btn btn-accent py-3 text-lg"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>

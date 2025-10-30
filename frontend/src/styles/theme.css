@@ -1,25 +1,34 @@
-/* CargoLume Premium Theme - Grok AI Color Scheme */
+/* CargoLume Original Theme - Restored from Legacy Design */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Primary Colors - Grok AI Theme */
-  --midnight-ocean: #001F3F;
-  --soft-ivory: #F5F5F0;
-  --emerald-whisper: #A8DADC;
-  --saffron-gold: #F4C430;
+  /* Primary Colors - Original CargoLume Design */
+  --primary-blue: #2563eb;
+  --primary-blue-dark: #1d4ed8;
+  --primary-blue-darker: #1e3a8a;
+  --orange-accent: #ff6a3d;
+  --orange-light: #ff6b35;
+  --orange-dark: #f7931e;
+  --orange-hover: #ff8c42;
+  
+  /* Background Colors */
+  --bg-primary: #1a2238;
+  --bg-secondary: #283655;
+  --bg-light: #f9fafb;
+  --bg-white: #ffffff;
   
   /* Supporting Colors */
-  --dark-navy: #001829;
-  --light-ivory: #FAFAF7;
-  --emerald-dark: #7FB8BA;
-  --gold-bright: #FFD700;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-500: #6b7280;
   
-  /* Semantic Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
+  /* Semantic Colors - Original */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
   
   /* Typography */
   --font-heading: 'Futura', 'Trebuchet MS', Arial, sans-serif;
@@ -81,45 +90,49 @@
   border: 1px solid rgba(168, 218, 220, 0.3);
 }
 
-/* Gradient Backgrounds */
-.gradient-ocean {
-  background: linear-gradient(135deg, var(--midnight-ocean) 0%, var(--dark-navy) 100%);
+/* Gradient Backgrounds - Original */
+.gradient-orange {
+  background: linear-gradient(135deg, var(--orange-light) 0%, var(--orange-dark) 100%);
 }
 
-.gradient-emerald {
-  background: linear-gradient(135deg, var(--emerald-whisper) 0%, var(--emerald-dark) 100%);
+.gradient-blue {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
 }
 
-.gradient-gold {
-  background: linear-gradient(135deg, var(--saffron-gold) 0%, var(--gold-bright) 100%);
+.gradient-orange-hover {
+  background: linear-gradient(135deg, var(--orange-hover) 0%, var(--orange-dark) 100%);
 }
 
-.gradient-ocean-emerald {
-  background: linear-gradient(135deg, var(--emerald-whisper) 0%, var(--midnight-ocean) 100%);
+.gradient-bg-dark {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
 }
 
-/* Text Gradients */
-.text-gradient-gold {
-  background: linear-gradient(135deg, var(--saffron-gold), var(--gold-bright));
+/* Text Gradients - Original */
+.text-gradient-orange {
+  background: linear-gradient(135deg, var(--orange-light), var(--orange-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.text-gradient-ocean {
-  background: linear-gradient(135deg, var(--midnight-ocean), var(--emerald-whisper));
+.text-gradient-blue {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glow Effects */
-.glow-gold {
-  box-shadow: var(--shadow-glow);
+/* Glow Effects - Original */
+.glow-orange {
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
 }
 
-.glow-gold-strong {
-  box-shadow: var(--shadow-glow-strong);
+.glow-orange-strong {
+  box-shadow: 0 12px 30px rgba(255, 107, 53, 0.6);
+}
+
+.glow-blue {
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
 }
 
 /* Smooth Animations */

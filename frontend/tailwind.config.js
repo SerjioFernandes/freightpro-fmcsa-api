@@ -7,39 +7,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Grok AI Premium Theme
-        'midnight-ocean': '#001F3F',
-        'soft-ivory': '#F5F5F0',
-        'emerald-whisper': '#A8DADC',
-        'saffron-gold': '#F4C430',
-        'dark-navy': '#001829',
-        'light-ivory': '#FAFAF7',
-        'emerald-dark': '#7FB8BA',
-        'gold-bright': '#FFD700',
+        // Original CargoLume Colors
+        'primary-blue': '#2563eb',
+        'primary-blue-dark': '#1d4ed8',
+        'primary-blue-darker': '#1e3a8a',
+        'orange-accent': '#ff6a3d',
+        'orange-light': '#ff6b35',
+        'orange-dark': '#f7931e',
+        'orange-hover': '#ff8c42',
+        'bg-primary': '#1a2238',
+        'bg-secondary': '#283655',
         
-        // Legacy color mappings for compatibility
+        // Primary blue scale
         primary: {
-          DEFAULT: '#001F3F',
-          50: '#E6F2F7',
-          100: '#CCE6EF',
-          200: '#99CCD',
-          300: '#66B3CC',
-          400: '#3399BA',
-          500: '#001F3F',
-          600: '#001933',
-          700: '#001326',
-          800: '#000C1A',
-          900: '#00060D',
+          DEFAULT: '#2563eb',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#2563eb',
+          600: '#1d4ed8',
+          700: '#1e40af',
+          800: '#1e3a8a',
+          900: '#1e3a8a',
         },
         accent: {
-          DEFAULT: '#A8DADC',
-          light: '#C4E8E9',
-          dark: '#7FB8BA',
-        },
-        gold: {
-          DEFAULT: '#F4C430',
-          bright: '#FFD700',
-          dark: '#D4A017',
+          DEFAULT: '#ff6a3d',
+          light: '#ff6b35',
+          dark: '#f7931e',
+          hover: '#ff8c42',
         },
       },
       fontFamily: {

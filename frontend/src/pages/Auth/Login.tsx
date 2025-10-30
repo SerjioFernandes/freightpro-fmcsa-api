@@ -33,20 +33,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-soft-ivory">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-gray-50">
       <div className="max-w-md w-full">
-        <div className="card border-2 border-emerald-whisper/30 shadow-xl animate-scale-in">
+        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in">
           <div className="text-center mb-8">
-            <div className="bg-gradient-ocean w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-              <LogIn className="h-10 w-10 text-saffron-gold" />
+            <div className="gradient-blue w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
+              <LogIn className="h-10 w-10 text-orange-accent" />
             </div>
-            <h2 className="text-4xl font-heading font-bold text-midnight-ocean">Sign In</h2>
-            <p className="text-gray-700 mt-2 text-lg">Welcome back to <span className="text-saffron-gold font-semibold">CargoLume</span></p>
+            <h2 className="text-4xl font-heading font-bold text-gray-900">Sign In</h2>
+            <p className="text-gray-700 mt-2 text-lg">Welcome back to <span className="text-orange-accent font-semibold">CargoLume</span></p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-midnight-ocean mb-2 uppercase tracking-wide">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                 Email Address
               </label>
               <input
@@ -61,7 +61,7 @@ const Login = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-midnight-ocean mb-2 uppercase tracking-wide">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                 Password
               </label>
               <input
@@ -91,10 +91,10 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center border-t-2 border-emerald-whisper/20 pt-6">
+          <div className="mt-6 text-center border-t-2 border-primary-blue/20 pt-6">
             <p className="text-gray-700">
               Don't have an account?{' '}
-              <Link to={ROUTES.REGISTER} className="text-emerald-dark font-semibold hover:text-saffron-gold transition-colors">
+              <Link to={ROUTES.REGISTER} className="text-primary-blue font-semibold hover:text-orange-accent transition-colors">
                 Sign up here
               </Link>
             </p>

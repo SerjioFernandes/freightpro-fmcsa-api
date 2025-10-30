@@ -18,42 +18,42 @@ const Dashboard = () => {
       label: 'Active Loads',
       value: loads.length,
       icon: <Package className="h-12 w-12" />,
-      color: 'text-saffron-gold',
-      bgColor: 'bg-saffron-gold/10'
+      color: 'text-orange-accent',
+      bgColor: 'bg-orange-accent/10'
     },
     {
       label: 'Total Revenue',
       value: '$0',
       icon: <DollarSign className="h-12 w-12" />,
-      color: 'text-emerald-dark',
-      bgColor: 'bg-emerald-dark/10'
+      color: 'text-primary-blue',
+      bgColor: 'bg-primary-blue/10'
     },
     {
       label: 'Loads Booked',
       value: '0',
       icon: <Truck className="h-12 w-12" />,
-      color: 'text-saffron-gold',
-      bgColor: 'bg-saffron-gold/10'
+      color: 'text-orange-accent',
+      bgColor: 'bg-orange-accent/10'
     },
     {
       label: 'Performance',
       value: '5.0',
       icon: <TrendingUp className="h-12 w-12" />,
-      color: 'text-emerald-dark',
-      bgColor: 'bg-emerald-dark/10'
+      color: 'text-primary-blue',
+      bgColor: 'bg-primary-blue/10'
     },
   ];
 
   return (
-    <div className="min-h-screen bg-soft-ivory">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900">
             Dashboard
           </h1>
           <p className="text-xl text-gray-700 mt-2">
-            Welcome back, <span className="text-saffron-gold font-semibold">{user?.company}</span>! 👋
+            Welcome back, <span className="text-orange-accent font-semibold">{user?.company}</span>! 👋
           </p>
         </div>
 
@@ -70,7 +70,7 @@ const Dashboard = () => {
                   <p className="text-gray-600 text-sm font-medium uppercase tracking-wide mb-2">
                     {stat.label}
                   </p>
-                  <p className="text-3xl md:text-4xl font-heading font-bold text-midnight-ocean">
+                  <p className="text-3xl md:text-4xl font-heading font-bold text-gray-900">
                     {stat.value}
                   </p>
                 </div>
@@ -85,10 +85,10 @@ const Dashboard = () => {
         {/* Recent Loads */}
         <div className="card animate-slide-up">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-heading font-bold text-midnight-ocean">
+            <h2 className="text-3xl font-heading font-bold text-gray-900">
               Recent Loads
             </h2>
-            <Link to={ROUTES.LOAD_BOARD} className="text-emerald-dark hover:text-saffron-gold font-medium flex items-center gap-2 transition-colors">
+            <Link to={ROUTES.LOAD_BOARD} className="text-primary-blue hover:text-orange-accent font-medium flex items-center gap-2 transition-colors">
               View All <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -98,16 +98,16 @@ const Dashboard = () => {
               {loads.slice(0, 5).map((load, index) => (
                 <div 
                   key={load._id} 
-                  className="border-2 border-emerald-whisper/30 rounded-lg p-5 hover:border-saffron-gold hover:shadow-lg transition-all duration-200 bg-light-ivory animate-fade-in"
+                  className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex justify-between items-start flex-wrap gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-heading font-semibold text-midnight-ocean text-lg mb-2">
+                      <h3 className="font-heading font-semibold text-gray-900 text-lg mb-2">
                         {load.title}
                       </h3>
                       <div className="flex items-center gap-2 text-gray-700">
-                        <MapPin className="h-4 w-4 text-emerald-dark flex-shrink-0" />
+                        <MapPin className="h-4 w-4 text-primary-blue flex-shrink-0" />
                         <p className="text-sm">
                           <span className="font-medium">{load.origin.city}, {load.origin.state}</span>
                           {' → '}
@@ -116,7 +116,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-heading font-bold text-saffron-gold">
+                      <p className="text-2xl font-heading font-bold text-orange-accent">
                         ${load.rate.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-600">

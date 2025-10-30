@@ -10,11 +10,11 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="gradient-ocean relative overflow-hidden py-20 md:py-32">
+      <section className="gradient-bg-dark relative overflow-hidden py-20 md:py-32">
         {/* Animated background patterns */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-saffron-gold rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-whisper rounded-full blur-3xl"></div>
+          <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-primary-blue rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-accent rounded-full blur-3xl"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
@@ -56,17 +56,17 @@ const Home = () => {
               </Link>
             )}
             
-            <div className="mt-12 flex justify-center gap-8 text-soft-ivory flex-wrap">
+            <div className="mt-12 flex justify-center gap-8 text-white flex-wrap">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-saffron-gold" />
+                <CheckCircle className="h-5 w-5 text-orange-accent" />
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-saffron-gold" />
+                <CheckCircle className="h-5 w-5 text-orange-accent" />
                 <span>Free plan available</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-saffron-gold" />
+                <CheckCircle className="h-5 w-5 text-orange-accent" />
                 <span>24/7 support</span>
               </div>
             </div>
@@ -75,7 +75,7 @@ const Home = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-midnight-ocean border-y border-emerald-whisper/20">
+      <section className="py-16 bg-primary-blue-darker border-y border-primary-blue/20">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             {[
@@ -85,10 +85,10 @@ const Home = () => {
               { number: '24/7', label: 'Support' },
             ].map((stat, index) => (
               <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="text-4xl md:text-5xl font-heading font-bold text-saffron-gold mb-2">
+                <div className="text-4xl md:text-5xl font-heading font-bold text-orange-accent mb-2">
                   {stat.number}
                 </div>
-                <div className="text-emerald-whisper font-body">{stat.label}</div>
+                <div className="text-white font-body">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -96,11 +96,11 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-soft-ivory">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean mb-4">
-              Why Choose <span className="text-gradient-gold">CargoLume</span>?
+            <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 mb-4">
+              Why Choose <span className="text-gradient-blue">CargoLume</span>?
             </h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
               Everything you need to manage and grow your freight business in one powerful platform.
@@ -119,7 +119,7 @@ const Home = () => {
                 icon: <Users className="h-12 w-12" />,
                 title: 'Verified Network',
                 description: 'Connect with verified carriers, brokers, and shippers you can trust.',
-                color: 'text-emerald-dark'
+                color: 'text-primary-blue'
               },
               {
                 icon: <Shield className="h-12 w-12" />,
@@ -131,7 +131,7 @@ const Home = () => {
                 icon: <TrendingUp className="h-12 w-12" />,
                 title: 'Analytics & Insights',
                 description: 'Track performance with comprehensive analytics and reporting.',
-                color: 'text-emerald-dark'
+                color: 'text-primary-blue'
               },
               {
                 icon: <Zap className="h-12 w-12" />,
@@ -143,7 +143,7 @@ const Home = () => {
                 icon: <Globe className="h-12 w-12" />,
                 title: 'North America Coverage',
                 description: 'Connect with partners across the US, Canada, and Mexico.',
-                color: 'text-emerald-dark'
+                color: 'text-primary-blue'
               },
               {
                 icon: <Award className="h-12 w-12" />,
@@ -155,7 +155,7 @@ const Home = () => {
                 icon: <CheckCircle className="h-12 w-12" />,
                 title: 'Easy Integration',
                 description: 'API access and integrations with your existing TMS and tools.',
-                color: 'text-emerald-dark'
+                color: 'text-primary-blue'
               },
             ].map((feature, index) => (
               <div 
@@ -177,7 +177,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-light-ivory">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight-ocean mb-4">
@@ -212,12 +212,12 @@ const Home = () => {
                     {item.step}
                   </span>
                 </div>
-                <h3 className="text-2xl font-heading font-semibold text-midnight-ocean mb-3">
+                <h3 className="text-2xl font-heading font-semibold text-gray-900 mb-3">
                   {item.title}
                 </h3>
                 <p className="text-gray-700">{item.description}</p>
                 {index < 2 && (
-                  <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-emerald-whisper -z-10"></div>
+                  <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-primary-blue -z-10"></div>
                 )}
               </div>
             ))}
@@ -227,7 +227,7 @@ const Home = () => {
 
       {/* CTA Section */}
       {!isAuthenticated && (
-        <section className="gradient-ocean py-20 relative overflow-hidden">
+        <section className="gradient-bg-dark py-20 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 right-0 w-96 h-96 bg-saffron-gold rounded-full blur-3xl"></div>
           </div>
