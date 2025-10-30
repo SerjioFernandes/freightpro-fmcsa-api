@@ -58,6 +58,8 @@ export function validateEINRequired(req: Request, res: Response, next: NextFunct
     delete req.body.ein;
     delete req.body.einCanon;
     delete req.body.einDisplay;
+    delete req.body.usdotNumber;
+    delete req.body.mcNumber;
   }
   
   next();
