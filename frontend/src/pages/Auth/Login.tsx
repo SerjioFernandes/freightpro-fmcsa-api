@@ -78,7 +78,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-primary py-3 text-lg"
+              className="w-full btn btn-primary py-3 text-lg text-white"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

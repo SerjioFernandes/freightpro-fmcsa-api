@@ -184,7 +184,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-accent py-3 text-lg"
+              className="w-full btn btn-accent py-3 text-lg text-white"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
