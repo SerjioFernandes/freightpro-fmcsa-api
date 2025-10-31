@@ -63,6 +63,23 @@ export default {
         '2xl': '4rem',
         '3xl': '6rem',
       },
+      animation: {
+        'slide-in': 'fadeInSlide 0.3s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeInSlide: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(100%)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateX(0)',
+          },
+        },
+      },
     },
   },
   plugins: [],

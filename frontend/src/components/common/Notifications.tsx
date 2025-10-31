@@ -5,7 +5,7 @@ const Notifications = () => {
   const { notifications, removeNotification } = useUIStore();
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-4 max-w-md">
+    <div className="fixed top-4 right-4 z-[9999] space-y-4 max-w-md pointer-events-none">
       {notifications.map((notification) => {
         const icons = {
           success: <CheckCircle className="h-5 w-5 text-green-600" />,
@@ -24,7 +24,7 @@ const Notifications = () => {
         return (
           <div
             key={notification.id}
-            className={`${colors[notification.type]} border rounded-lg p-4 shadow-lg flex items-start space-x-3 animate-slide-in`}
+            className={`${colors[notification.type]} border rounded-lg p-4 shadow-2xl flex items-start space-x-3 animate-slide-in pointer-events-auto`}
           >
             {icons[notification.type]}
             <p className="flex-1 text-sm font-medium text-gray-900">
