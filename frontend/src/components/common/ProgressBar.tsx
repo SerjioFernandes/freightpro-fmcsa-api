@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 interface ProgressBarProps {
   progress: number; // 0-100
   label?: string;
