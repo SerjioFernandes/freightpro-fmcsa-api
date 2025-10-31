@@ -87,6 +87,13 @@ const userSchema = new Schema<IUser>({
   lastLogin: { type: Date, default: Date.now }
 });
 
+// Indexes for performance
+userSchema.index({ accountType: 1 }); // For filtering by account type
+userSchema.index({ isEmailVerified: 1 }); // For filtering verified users
+userSchema.index({ isActive: 1 }); // For filtering active users
+userSchema.index({ createdAt: -1 }); // For recent registrations
+userSchema.index({ role: 1 }); // For admin queries
+
 export const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);
 
 

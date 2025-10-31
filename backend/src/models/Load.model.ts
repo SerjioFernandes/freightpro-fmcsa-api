@@ -44,6 +44,14 @@ const loadSchema = new Schema<ILoad>({
   updatedAt: { type: Date, default: Date.now }
 });
 
+// Indexes for performance
+loadSchema.index({ status: 1, pickupDate: 1 }); // For filtering loads by status and date
+loadSchema.index({ postedBy: 1, status: 1 }); // For broker's posted loads
+loadSchema.index({ bookedBy: 1, status: 1 }); // For carrier's booked loads
+loadSchema.index({ 'origin.state': 1, 'destination.state': 1 }); // For route filtering
+loadSchema.index({ equipmentType: 1, status: 1 }); // For equipment type filtering
+loadSchema.index({ createdAt: -1 }); // For recent loads
+
 export const Load: Model<ILoad> = mongoose.model<ILoad>('Load', loadSchema);
 
 
