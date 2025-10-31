@@ -82,9 +82,9 @@ const Register = () => {
       // Show verification code if email wasn't sent (for development/testing)
       if (!response.emailSent && response.verification?.code) {
         addNotification({ 
-          type: 'info', 
-          message: `Verification code: ${response.verification.code} (Email not configured - use this code to verify)`,
-          duration: 10000
+          type: 'warning', 
+          message: `Email delivery issue detected. Your verification code is: ${response.verification.code}`,
+          duration: 15000 // Show longer
         });
       } else {
         addNotification({ type: 'success', message: response.message || 'Registration successful!' });

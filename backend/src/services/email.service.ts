@@ -24,14 +24,17 @@ class EmailService {
       service: 'gmail',
       host: 'smtp.gmail.com',
       port: 587,
-      secure: false,
+      secure: false, // use STARTTLS
       auth: { user, pass },
-      tls: { rejectUnauthorized: false },
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 3,
-      rateDelta: 20000,
-      rateLimit: 5
+      tls: { 
+        rejectUnauthorized: true, // Changed from false for security
+        minVersion: 'TLSv1.2'
+      },
+      connectionTimeout: 10000, // 10s timeout
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      logger: true, // Enable nodemailer logging
+      debug: config.NODE_ENV === 'development' // Debug in dev only
     });
 
     logger.info('Email transporter created successfully');
@@ -119,6 +122,22 @@ class EmailService {
       return true;
     } catch (error: any) {
       logger.error('Email sending failed', { email, error: error.message });
+      return false;
+    }
+  }
+
+  async testConnection(): Promise<boolean> {
+    if (!this.transporter) return false;
+    try {
+      await this.transporter.verify();
+      logger.info('SMTP connection verified successfully');
+      return true;
+    } catch (error: any) {
+      logger.error('SMTP connection failed', { 
+        code: error.code, 
+        command: error.command,
+        message: error.message 
+      });
       return false;
     }
   }

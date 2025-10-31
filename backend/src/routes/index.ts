@@ -3,6 +3,7 @@ import authRoutes from './auth.routes.js';
 import loadRoutes from './load.routes.js';
 import shipmentRoutes from './shipment.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
+import healthRoutes from './health.routes.js';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/auth', authRoutes);
 router.use('/loads', loadRoutes);
 router.use('/shipments', shipmentRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/health', healthRoutes);
 
 export default router;
 

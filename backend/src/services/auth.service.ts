@@ -81,8 +81,16 @@ export class AuthService {
     await user.save();
     logger.info('User created successfully', { email: user.email, id: user._id });
 
-    // Send verification email (async, don't wait)
-    const emailSent = await emailService.sendVerificationEmail(normalizedEmail, emailVerificationCode);
+    // Send verification email with proper error handling
+    let emailSent = false;
+    try {
+      emailSent = await emailService.sendVerificationEmail(normalizedEmail, emailVerificationCode);
+      if (!emailSent) {
+        logger.warn('Email sending returned false', { email: normalizedEmail });
+      }
+    } catch (error: any) {
+      logger.error('Email sending threw error', { email: normalizedEmail, error: error.message });
+    }
 
     return {
       user: {
