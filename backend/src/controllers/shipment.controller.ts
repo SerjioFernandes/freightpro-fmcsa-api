@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import { Shipment, ShipmentRequest } from '../models/Shipment.model.js';
-import { User } from '../models/User.model.js';
 import { AuthRequest } from '../types/index.js';
 import { PAGINATION } from '../utils/constants.js';
 import { validateState, validatePostalCode } from '../utils/validators.js';

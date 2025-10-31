@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import { Load } from '../models/Load.model.js';
-import { User } from '../models/User.model.js';
 import { Shipment, ShipmentRequest } from '../models/Shipment.model.js';
 import { AuthRequest } from '../types/index.js';
 import { logger } from '../utils/logger.js';
@@ -57,8 +56,9 @@ export class DashboardController {
       // Calculate stats
       const totalPosted = postedLoads.length;
       const activeLoads = postedLoads.filter(load => load.status === 'available').length;
-      const bookedLoads = postedLoads.filter(load => load.status === 'booked').length;
-      const potentialRevenue = bookedLoads.reduce((sum, load) => sum + (load.rate || 0), 0);
+      const bookedLoadsArray = postedLoads.filter(load => load.status === 'booked');
+      const bookedLoads = bookedLoadsArray.length;
+      const potentialRevenue = bookedLoadsArray.reduce((sum: number, load: any) => sum + (load.rate || 0), 0);
       const totalRequests = shipmentRequests.length;
       const pendingRequests = shipmentRequests.filter(req => req.status === 'pending').length;
 
@@ -67,7 +67,7 @@ export class DashboardController {
         stats: {
           totalPosted,
           activeLoads,
-          carrierRequests: bookedLoads.length,
+          carrierRequests: bookedLoads,
           potentialRevenue,
           shipmentRequests: totalRequests,
           pendingRequests
