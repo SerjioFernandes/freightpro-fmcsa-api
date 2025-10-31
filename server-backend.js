@@ -564,20 +564,20 @@ function createEmailTransporter() {
         service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false, // use STARTTLS
         auth: {
             user,
             pass
         },
         tls: {
-            rejectUnauthorized: false
+            rejectUnauthorized: true, // Changed from false for security
+            minVersion: 'TLSv1.2'
         },
-        // Additional options to help with Gmail
-        pool: true,
-        maxConnections: 1,
-        maxMessages: 3,
-        rateDelta: 20000,
-        rateLimit: 5
+        connectionTimeout: 10000, // 10s timeout
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+        logger: true, // Enable nodemailer logging
+        debug: process.env.NODE_ENV === 'development' // Debug in dev only
     });
 
     console.log('✅ Email transporter created successfully');
@@ -633,6 +633,41 @@ app.get('/api/health', (req, res) => {
             user: process.env.EMAIL_USER ? 'set' : 'not set'
         }
     });
+});
+
+// Email status health check
+app.get('/api/health/email-status', async (req, res) => {
+    try {
+        const isConfigured = !!transporter;
+        let canConnect = false;
+        
+        if (isConfigured) {
+            try {
+                await transporter.verify();
+                canConnect = true;
+                console.log('✅ SMTP connection verified successfully');
+            } catch (error) {
+                console.error('❌ SMTP connection failed', {
+                    code: error.code,
+                    command: error.command,
+                    message: error.message
+                });
+            }
+        }
+        
+        res.json({
+            configured: isConfigured,
+            connected: canConnect,
+            provider: 'Gmail SMTP'
+        });
+    } catch (error) {
+        res.status(500).json({
+            configured: !!transporter,
+            connected: false,
+            provider: 'Gmail SMTP',
+            error: error.message
+        });
+    }
 });
 
 // Serve static frontend from project root on the SAME port as API
