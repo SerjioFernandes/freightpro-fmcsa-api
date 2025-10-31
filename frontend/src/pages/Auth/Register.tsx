@@ -78,7 +78,18 @@ const Register = () => {
 
     try {
       const response = await authService.register(formData);
-      addNotification({ type: 'success', message: response.message || 'Registration successful!' });
+      
+      // Show verification code if email wasn't sent (for development/testing)
+      if (!response.emailSent && response.verification?.code) {
+        addNotification({ 
+          type: 'info', 
+          message: `Verification code: ${response.verification.code} (Email not configured - use this code to verify)`,
+          duration: 10000
+        });
+      } else {
+        addNotification({ type: 'success', message: response.message || 'Registration successful!' });
+      }
+      
       // Navigate to verify page with email
       navigate(`${ROUTES.VERIFY}?email=${encodeURIComponent(formData.email)}`);
     } catch (error: any) {
