@@ -37,34 +37,43 @@ app.use(helmet({
 // Compression
 app.use(compression());
 
-// CORS configuration
-const allowedOrigins = [
-  config.FRONTEND_URL,
-  'https://frontend-gamma-nine-61.vercel.app',
-  'https://frontend-serjiofernandes-projects.vercel.app',
-  'https://frontend-git-main-serjiofernandes-projects.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:8000',
-  'http://localhost:4000',
-  'null'
-];
+// CORS configuration with dynamic origin checking for Vercel
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (mobile apps, curl, postman, etc.)
+    if (!origin) return callback(null, true);
 
-app.options('*', cors({
-  origin: allowedOrigins,
+    // List of allowed origins
+    const allowedOrigins = [
+      config.FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:8000',
+      'http://localhost:4000'
+    ];
+
+    // Allow all Vercel preview and production URLs
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    // Allow if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Deny by default
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-}));
+};
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-}));
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
-logger.info('CORS allowed origins', { origins: allowedOrigins });
+logger.info('CORS configured to allow all Vercel deployments and configured origins');
 
 // Request logging middleware
 app.use((req, res, next) => {
