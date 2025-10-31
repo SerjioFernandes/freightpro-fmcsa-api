@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
 import loadRoutes from './load.routes.js';
+import shipmentRoutes from './shipment.routes.js';
+import dashboardRoutes from './dashboard.routes.js';
 
 const router = Router();
 
@@ -19,6 +21,8 @@ router.get('/health', (_req, res) => {
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/loads', loadRoutes);
+router.use('/shipments', shipmentRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router;
 
