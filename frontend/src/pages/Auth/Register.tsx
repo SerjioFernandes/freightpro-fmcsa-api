@@ -22,8 +22,54 @@ const Register = () => {
   const { addNotification } = useUIStore();
   const navigate = useNavigate();
 
+  // Auto-format EIN: xx-xxxxxxx
+  const formatEIN = (value: string): string => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    // Limit to 9 digits
+    const limitedDigits = digits.slice(0, 9);
+    // Add hyphen after 2 digits
+    if (limitedDigits.length <= 2) {
+      return limitedDigits;
+    }
+    return `${limitedDigits.slice(0, 2)}-${limitedDigits.slice(2)}`;
+  };
+
+  // Auto-format Phone: (xxx) xxx-xxxx
+  const formatPhone = (value: string): string => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    // Limit to 11 digits (US + Canada with country code)
+    const limitedDigits = digits.slice(0, 11);
+    
+    // If starts with 1, treat as country code
+    if (limitedDigits.length === 0) return '';
+    if (limitedDigits.length === 1) return limitedDigits;
+    if (limitedDigits.startsWith('1') && limitedDigits.length > 1) {
+      const withoutCountry = limitedDigits.slice(1);
+      if (withoutCountry.length === 0) return `+1`;
+      if (withoutCountry.length <= 3) return `+1 (${withoutCountry}`;
+      if (withoutCountry.length <= 6) return `+1 (${withoutCountry.slice(0, 3)}) ${withoutCountry.slice(3)}`;
+      return `+1 (${withoutCountry.slice(0, 3)}) ${withoutCountry.slice(3, 6)}-${withoutCountry.slice(6)}`;
+    }
+    
+    // Regular US/Canada format
+    if (limitedDigits.length <= 3) return `(${limitedDigits}`;
+    if (limitedDigits.length <= 6) return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3)}`;
+    return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)}-${limitedDigits.slice(6)}`;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    
+    // Auto-format EIN and Phone
+    if (e.target.name === 'ein') {
+      value = formatEIN(value);
+    } else if (e.target.name === 'phone') {
+      value = formatPhone(value);
+    }
+    
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,9 +82,27 @@ const Register = () => {
       // Navigate to verify page with email
       navigate(`${ROUTES.VERIFY}?email=${encodeURIComponent(formData.email)}`);
     } catch (error: any) {
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      // Check for specific error messages
+      if (error.response?.data?.error || error.response?.data?.message) {
+        const backendError = error.response.data.error || error.response.data.message;
+        
+        // User-friendly duplicate email message
+        if (backendError.includes('already exists') || backendError.includes('User already exists')) {
+          errorMessage = `A user with the email address ${formData.email} already exists. Please use a different email or try logging in.`;
+        } 
+        // Other validation errors
+        else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (backendError) {
+          errorMessage = backendError;
+        }
+      }
+      
       addNotification({ 
         type: 'error', 
-        message: error.response?.data?.message || 'Registration failed. Please try again.' 
+        message: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -131,10 +195,12 @@ const Register = () => {
                   name="phone"
                   type="tel"
                   required
+                  placeholder="(555) 123-4567"
                   className="input"
                   value={formData.phone}
                   onChange={handleChange}
                 />
+                <p className="text-xs text-gray-500 mt-1">US/Canada format only</p>
               </div>
             </div>
 
@@ -173,10 +239,12 @@ const Register = () => {
                     name="ein"
                     type="text"
                     placeholder="12-3456789"
+                    maxLength={10}
                     className="input"
                     value={formData.ein}
                     onChange={handleChange}
                   />
+                  <p className="text-xs text-gray-500 mt-1">Format: XX-XXXXXXX</p>
                 </div>
               </div>
             )}
