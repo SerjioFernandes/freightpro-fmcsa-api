@@ -7,6 +7,7 @@ import type { AccountType } from './types/user.types';
 // Layout
 import MainLayout from './components/layout/MainLayout';
 import Notifications from './components/common/Notifications';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
 import Home from './pages/Home';
@@ -39,9 +40,10 @@ function App() {
   }, [checkAuth]);
 
   return (
-    <Router>
-      <Notifications />
-      <Routes>
+    <ErrorBoundary>
+      <Router>
+        <Notifications />
+        <Routes>
         {/* Public Routes */}
         <Route path={ROUTES.HOME} element={<MainLayout><Home /></MainLayout>} />
         <Route path={ROUTES.LOGIN} element={<MainLayout><Login /></MainLayout>} />
@@ -94,7 +96,8 @@ function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
