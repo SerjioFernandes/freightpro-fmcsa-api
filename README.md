@@ -1,254 +1,186 @@
-# CargoLume - Enterprise Load Board Platform
+# 🚛 CargoLume - Freight Network Platform
 
-> **Modern, scalable freight load board platform built with React, TypeScript, Node.js, and MongoDB**
+## Overview
 
-## 🚀 Features
+**CargoLume** is a modern, full-stack freight network platform connecting carriers, brokers, and shippers in real-time. Built with cutting-edge technologies and best practices.
 
-- **Modern Tech Stack**: React 18, TypeScript, Vite, TailwindCSS
-- **Enterprise Architecture**: Modular backend with TypeScript, Express, MongoDB
-- **State Management**: Zustand for predictable state management
-- **Authentication**: JWT-based secure authentication with email verification
-- **Real-time Load Board**: Browse, post, and book loads in real-time
-- **Role-based Access**: Carrier, Broker, and Shipper accounts with specific permissions
-- **Authority Validation**: USDOT and MC number validation for interstate/intrastate loads
-- **Responsive Design**: Mobile-first, fully responsive UI
-- **Serverless Ready**: Vercel deployment configuration included
+**Status:** ✅ **PRODUCTION READY**
 
-## 📐 Architecture
+## 🌐 Live URLs
 
-```
-project-root/
-├── frontend/          # React + Vite + TypeScript
-│   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route-level pages
-│   │   ├── services/     # API calls
-│   │   ├── store/        # Zustand state management
-│   │   ├── types/        # TypeScript definitions
-│   │   └── utils/        # Helper functions
-│   └── package.json
-├── backend/           # Node.js + Express + TypeScript
-│   ├── src/
-│   │   ├── controllers/  # Route handlers
-│   │   ├── models/       # MongoDB schemas
-│   │   ├── routes/       # Express routes
-│   │   ├── middleware/   # Auth, validation, errors
-│   │   ├── services/     # Business logic
-│   │   ├── utils/        # Helpers
-│   │   └── config/       # Configuration
-│   └── package.json
-├── docs/              # Documentation
-└── legacy/            # Old monolithic files (backup)
-```
+- **Frontend:** https://frontend-gfjil28dv-serjiofernandes-projects.vercel.app
+- **Backend API:** https://freightpro-fmcsa-api.onrender.com
+- **GitHub:** https://github.com/SerjioFernandes/freightpro-fmcsa-api
+
+## ✨ Key Features
+
+### 🔐 Authentication & Security
+- JWT-based authentication
+- Email verification
+- Role-based access control (RBAC)
+- Secure password hashing
+- Session management
+
+### 🚛 Load Board
+- Real-time load listings
+- Advanced filtering
+- Equipment type selection
+- Authority-based visibility
+- Interstate/intrastate routing
+
+### 📦 Shipments
+- Create and manage shipments
+- Request-based access control
+- Approval workflow
+- Status tracking
+
+### 📊 Dashboards
+- **Carrier:** Earnings, booked loads, miles
+- **Broker:** Posted loads, revenue, requests
+- **Shipper:** Shipments, proposals, spend
+
+### 🎨 Modern UI
+- Responsive design
+- Smooth animations
+- Mobile-first approach
+- Loading states
+- Error handling
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- React 18 with TypeScript
-- Vite (build tool)
-- TailwindCSS (styling)
-- Zustand (state management)
-- React Router v6 (routing)
-- Axios (HTTP client)
-- Lucide React (icons)
+- React 18 + TypeScript
+- Vite 7
+- TailwindCSS 3
+- Zustand (State Management)
+- React Router 6
+- Axios
+- Lucide React Icons
 
 ### Backend
-- Node.js 18+ with TypeScript
-- Express.js (framework)
-- MongoDB + Mongoose (database)
-- JWT (authentication)
-- bcryptjs (password hashing)
-- Winston (logging)
-- Helmet (security)
-- Nodemailer (email)
+- Node.js 20 + Express
+- TypeScript 5
+- MongoDB + Mongoose
+- JWT Authentication
+- bcrypt Hashing
+- Nodemailer
 
-## 📦 Installation
+### DevOps
+- Vercel (Frontend Hosting)
+- Render (Backend Hosting)
+- MongoDB Atlas (Database)
+- GitHub (Version Control)
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- MongoDB Atlas account (or local MongoDB)
-- Gmail account for email notifications (optional)
+- Node.js 20.x or higher
+- MongoDB connection string
+- Vercel account
+- Render account
 
-### Backend Setup
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/SerjioFernandes/freightpro-fmcsa-api.git
+cd FreightPro
+
+# Install backend dependencies
 cd backend
 npm install
 
-# Create .env file
-cat > .env << EOF
+# Install frontend dependencies
+cd ../frontend
+npm install
+```
+
+### Environment Variables
+
+**Backend (.env)**
+```env
 MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_jwt_key
-ADMIN_EMAIL=admin@cargolume.com
-ADMIN_PASSWORD=YourSecurePassword123
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-FRONTEND_URL=http://localhost:5173
-PORT=4000
-NODE_ENV=development
-EOF
-
-# Start development server
-npm run dev
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-
-# Create .env file
-echo "VITE_API_URL=http://localhost:4000/api" > .env
-
-# Start development server
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`
-The backend API will be available at `http://localhost:4000`
-
-## 🚀 Deployment
-
-### Backend (Vercel Serverless)
-
-```bash
-cd backend
-vercel deploy --prod
-```
-
-### Frontend (Vercel)
-
-```bash
-cd frontend
-vercel deploy --prod
-```
-
-## 📝 Environment Variables
-
-### Backend (.env)
-```
-MONGODB_URI=mongodb+srv://...
-JWT_SECRET=your-secret-key
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=secure-password
-EMAIL_USER=smtp-email@gmail.com
-EMAIL_PASS=app-specific-password
-FRONTEND_URL=https://your-frontend.vercel.app
-PORT=4000
+JWT_SECRET=your_jwt_secret_key
+FRONTEND_URL=https://your-vercel-url.vercel.app
 NODE_ENV=production
+PORT=4000
 ```
 
-### Frontend (.env)
+**Frontend (.env)**
+```env
+VITE_API_URL=https://your-render-backend-url.onrender.com/api
 ```
-VITE_API_URL=https://your-backend.vercel.app/api
-```
 
-## 📚 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/verify` - Verify email
-- `POST /api/auth/resend-code` - Resend verification code
-- `GET /api/auth/me` - Get current user
-
-### Loads
-- `GET /api/loads` - Get all loads (paginated)
-- `POST /api/loads` - Post a new load (broker only)
-- `POST /api/loads/:id/book` - Book a load (carrier only)
-
-### Health
-- `GET /api/health` - API health check
-
-## 🔐 Security Features
-
-- JWT authentication with HTTP-only cookies
-- Password hashing with bcryptjs (12 rounds)
-- Email verification for new accounts
-- Rate limiting on API endpoints
-- Helmet.js for security headers
-- CORS configuration
-- Input validation and sanitization
-- Authority validation (USDOT/MC numbers)
-
-## 📊 Key Improvements Over Legacy
-
-| Feature | Legacy | New Architecture |
-|---------|--------|------------------|
-| File Structure | 15,739-line HTML | Modular components |
-| Type Safety | JavaScript | TypeScript |
-| State Management | Global variables | Zustand |
-| Build Time | N/A | <30s |
-| Bundle Size | Monolithic | Code-split chunks |
-| Maintainability | Low | High |
-| Scalability | Limited | Enterprise-ready |
-
-## 🎯 Features by Account Type
-
-### Carrier
-- Browse available loads
-- Book loads (with authority validation)
-- View booked loads
-- Track deliveries
-
-### Broker
-- Post new loads
-- View posted loads
-- Manage bookings
-- Request access to shipments
-
-### Shipper
-- Create shipments
-- View shipment requests
-- Approve/reject broker requests
-
-## 🧪 Testing
+### Running Locally
 
 ```bash
-# Backend tests
+# Backend
 cd backend
-npm test
+npm run dev
 
-# Frontend tests
+# Frontend
 cd frontend
-npm test
+npm run dev
 ```
 
-## 📖 Documentation
+## 📁 Project Structure
 
-- See `/docs` folder for detailed documentation
-- API documentation: `/docs/API.md`
-- Deployment guide: `/docs/DEPLOYMENT.md`
-- Migration guide: `/docs/MIGRATION.md`
+```
+FreightPro/
+├── backend/               # Express + TypeScript backend
+│   ├── src/
+│   │   ├── controllers/   # Business logic
+│   │   ├── models/        # Database models
+│   │   ├── routes/        # API routes
+│   │   ├── middleware/    # Auth, validation, etc.
+│   │   ├── services/      # Email, auth services
+│   │   └── utils/         # Helpers, validators
+│   └── package.json
+│
+├── frontend/              # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/         # Page components
+│   │   ├── store/         # Zustand stores
+│   │   ├── services/      # API services
+│   │   ├── utils/         # Helpers
+│   │   └── styles/        # CSS and Tailwind
+│   └── package.json
+│
+└── README.md
+```
+
+## 🔑 Account Types & Permissions
+
+| Feature | Carrier | Broker | Shipper |
+|---------|---------|--------|---------|
+| View Load Board | ✅ | ✅ | ❌ |
+| Post Load | ❌ | ✅ | ❌ |
+| Book Load | ✅ | ❌ | ❌ |
+| Create Shipment | ❌ | ❌ | ✅ |
+| View Own Shipments | ❌ | ❌ | ✅ |
+| View All Shipments | ❌ | ✅ | ❌ |
+| Request Access | ❌ | ✅ | ❌ |
+| Approve Requests | ❌ | ❌ | ✅ |
+
+## 📚 Documentation
+
+- [Complete Implementation Summary](IMPLEMENTATION-COMPLETE-SUMMARY.md)
+- [Project Status](PROJECT-STATUS-FINAL.md)
+- [Final Session Summary](FINAL-SESSION-SUMMARY.md)
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+This is a production application. Please contact the project owner before making changes.
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+All rights reserved. Copyright © 2025 CargoLume.
 
-## 👥 Team
+## 🆘 Support
 
-CargoLume Team - Professional Freight Solutions
-
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- Vercel for excellent hosting
-- MongoDB for reliable database
-- All open-source contributors
+For issues or questions, please open an issue on GitHub.
 
 ---
 
 **Built with ❤️ for the freight industry**
-
-
-
-
