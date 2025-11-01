@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
+import { useWebSocket } from './hooks/useWebSocket';
 import { ROUTES } from './utils/constants';
 import type { AccountType } from './types/user.types';
 
@@ -41,6 +42,9 @@ function ProtectedRoute({ children, allowedAccountTypes }: { children: React.Rea
 
 function App() {
   const { checkAuth } = useAuthStore();
+  
+  // Initialize WebSocket connection
+  useWebSocket();
 
   useEffect(() => {
     checkAuth();

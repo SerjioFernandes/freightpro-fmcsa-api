@@ -12,6 +12,8 @@ interface LoadState {
   // Actions
   fetchLoads: (page?: number, limit?: number, status?: string) => Promise<void>;
   bookLoad: (loadId: string) => Promise<void>;
+  addLoad: (load: Load) => void;
+  updateLoad: (loadId: string, updates: Partial<Load>) => void;
   clearError: () => void;
 }
 
@@ -53,6 +55,16 @@ export const useLoadStore = create<LoadState>((set) => ({
       throw error;
     }
   },
+
+  addLoad: (load) => set((state) => ({
+    loads: [load, ...state.loads]
+  })),
+
+  updateLoad: (loadId, updates) => set((state) => ({
+    loads: state.loads.map(load => 
+      load._id === loadId ? { ...load, ...updates } : load
+    )
+  })),
 
   clearError: () => set({ error: null }),
 }));

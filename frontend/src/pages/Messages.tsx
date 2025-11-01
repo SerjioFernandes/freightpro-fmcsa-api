@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { messageService } from '../services/message.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageSquare, Send, Loader2, Edit2, Trash2 } from 'lucide-react';
 
 const Messages = () => {
   const { addNotification } = useUIStore();
   const { user } = useAuthStore();
+  const { subscribe } = useWebSocket();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -18,21 +20,42 @@ const Messages = () => {
 
   useEffect(() => {
     loadConversations();
-    
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(loadConversations, 10000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (selectedUser) {
       loadConversation(selectedUser.userId);
-      
-      // Auto-refresh messages every 5 seconds when conversation is open
-      const interval = setInterval(() => loadConversation(selectedUser.userId), 5000);
-      return () => clearInterval(interval);
     }
   }, [selectedUser]);
+
+  // WebSocket real-time message updates
+  useEffect(() => {
+    const unsubscribeNewMessage = subscribe('new_message', (message: any) => {
+      if (selectedUser && (
+        message.sender._id === selectedUser.userId || 
+        message.receiver._id === selectedUser.userId
+      )) {
+        setMessages(prev => [...prev, message]);
+      }
+      loadConversations();
+    });
+
+    const unsubscribeMessageUpdate = subscribe('message_updated', (message: any) => {
+      setMessages(prev => prev.map(msg => 
+        msg._id === message._id ? message : msg
+      ));
+    });
+
+    const unsubscribeMessageDelete = subscribe('message_deleted', (data: any) => {
+      setMessages(prev => prev.filter(msg => msg._id !== data.messageId));
+    });
+
+    return () => {
+      unsubscribeNewMessage();
+      unsubscribeMessageUpdate();
+      unsubscribeMessageDelete();
+    };
+  }, [subscribe, selectedUser]);
 
   const loadConversations = async () => {
     try {
