@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
+import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
 import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
 
@@ -9,6 +10,9 @@ const LoadBoard = () => {
   const { loads, isLoading, fetchLoads, bookLoad } = useLoadStore();
   const { user } = useAuthStore();
   const { addNotification } = useUIStore();
+
+  // Enable real-time updates for load board
+  useRealTimeUpdates();
 
   useEffect(() => {
     fetchLoads();
