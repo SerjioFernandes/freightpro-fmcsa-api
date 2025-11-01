@@ -69,30 +69,33 @@ const Profile = () => {
         {/* Main Profile Card */}
         <div className="card shadow-xl mb-6 overflow-hidden">
           {/* Header with gradient background */}
-          <div className={`bg-gradient-to-r ${getAccountTypeColor(user.accountType)} text-white p-8 relative`}>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+          <div className={`bg-gradient-to-r ${getAccountTypeColor(user.accountType)} text-white p-10 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-72 h-72 bg-white opacity-10 rounded-full -mr-36 -mt-36"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32"></div>
             <div className="relative z-10 flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="h-24 w-24 rounded-full bg-white bg-opacity-20 backdrop-blur-sm border-4 border-white flex items-center justify-center">
+              <div className="flex items-center space-x-8">
+                <div className="h-28 w-28 rounded-full bg-white bg-opacity-25 backdrop-blur-sm border-4 border-white shadow-xl flex items-center justify-center ring-4 ring-white ring-opacity-20">
                   {user.profilePhoto ? (
                     <img src={user.profilePhoto} alt={user.company} className="h-full w-full rounded-full object-cover" />
                   ) : (
-                    <span className="text-5xl">{getAccountTypeIcon(user.accountType)}</span>
+                    <span className="text-5xl drop-shadow-lg">{getAccountTypeIcon(user.accountType)}</span>
                   )}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">{user.company}</h2>
+                  <h2 className="text-4xl font-bold mb-3 drop-shadow-lg">{user.company}</h2>
                   <div className="flex items-center space-x-3">
-                    <span className="capitalize bg-black bg-opacity-30 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold border border-white border-opacity-40">
-                      {user.accountType}
+                    <span className="capitalize bg-white bg-opacity-95 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold shadow-lg border-2 border-white">
+                      <span className={`${user.accountType === 'carrier' ? 'text-blue-600' : user.accountType === 'broker' ? 'text-green-600' : 'text-purple-600'}`}>
+                        {user.accountType.toUpperCase()}
+                      </span>
                     </span>
                     {user.isEmailVerified ? (
-                      <span className="bg-green-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                      <span className="bg-green-500 px-3 py-2 rounded-full text-sm font-semibold flex items-center space-x-1 shadow-lg">
                         <CheckCircle className="h-4 w-4" />
                         <span>Verified</span>
                       </span>
                     ) : (
-                      <span className="bg-yellow-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                      <span className="bg-yellow-500 px-3 py-2 rounded-full text-sm font-semibold flex items-center space-x-1 shadow-lg">
                         <Clock className="h-4 w-4" />
                         <span>Pending Verification</span>
                       </span>
@@ -101,7 +104,7 @@ const Profile = () => {
                 </div>
               </div>
               <Link to={ROUTES.SETTINGS}>
-                <button className="bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2 shadow-lg">
+                <button className="bg-white bg-opacity-95 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-xl font-bold hover:bg-white hover:scale-105 transition-all flex items-center space-x-2 shadow-xl border-2 border-white border-opacity-50">
                   <Edit className="h-5 w-5" />
                   <span>Edit Profile</span>
                 </button>
@@ -185,17 +188,19 @@ const Profile = () => {
                     <Award className="h-5 w-5 mr-2 text-primary-blue" />
                     Subscription Plan
                   </h3>
-                  <div className={`p-6 rounded-lg text-white ${getPlanBadgeColor(user.subscriptionPlan)} shadow-lg`}>
-                    <div className="flex items-center justify-between mb-4">
+                  <div className={`p-6 rounded-xl text-white ${getPlanBadgeColor(user.subscriptionPlan)} shadow-xl border border-white border-opacity-20`}>
+                    <div className="flex items-center justify-between mb-6">
                       <div>
-                        <p className="text-sm opacity-90 mb-1">Current Plan</p>
-                        <p className="text-3xl font-bold capitalize">{user.subscriptionPlan || 'Ultima'}</p>
+                        <p className="text-sm opacity-90 mb-2 uppercase tracking-wide font-semibold">Current Plan</p>
+                        <p className="text-3xl font-bold capitalize drop-shadow-lg">{user.subscriptionPlan || 'Ultima'}</p>
                       </div>
-                      <Award className="h-12 w-12 opacity-80" />
+                      <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-3 border-2 border-white border-opacity-30">
+                        <Award className="h-10 w-10" />
+                      </div>
                     </div>
-                    <div className="bg-white bg-opacity-30 backdrop-blur-sm rounded-lg p-3 border border-white border-opacity-30 text-gray-900">
-                      <p className="text-sm mb-1 opacity-90 font-semibold">Plan Expires</p>
-                      <p className="text-lg font-bold">{formatDate(user.premiumExpires)}</p>
+                    <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-4 border-2 border-white border-opacity-50 shadow-lg">
+                      <p className="text-xs mb-1 text-gray-600 font-semibold uppercase tracking-wide">Plan Expires</p>
+                      <p className="text-2xl font-bold text-gray-900">{formatDate(user.premiumExpires)}</p>
                     </div>
                   </div>
                 </div>
