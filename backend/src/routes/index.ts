@@ -7,6 +7,7 @@ import healthRoutes from './health.routes.js';
 import settingsRoutes from './settings.routes.js';
 import messageRoutes from './message.routes.js';
 import supportRoutes from './support.routes.js';
+import documentRoutes from './document.routes.js';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use('/health', healthRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/messages', messageRoutes);
 router.use('/support', supportRoutes);
+router.use('/documents', documentRoutes);
 
 export default router;
 

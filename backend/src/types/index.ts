@@ -185,6 +185,28 @@ export interface IMessage {
 }
 
 // ========================================
+// Document Types
+// ========================================
+
+export interface IDocument {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  loadId?: Types.ObjectId;
+  shipmentId?: Types.ObjectId;
+  type: 'BOL' | 'POD' | 'INSURANCE' | 'LICENSE' | 'CARRIER_AUTHORITY' | 'W9' | 'OTHER';
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  uploadedAt: Date;
+  expiresAt?: Date;
+  isVerified: boolean;
+  verifiedBy?: Types.ObjectId;
+  verifiedAt?: Date;
+}
+
+// ========================================
 // API Request/Response Types
 // ========================================
 

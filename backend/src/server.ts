@@ -110,6 +110,9 @@ app.use('/api/', apiLimiter);
 // Mount API routes
 app.use('/api', routes);
 
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
+
 // Error handler (must be last)
 app.use(errorHandler);
 

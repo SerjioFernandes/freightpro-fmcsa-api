@@ -21,6 +21,7 @@ import Shipments from './pages/Shipments';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Messages from './pages/Messages';
+import Documents from './pages/Documents';
 import Pricing from './pages/Pricing';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
 
@@ -109,6 +110,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><Messages /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.DOCUMENTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout><Documents /></MainLayout>
             </ProtectedRoute>
           }
         />

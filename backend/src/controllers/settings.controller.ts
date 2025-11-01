@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { User } from '../models/User.model.js';
 import { AuthRequest } from '../types/index.js';
 import { body, validationResult } from 'express-validator';
+import bcryptjs from 'bcryptjs';
 
 export const getSettings = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -88,5 +89,121 @@ export const validateProfile = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Company name must be between 1 and 100 characters'),
+];
+
+export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: 'Validation failed', details: errors.array() });
+      return;
+    }
+
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user?.userId);
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Verify old password
+    const isPasswordValid = await bcryptjs.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      res.status(400).json({ error: 'Incorrect current password' });
+      return;
+    }
+
+    // Hash new password
+    const hashedPassword = await bcryptjs.hash(newPassword, 12);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error: any) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+};
+
+export const updateNotificationSettings = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.userId);
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Update notification preferences
+    if (req.body.notifications) {
+      user.notifications = {
+        ...user.notifications,
+        ...req.body.notifications
+      };
+    }
+
+    if (req.body.preferences) {
+      user.preferences = {
+        ...user.preferences,
+        ...req.body.preferences
+      };
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      data: user.notifications
+    });
+  } catch (error: any) {
+    console.error('Update notification settings error:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+};
+
+export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+
+    const user = await User.findById(req.user?.userId);
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Update user's profile photo URL
+    const { getFileUrl } = await import('../middleware/upload.middleware.js');
+    user.profilePhoto = getFileUrl(req.file.filename, 'avatar');
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile photo uploaded successfully',
+      data: { profilePhoto: user.profilePhoto }
+    });
+  } catch (error: any) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({ error: 'Failed to upload profile photo' });
+  }
+};
+
+export const validatePassword = [
+  body('oldPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters'),
 ];
 
