@@ -8,13 +8,21 @@ const loadSchema = new Schema<ILoad>({
     city: { type: String, required: true },
     state: { type: String, required: true },
     zip: { type: String, required: true },
-    country: { type: String, default: 'US', enum: ['US', 'CA'] }
+    country: { type: String, default: 'US', enum: ['US', 'CA'] },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
   },
   destination: {
     city: { type: String, required: true },
     state: { type: String, required: true },
     zip: { type: String, required: true },
-    country: { type: String, default: 'US', enum: ['US', 'CA'] }
+    country: { type: String, default: 'US', enum: ['US', 'CA'] },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
   },
   pickupDate: { type: Date, required: true },
   deliveryDate: { type: Date, required: true },
@@ -51,6 +59,10 @@ loadSchema.index({ bookedBy: 1, status: 1 }); // For carrier's booked loads
 loadSchema.index({ 'origin.state': 1, 'destination.state': 1 }); // For route filtering
 loadSchema.index({ equipmentType: 1, status: 1 }); // For equipment type filtering
 loadSchema.index({ createdAt: -1 }); // For recent loads
+
+// Geospatial indexes for map queries
+loadSchema.index({ 'origin.coordinates.lat': 1, 'origin.coordinates.lng': 1 }); // 2dsphere not supported, use 2d compound
+loadSchema.index({ 'destination.coordinates.lat': 1, 'destination.coordinates.lng': 1 });
 
 export const Load: Model<ILoad> = mongoose.model<ILoad>('Load', loadSchema);
 

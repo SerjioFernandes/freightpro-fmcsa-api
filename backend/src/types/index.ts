@@ -108,6 +108,10 @@ export interface ILocation {
   state: string;
   zip: string;
   country: Country;
+  coordinates?: {
+    lat?: number;
+    lng?: number;
+  };
 }
 
 export interface ILoad {

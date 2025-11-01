@@ -9,6 +9,7 @@ import messageRoutes from './message.routes.js';
 import supportRoutes from './support.routes.js';
 import documentRoutes from './document.routes.js';
 import pushRoutes from './push.routes.js';
+import locationRoutes from './location.routes.js';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.use('/messages', messageRoutes);
 router.use('/support', supportRoutes);
 router.use('/documents', documentRoutes);
 router.use('/push', pushRoutes);
+router.use('/locations', locationRoutes);
 
 export default router;
 

@@ -7,6 +7,7 @@ import { PAGINATION } from '../utils/constants.js';
 import { validateState, validatePostalCode } from '../utils/validators.js';
 import { logger } from '../utils/logger.js';
 import { websocketService } from '../services/websocket.service.js';
+import { geocodingService } from '../services/geocoding.service.js';
 
 export class LoadController {
   async getLoads(req: AuthRequest, res: Response): Promise<void> {
@@ -107,19 +108,25 @@ export class LoadController {
         unlinked = false;
       }
 
+      // Geocode addresses to get coordinates
+      const originCoords = await geocodingService.geocodeAddress(origin);
+      const destCoords = await geocodingService.geocodeAddress(destination);
+
       const loadData = {
         ...req.body,
         origin: {
           city: origin.city,
           state: origin.state.toUpperCase(),
           zip: origin.zip,
-          country: origin.country || 'US'
+          country: origin.country || 'US',
+          coordinates: originCoords ? { lat: originCoords.latitude, lng: originCoords.longitude } : undefined
         },
         destination: {
           city: destination.city,
           state: destination.state.toUpperCase(),
           zip: destination.zip,
-          country: destination.country || 'US'
+          country: destination.country || 'US',
+          coordinates: destCoords ? { lat: destCoords.latitude, lng: destCoords.longitude } : undefined
         },
         shipmentId: shipmentId || '',
         unlinked,
