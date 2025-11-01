@@ -8,15 +8,26 @@ import { useAuthStore } from '../store/authStore';
 const Pricing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const { isAuthenticated } = useAuthStore();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
 
   const handlePlanClick = (planLink: string) => {
-    if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD);
+    if (isAuthenticated && user) {
+      setShowSubscriptionModal(true);
     } else {
       navigate(planLink);
     }
+  };
+
+  const formatExpiryDate = (date?: Date) => {
+    if (!date) return 'N/A';
+    const expiry = new Date(date);
+    return expiry.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   const plans = [
@@ -352,6 +363,46 @@ const Pricing = () => {
           </div>
         </div>
       </section>
+
+      {/* Subscription Modal */}
+      {showSubscriptionModal && user && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 animate-scale-in">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Current Subscription
+              </h3>
+              <p className="text-lg text-gray-700 mb-2">
+                You are already using the{' '}
+                <span className="font-bold text-orange-600 capitalize">
+                  {user.subscriptionPlan || 'Ultima'}
+                </span>{' '}
+                plan
+              </p>
+              <p className="text-sm text-gray-600 mb-6">
+                Your plan will expire on{' '}
+                <span className="font-semibold text-blue-600">
+                  {formatExpiryDate(user.premiumExpires)}
+                </span>
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Special Offer:</strong> All new users get 3 months of free Ultima access!
+                </p>
+              </div>
+              <button
+                onClick={() => setShowSubscriptionModal(false)}
+                className="w-full btn btn-primary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
