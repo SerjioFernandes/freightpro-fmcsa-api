@@ -12,8 +12,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "axios": "^1.13.0",
+    "chart.js": "^4.5.1",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.4",
