@@ -7,6 +7,7 @@ import type { AccountType } from './types/user.types';
 // Layout
 import MainLayout from './components/layout/MainLayout';
 import Notifications from './components/common/Notifications';
+import OfflineIndicator from './components/common/OfflineIndicator';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
@@ -23,6 +24,7 @@ import Settings from './pages/Settings';
 import Messages from './pages/Messages';
 import Documents from './pages/Documents';
 import Pricing from './pages/Pricing';
+import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
 
 // Protected Route Component
@@ -47,6 +49,7 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Notifications />
+        <OfflineIndicator />
         <SupportChatWidget />
         <Routes>
         {/* Public Routes */}
@@ -55,6 +58,7 @@ function App() {
         <Route path={ROUTES.REGISTER} element={<MainLayout><Register /></MainLayout>} />
         <Route path={ROUTES.VERIFY} element={<MainLayout><VerifyEmail /></MainLayout>} />
         <Route path={ROUTES.PRICING} element={<MainLayout><Pricing /></MainLayout>} />
+        <Route path="/offline" element={<Offline />} />
         
         {/* Protected Routes */}
         <Route
