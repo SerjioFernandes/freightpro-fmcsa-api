@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../utils/constants';
 import { useAuthStore } from '../store/authStore';
 import { Truck, Users, DollarSign, BarChart3, Rocket, Search } from 'lucide-react';
 
 const Home = () => {
   const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen">
@@ -49,15 +50,15 @@ const Home = () => {
             Connect carriers and shippers with the most comprehensive real-time load board and transportation solutions powered by CargoLume
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 animate-fade-in-slide">
-            <Link
-              to={ROUTES.REGISTER}
+            <button
+              onClick={() => navigate(isAuthenticated ? ROUTES.DASHBOARD : ROUTES.REGISTER)}
               className="bg-gradient-to-r from-orange-700 to-orange-600 hover:from-orange-600 hover:to-orange-500 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-colored-orange hover:shadow-glow-orange transform hover:scale-105 inline-flex items-center justify-center"
             >
               <Rocket className="w-5 h-5 mr-2" />
               Get Started Free
-            </Link>
+            </button>
             <Link
-              to={ROUTES.LOAD_BOARD}
+              to={isAuthenticated ? ROUTES.LOAD_BOARD : ROUTES.LOGIN}
               className="bg-white/10 backdrop-blur-sm border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 text-white shadow-lg hover:shadow-glow-blue transform hover:scale-105 inline-flex items-center justify-center"
             >
               <Search className="w-5 h-5 mr-2" />

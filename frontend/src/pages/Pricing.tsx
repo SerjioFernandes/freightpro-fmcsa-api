@@ -1,17 +1,31 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, Zap, Shield, Truck, Star, ArrowRight } from 'lucide-react';
 import Button from '../components/common/Button';
 import { ROUTES } from '../utils/constants';
 import { useState } from 'react';
+import { useAuthStore } from '../store/authStore';
 
 const Pricing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handlePlanClick = (planLink: string) => {
+    if (isAuthenticated) {
+      navigate(ROUTES.DASHBOARD);
+    } else {
+      navigate(planLink);
+    }
+  };
 
   const plans = [
     {
       name: 'Basic',
       price: 'Free',
       period: 'Forever',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
       description: 'Perfect for getting started',
       features: [
         { name: 'Up to 10 loads per month', included: true },
@@ -31,6 +45,8 @@ const Pricing = () => {
       name: 'Premium',
       price: '$49',
       period: 'per month',
+      monthlyPrice: 49,
+      yearlyPrice: 39,
       description: 'Most popular for growing businesses',
       features: [
         { name: 'Unlimited loads', included: true },
@@ -47,9 +63,32 @@ const Pricing = () => {
       popular: true,
     },
     {
-      name: 'Enterprise',
+      name: 'Ultima',
+      price: '$99',
+      period: 'per month',
+      monthlyPrice: 99,
+      yearlyPrice: 79,
+      description: 'For growing businesses that need more',
+      features: [
+        { name: 'Unlimited everything', included: true },
+        { name: 'Advanced load board access', included: true },
+        { name: 'Priority support + dedicated account manager', included: true },
+        { name: 'Custom integrations', included: true },
+        { name: 'White-label mobile app', included: true },
+        { name: 'Real-time notifications', included: true },
+        { name: 'Advanced analytics & reporting', included: true },
+        { name: 'Full API access', included: true },
+      ],
+      cta: 'Start Ultima Trial',
+      link: ROUTES.REGISTER,
+      popular: false,
+    },
+    {
+      name: 'Custom',
       price: 'Custom',
       period: 'Contact us',
+      monthlyPrice: null,
+      yearlyPrice: null,
       description: 'For large-scale operations',
       features: [
         { name: 'Unlimited everything', included: true },
@@ -67,6 +106,19 @@ const Pricing = () => {
     },
   ];
 
+  const getDisplayPrice = (plan: typeof plans[0]) => {
+    if (plan.price === 'Free' || plan.price === 'Custom') return plan.price;
+    
+    const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+    return `$${price}`;
+  };
+
+  const getDisplayPeriod = (plan: typeof plans[0]) => {
+    if (plan.price === 'Free') return 'Forever';
+    if (plan.price === 'Custom') return 'Contact us';
+    return billingCycle === 'monthly' ? 'per month' : 'per year';
+  };
+
   const faqs = [
     {
       question: 'Can I change plans later?',
@@ -74,7 +126,7 @@ const Pricing = () => {
     },
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and wire transfers for Enterprise plans.',
+      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and wire transfers for Custom plans.',
     },
     {
       question: 'Is there a contract or can I cancel anytime?',
@@ -82,15 +134,15 @@ const Pricing = () => {
     },
     {
       question: 'Do you offer refunds?',
-      answer: 'We offer a 30-day money-back guarantee for Premium plans. If you\'re not satisfied, contact us for a full refund within the first 30 days.',
+      answer: 'We offer a 30-day money-back guarantee for Premium and Ultima plans. If you\'re not satisfied, contact us for a full refund within the first 30 days.',
     },
     {
       question: 'What\'s included in the free plan?',
       answer: 'The free plan includes access to post and view up to 10 loads per month, basic search functionality, and email support. It\'s perfect for trying out CargoLume.',
     },
     {
-      question: 'How does the Enterprise plan work?',
-      answer: 'Enterprise plans are customized to your specific needs. Contact our sales team to discuss volume discounts, custom integrations, and dedicated support options.',
+      question: 'How does the Custom plan work?',
+      answer: 'Custom plans are tailored to your specific needs. Contact our sales team to discuss volume discounts, custom integrations, and dedicated support options.',
     },
   ];
 
@@ -107,23 +159,42 @@ const Pricing = () => {
             <br />
             Start free, upgrade when you're ready.
           </p>
-          <div className="flex justify-center gap-4 text-white animate-slide-up">
-            <div className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-orange-accent" />
-              <span>No credit card required</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-orange-accent" />
-              <span>Cancel anytime</span>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* Pricing Cards */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {/* Billing Cycle Toggle */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex items-center bg-white rounded-lg p-1 shadow-md">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                  billingCycle === 'monthly'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                  billingCycle === 'yearly'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Yearly
+                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                  20% Off
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
@@ -148,13 +219,13 @@ const Pricing = () => {
                   <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
                   <div className="mb-2">
                     <span className="text-5xl font-heading font-bold text-orange-accent">
-                      {plan.price}
+                      {getDisplayPrice(plan)}
                     </span>
                     {plan.price !== 'Free' && plan.price !== 'Custom' && (
-                      <span className="text-gray-600 text-lg"> / month</span>
+                      <span className="text-gray-600 text-lg"> / {billingCycle === 'monthly' ? 'month' : 'year'}</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{plan.period}</p>
+                  <p className="text-sm text-gray-500">{getDisplayPeriod(plan)}</p>
                 </div>
 
                 {/* Features List */}
@@ -175,7 +246,7 @@ const Pricing = () => {
 
                 {/* CTA Button */}
                 <div className="mt-auto">
-                  <Link to={plan.link} className="block">
+                  <button onClick={() => handlePlanClick(plan.link)} className="block w-full">
                     <Button
                       variant={plan.popular ? 'accent' : 'primary'}
                       fullWidth
@@ -184,7 +255,7 @@ const Pricing = () => {
                     >
                       {plan.cta}
                     </Button>
-                  </Link>
+                  </button>
                 </div>
               </div>
             ))}
@@ -205,23 +276,25 @@ const Pricing = () => {
                   <th className="py-4 px-6 text-left font-heading">Feature</th>
                   <th className="py-4 px-6 text-center font-heading">Basic</th>
                   <th className="py-4 px-6 text-center font-heading bg-orange-accent text-white">Premium</th>
-                  <th className="py-4 px-6 text-center font-heading">Enterprise</th>
+                  <th className="py-4 px-6 text-center font-heading">Ultima</th>
+                  <th className="py-4 px-6 text-center font-heading">Custom</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {[
-                  ['Monthly loads', '10', 'Unlimited', 'Unlimited'],
-                  ['Load board access', 'Basic', 'Full', 'Dedicated'],
-                  ['Support', 'Email', 'Email & Chat', '24/7 Phone'],
-                  ['Mobile app', '—', '✓', '✓ White-label'],
-                  ['Analytics', '—', 'Advanced', 'Custom Reports'],
-                  ['API access', '—', '—', 'Full API'],
+                  ['Monthly loads', '10', 'Unlimited', 'Unlimited', 'Unlimited'],
+                  ['Load board access', 'Basic', 'Full', 'Advanced', 'Dedicated'],
+                  ['Support', 'Email', 'Email & Chat', 'Priority + Manager', '24/7 Phone'],
+                  ['Mobile app', '—', '✓', '✓ White-label', '✓ White-label'],
+                  ['Analytics', '—', 'Advanced', 'Advanced + Reports', 'Custom Reports'],
+                  ['API access', '—', '—', 'Full API', 'Full API'],
                 ].map((row, index) => (
                   <tr key={index} className="hover:bg-light-ivory transition-colors">
                     <td className="py-4 px-6 font-medium text-gray-900">{row[0]}</td>
                     <td className="py-4 px-6 text-center text-gray-600">{row[1]}</td>
                     <td className="py-4 px-6 text-center font-semibold text-orange-accent">{row[2]}</td>
                     <td className="py-4 px-6 text-center text-gray-600">{row[3]}</td>
+                    <td className="py-4 px-6 text-center text-gray-600">{row[4]}</td>
                   </tr>
                 ))}
               </tbody>
@@ -294,11 +367,11 @@ const Pricing = () => {
             Join thousands of carriers, brokers, and shippers growing their business with CargoLume.
           </p>
           <div className="flex justify-center gap-4">
-            <Link to={ROUTES.REGISTER}>
+            <button onClick={() => handlePlanClick(ROUTES.REGISTER)}>
               <Button variant="accent" size="lg" icon={<ArrowRight className="h-6 w-6" />} iconPosition="right">
                 Start Free Trial
               </Button>
-            </Link>
+            </button>
             <Link to={ROUTES.CONTACT}>
               <Button variant="secondary" size="lg">
                 Contact Sales
@@ -312,6 +385,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-
-
-

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supportService } from '../../services/support.service';
 import { useUIStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 import { X, Send, Minimize2, Maximize2, Headphones } from 'lucide-react';
 
 interface Message {
@@ -10,15 +11,40 @@ interface Message {
   timestamp: Date;
 }
 
-const QUICK_QUESTIONS = [
-  { text: 'How to post a load?', query: 'how to post load' },
-  { text: 'How to book a load?', query: 'how to book load' },
-  { text: 'What is USDOT?', query: 'what is usdot' },
-  { text: 'Contact support', query: 'how to contact support' }
-];
+const getQuickQuestionsForUser = (accountType?: string) => {
+  const commonQuestions = [
+    { text: 'What is USDOT?', query: 'what is usdot' },
+    { text: 'Contact support', query: 'how to contact support' }
+  ];
+  
+  const accountSpecificQuestions = {
+    carrier: [
+      { text: 'How to book a load?', query: 'how to book load' },
+      { text: 'How to view my deliveries?', query: 'view deliveries' }
+    ],
+    broker: [
+      { text: 'How to post a load?', query: 'how to post load' },
+      { text: 'How to manage carriers?', query: 'manage carriers' }
+    ],
+    shipper: [
+      { text: 'How to request shipping?', query: 'request shipping' },
+      { text: 'How to track shipments?', query: 'track shipments' }
+    ]
+  };
+  
+  if (!accountType) {
+    return commonQuestions.concat({ text: 'How to post a load?', query: 'how to post load' });
+  }
+  
+  return [
+    ...(accountSpecificQuestions[accountType as keyof typeof accountSpecificQuestions] || []),
+    ...commonQuestions
+  ];
+};
 
 const SupportChatWidget = () => {
   const { addNotification } = useUIStore();
+  const { user } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -147,7 +173,7 @@ const SupportChatWidget = () => {
             <div className="px-4 pb-2">
               <p className="text-xs text-gray-500 mb-2">Quick questions:</p>
               <div className="flex flex-wrap gap-2">
-                {QUICK_QUESTIONS.map((q) => (
+                {getQuickQuestionsForUser(user?.accountType).map((q) => (
                   <button
                     key={q.query}
                     onClick={() => {

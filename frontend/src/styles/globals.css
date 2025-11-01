@@ -87,6 +87,7 @@
   
   .btn-primary:hover {
     background: var(--primary-blue-dark);
+    color: white !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 2px 4px rgba(37, 99, 235, 0.2);
   }
@@ -127,11 +128,11 @@
   
   .btn-secondary:hover {
     border-color: var(--primary-blue);
-    color: white;
+    color: white !important;
   }
   
   .btn-secondary:hover span {
-    color: white;
+    color: white !important;
   }
   
   .btn-accent {
@@ -163,6 +164,7 @@
   
   .btn-accent:hover {
     background: linear-gradient(135deg, var(--orange-hover), var(--orange-dark));
+    color: white !important;
     box-shadow: 0 12px 30px rgba(255, 107, 53, 0.6);
     transform: translateY(-2px) scale(1.02);
   }
@@ -178,6 +180,7 @@
   
   .btn-danger:hover {
     background: #DC2626;
+    color: white !important;
   }
   
   /* Premium Input Styles */
