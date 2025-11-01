@@ -289,6 +289,9 @@ export interface EnvironmentConfig {
   EMAIL_USER?: string;
   EMAIL_PASS?: string;
   EMAIL_VERIFICATION_TTL_MS: number;
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
+  VAPID_SUBJECT?: string;
 }
 
 

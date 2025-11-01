@@ -26,6 +26,7 @@ import Documents from './pages/Documents';
 import Pricing from './pages/Pricing';
 import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
+import InstallPrompt from './components/PWA/InstallPrompt';
 
 // Protected Route Component
 import ProtectedRouteComponent from './components/auth/ProtectedRoute';
@@ -50,6 +51,7 @@ function App() {
       <Router>
         <Notifications />
         <OfflineIndicator />
+        <InstallPrompt />
         <SupportChatWidget />
         <Routes>
         {/* Public Routes */}
