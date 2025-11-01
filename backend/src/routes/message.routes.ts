@@ -11,6 +11,8 @@ router.get('/conversations', messageController.getConversations);
 router.get('/conversation/:userId', messageController.getConversation);
 router.post('/send', messageController.sendMessage);
 router.get('/unread-count', messageController.getUnreadCount);
+router.put('/:id/edit', messageController.editMessage);
+router.delete('/:id', messageController.deleteMessage);
 
 export default router;
 

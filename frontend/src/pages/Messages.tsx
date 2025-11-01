@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { messageService } from '../services/message.service';
 import { useUIStore } from '../store/uiStore';
-import { MessageSquare, Send, Loader2 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { MessageSquare, Send, Loader2, Edit2, Trash2 } from 'lucide-react';
 
 const Messages = () => {
   const { addNotification } = useUIStore();
+  const { user } = useAuthStore();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [subject, setSubject] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<string | null>(null);
+  const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -85,6 +89,39 @@ const Messages = () => {
     }
   };
 
+  const handleEditMessage = async (msg: any, newMessage: string) => {
+    try {
+      await messageService.editMessage(msg._id, newMessage);
+      addNotification({ type: 'success', message: 'Message updated!' });
+      await loadConversation(selectedUser?.userId || '');
+      setEditingMessage(null);
+    } catch (error: any) {
+      addNotification({ 
+        type: 'error', 
+        message: error.response?.data?.error || 'Failed to edit message' 
+      });
+    }
+  };
+
+  const handleDeleteMessage = async (msg: any) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+
+    try {
+      await messageService.deleteMessage(msg._id);
+      addNotification({ type: 'success', message: 'Message deleted!' });
+      await loadConversation(selectedUser?.userId || '');
+    } catch (error: any) {
+      addNotification({ 
+        type: 'error', 
+        message: error.response?.data?.error || 'Failed to delete message' 
+      });
+    }
+  };
+
+  const isMyMessage = (msg: any): boolean => {
+    return !!(user && msg.sender?._id?.toString() === user.id);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -151,23 +188,72 @@ const Messages = () => {
                         <div
                           key={msg._id}
                           className={`flex ${
-                            msg.sender?.email === localStorage.getItem('userEmail')
-                              ? 'justify-end'
-                              : 'justify-start'
+                            isMyMessage(msg) ? 'justify-end' : 'justify-start'
                           }`}
+                          onMouseEnter={() => setHoveredMessage(msg._id)}
+                          onMouseLeave={() => setHoveredMessage(null)}
                         >
-                          <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
-                              msg.sender?.email === localStorage.getItem('userEmail')
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-900'
-                            }`}
-                          >
-                            <p className="font-medium text-sm mb-1">{msg.subject}</p>
-                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                            <p className="text-xs opacity-75 mt-2">
-                              {new Date(msg.createdAt).toLocaleString()}
-                            </p>
+                          <div className="relative group">
+                            <div
+                              className={`max-w-[70%] rounded-lg p-3 ${
+                                isMyMessage(msg)
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-900'
+                              }`}
+                            >
+                              <p className="font-medium text-sm mb-1">{msg.subject}</p>
+                              <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                              <p className="text-xs opacity-75 mt-2 flex items-center gap-2">
+                                {new Date(msg.createdAt).toLocaleString()}
+                                {msg.isEdited && (
+                                  <span className="italic">(edited)</span>
+                                )}
+                              </p>
+                            </div>
+                            {isMyMessage(msg) && hoveredMessage === msg._id && !editingMessage && (
+                              <div className="absolute -top-8 right-0 flex gap-1 bg-white shadow-lg rounded border border-gray-200 p-1">
+                                <button
+                                  onClick={() => setEditingMessage(msg._id)}
+                                  className="p-1 hover:bg-gray-100 rounded transition-colors text-blue-600"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteMessage(msg)}
+                                  className="p-1 hover:bg-gray-100 rounded transition-colors text-red-600"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                            {editingMessage === msg._id && (
+                              <div className="mt-2">
+                                <textarea
+                                  defaultValue={msg.message}
+                                  className="input w-full min-h-[80px]"
+                                  autoFocus
+                                />
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={() => setEditingMessage(null)}
+                                    className="btn btn-secondary px-3"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      const newMessage = (e.currentTarget.parentElement?.previousElementSibling as HTMLTextAreaElement)?.value;
+                                      if (newMessage) handleEditMessage(msg, newMessage);
+                                    }}
+                                    className="btn btn-primary px-3"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))

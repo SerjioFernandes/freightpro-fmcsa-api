@@ -197,3 +197,74 @@ export const getUnreadCount = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
+export const editMessage = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    const { message } = req.body;
+
+    const msg = await Message.findById(req.params.id);
+
+    if (!msg) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Check if user is the sender
+    if (msg.sender.toString() !== userId) {
+      res.status(403).json({ error: 'You can only edit your own messages' });
+      return;
+    }
+
+    // Only allow editing within 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    if (msg.createdAt < fiveMinutesAgo) {
+      res.status(400).json({ error: 'Messages can only be edited within 5 minutes' });
+      return;
+    }
+
+    // Update message
+    msg.message = message;
+    msg.isEdited = true;
+    msg.editedAt = new Date();
+    await msg.save();
+
+    res.json({
+      success: true,
+      message: 'Message updated successfully',
+      data: msg
+    });
+  } catch (error: any) {
+    console.error('Edit message error:', error);
+    res.status(500).json({ error: 'Failed to edit message' });
+  }
+};
+
+export const deleteMessage = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+
+    const msg = await Message.findById(req.params.id);
+
+    if (!msg) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Check if user is the sender
+    if (msg.sender.toString() !== userId) {
+      res.status(403).json({ error: 'You can only delete your own messages' });
+      return;
+    }
+
+    await msg.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'Message deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+};
+

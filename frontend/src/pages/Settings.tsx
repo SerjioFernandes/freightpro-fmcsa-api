@@ -29,12 +29,18 @@ const SettingsPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Notifications
-  const [notificationPrefs, setNotificationPrefs] = useState({
+  const [notificationPrefs, setNotificationPrefs] = useState<{
+    emailLoads: boolean;
+    emailMessages: boolean;
+    emailUpdates: boolean;
+    emailMarketing: boolean;
+    frequency: 'instant' | 'daily' | 'weekly';
+  }>({
     emailLoads: true,
     emailMessages: true,
     emailUpdates: true,
     emailMarketing: false,
-    frequency: 'instant' as 'instant' | 'daily' | 'weekly'
+    frequency: 'instant'
   });
 
   // Avatar
@@ -55,7 +61,9 @@ const SettingsPage = () => {
           emailMessages: user.notifications.emailBids ?? true,
           emailUpdates: user.notifications.emailUpdates ?? true,
           emailMarketing: user.notifications.emailMarketing ?? false,
-          frequency: user.notifications.frequency || 'instant'
+          frequency: (user.notifications.frequency === 'instant' || user.notifications.frequency === 'daily' || user.notifications.frequency === 'weekly') 
+            ? user.notifications.frequency 
+            : 'instant'
         });
       }
 
@@ -146,7 +154,9 @@ const SettingsPage = () => {
       });
       
       if (response.data.success) {
-        setUser({ ...user, notifications: response.data.data });
+        if (user) {
+          setUser({ ...user, notifications: response.data.data as any });
+        }
         addNotification({ type: 'success', message: 'Notification preferences saved!' });
       }
     } catch (error: any) {
@@ -196,7 +206,9 @@ const SettingsPage = () => {
       });
 
       if (response.data.success) {
-        setUser({ ...user, profilePhoto: response.data.data.profilePhoto });
+        if (user) {
+          setUser({ ...user, profilePhoto: response.data.data.profilePhoto });
+        }
         addNotification({ type: 'success', message: 'Profile photo updated!' });
         setAvatarFile(null);
       }

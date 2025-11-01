@@ -8,6 +8,14 @@ const messageSchema = new Schema<IMessage>({
   subject: { type: String, required: true },
   message: { type: String, required: true },
   isRead: { type: Boolean, default: false },
+  isEdited: { type: Boolean, default: false },
+  editedAt: { type: Date },
+  attachments: [{
+    filename: String,
+    url: String,
+    type: String,
+    size: Number
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -25,6 +25,16 @@ export const messageService = {
   async getUnreadCount(): Promise<number> {
     const response = await api.get('/messages/unread-count');
     return response.data.data?.count || 0;
+  },
+
+  async editMessage(id: string, message: string): Promise<any> {
+    const response = await api.put(`/messages/${id}/edit`, { message });
+    return response.data;
+  },
+
+  async deleteMessage(id: string): Promise<any> {
+    const response = await api.delete(`/messages/${id}`);
+    return response.data;
   }
 };
 

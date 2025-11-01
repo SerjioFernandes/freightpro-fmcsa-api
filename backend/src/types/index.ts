@@ -181,6 +181,14 @@ export interface IMessage {
   subject: string;
   message: string;
   isRead: boolean;
+  isEdited?: boolean;
+  editedAt?: Date;
+  attachments?: Array<{
+    filename: string;
+    url: string;
+    type: string;
+    size: number;
+  }>;
   createdAt: Date;
 }
 
