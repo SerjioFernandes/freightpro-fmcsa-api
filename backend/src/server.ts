@@ -1,10 +1,12 @@
 import express from 'express';
+import { createServer, Server as HTTPServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import { validateEnvironment, config } from './config/environment.js';
 import { connectToDatabase, disconnectDatabase } from './config/database.js';
 import { authService } from './services/auth.service.js';
+import { websocketService } from './services/websocket.service.js';
 import { logger } from './utils/logger.js';
 import { apiLimiter } from './middleware/rateLimit.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
@@ -14,6 +16,7 @@ import routes from './routes/index.js';
 validateEnvironment();
 
 const app = express();
+const server: HTTPServer = createServer(app);
 const PORT = config.PORT;
 
 // Security middleware
@@ -122,11 +125,14 @@ async function startServer() {
     // Connect to database
     await connectToDatabase();
     
+    // Initialize WebSocket server
+    websocketService.initialize(server);
+    
     // Ensure default admin user
     await authService.ensureDefaultAdminUser();
     
     // Start listening
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       logger.info('🚛 CargoLume Load Board Server Started');
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Environment: ${config.NODE_ENV}`);
@@ -135,6 +141,7 @@ async function startServer() {
       logger.info(`  - Register: http://localhost:${PORT}/api/auth/register`);
       logger.info(`  - Login: http://localhost:${PORT}/api/auth/login`);
       logger.info(`  - Loads: http://localhost:${PORT}/api/loads`);
+      logger.info('WebSocket: Real-time updates enabled');
     });
   } catch (error: any) {
     logger.error('Failed to start server', { error: error.message });
