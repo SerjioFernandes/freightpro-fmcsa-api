@@ -6,6 +6,10 @@ export interface Location {
   state: string;
   zip: string;
   country: Country;
+  coordinates?: {
+    lat?: number;
+    lng?: number;
+  };
 }
 
 export interface Load {

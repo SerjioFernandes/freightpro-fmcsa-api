@@ -1,15 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
-import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock } from 'lucide-react';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, Map, List } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
+import LoadMap from '../components/Map/LoadMap';
 
 const LoadBoard = () => {
   const { loads, isLoading, fetchLoads, bookLoad } = useLoadStore();
   const { user } = useAuthStore();
   const { addNotification } = useUIStore();
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Enable real-time updates for load board
   useRealTimeUpdates();
@@ -54,12 +56,41 @@ const LoadBoard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900">
-            Load Board
-          </h1>
-          <p className="text-xl text-gray-700 mt-2">
-            Browse and book available freight loads in real-time
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900">
+                Load Board
+              </h1>
+              <p className="text-xl text-gray-700 mt-2">
+                Browse and book available freight loads in real-time
+              </p>
+            </div>
+            {/* View Toggle */}
+            <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-md">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-primary-blue text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <List className="h-5 w-5" />
+                <span className="hidden sm:inline">List</span>
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
+                  viewMode === 'map'
+                    ? 'bg-primary-blue text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Map className="h-5 w-5" />
+                <span className="hidden sm:inline">Map</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
@@ -68,7 +99,10 @@ const LoadBoard = () => {
             <p className="text-gray-700 text-lg mt-6 font-medium">Loading loads...</p>
           </div>
         ) : loads.length > 0 ? (
-          <div className="grid gap-6">
+          viewMode === 'map' ? (
+            <LoadMap loads={loads} />
+          ) : (
+            <div className="grid gap-6">
             {loads.map((load, index) => (
               <div 
                 key={load._id} 
@@ -203,7 +237,8 @@ const LoadBoard = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )
         ) : (
           <div className="text-center py-20 card">
             <Package className="h-20 w-20 text-gray-300 mx-auto mb-6" />
