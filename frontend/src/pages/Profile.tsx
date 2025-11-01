@@ -194,8 +194,8 @@ const Profile = () => {
                       <Award className="h-12 w-12 opacity-80" />
                     </div>
                     <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3">
-                      <p className="text-sm mb-1">Plan Expires</p>
-                      <p className="text-lg font-semibold">{formatDate(user.premiumExpires)}</p>
+                      <p className="text-sm mb-1 text-white opacity-90">Plan Expires</p>
+                      <p className="text-lg font-semibold text-white">{formatDate(user.premiumExpires)}</p>
                     </div>
                   </div>
                 </div>
