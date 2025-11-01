@@ -7,6 +7,7 @@ import { validateEnvironment, config } from './config/environment.js';
 import { connectToDatabase, disconnectDatabase } from './config/database.js';
 import { authService } from './services/auth.service.js';
 import { websocketService } from './services/websocket.service.js';
+import { alertCronService } from './services/alertCron.service.js';
 import { logger } from './utils/logger.js';
 import { apiLimiter } from './middleware/rateLimit.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
@@ -128,6 +129,9 @@ async function startServer() {
     // Initialize WebSocket server
     websocketService.initialize(server);
     
+    // Start alert cron job
+    alertCronService.start();
+    
     // Ensure default admin user
     await authService.ensureDefaultAdminUser();
     
@@ -142,6 +146,7 @@ async function startServer() {
       logger.info(`  - Login: http://localhost:${PORT}/api/auth/login`);
       logger.info(`  - Loads: http://localhost:${PORT}/api/loads`);
       logger.info('WebSocket: Real-time updates enabled');
+      logger.info('Alert Cron: Running every hour');
     });
   } catch (error: any) {
     logger.error('Failed to start server', { error: error.message });
@@ -152,12 +157,14 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully...');
+  alertCronService.stop();
   await disconnectDatabase();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully...');
+  alertCronService.stop();
   await disconnectDatabase();
   process.exit(0);
 });

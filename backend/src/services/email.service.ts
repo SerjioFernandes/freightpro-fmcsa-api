@@ -142,6 +142,31 @@ class EmailService {
     }
   }
 
+  /**
+   * Generic email send method
+   */
+  async sendEmail(data: { to: string; subject: string; html: string }): Promise<boolean> {
+    if (!this.transporter) {
+      logger.warn('Email transporter not available - email not sent');
+      return false;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"CargoLume" <${config.EMAIL_USER}>`,
+        to: data.to,
+        subject: data.subject,
+        html: data.html
+      });
+
+      logger.info('Email sent successfully', { to: data.to, subject: data.subject });
+      return true;
+    } catch (error: any) {
+      logger.error('Email sending failed', { to: data.to, error: error.message });
+      return false;
+    }
+  }
+
   isConfigured(): boolean {
     return this.transporter !== null;
   }

@@ -10,6 +10,7 @@ import supportRoutes from './support.routes.js';
 import documentRoutes from './document.routes.js';
 import pushRoutes from './push.routes.js';
 import locationRoutes from './location.routes.js';
+import savedSearchRoutes from './savedSearch.routes.js';
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use('/support', supportRoutes);
 router.use('/documents', documentRoutes);
 router.use('/push', pushRoutes);
 router.use('/locations', locationRoutes);
+router.use('/searches', savedSearchRoutes);
 
 export default router;
 
