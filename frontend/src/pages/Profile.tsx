@@ -193,12 +193,10 @@ const Profile = () => {
                       </div>
                       <Award className="h-12 w-12 opacity-80" />
                     </div>
-                    {user.premiumExpires && (
-                      <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3">
-                        <p className="text-sm mb-1">Plan Expires</p>
-                        <p className="text-lg font-semibold">{formatDate(user.premiumExpires)}</p>
-                      </div>
-                    )}
+                    <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3">
+                      <p className="text-sm mb-1">Plan Expires</p>
+                      <p className="text-lg font-semibold">{formatDate(user.premiumExpires)}</p>
+                    </div>
                   </div>
                 </div>
 
