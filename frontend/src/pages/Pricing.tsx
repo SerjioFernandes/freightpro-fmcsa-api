@@ -172,7 +172,7 @@ const Pricing = () => {
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`relative card ${plan.popular ? 'ring-4 ring-orange-accent' : ''} hover:shadow-2xl transition-all duration-300 animate-scale-in`}
+                className={`relative card h-full flex flex-col ${plan.popular ? 'ring-4 ring-orange-accent' : ''} hover:shadow-2xl transition-all duration-300 animate-scale-in`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Popular Badge */}
