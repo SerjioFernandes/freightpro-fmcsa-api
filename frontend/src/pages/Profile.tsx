@@ -83,7 +83,7 @@ const Profile = () => {
                 <div>
                   <h2 className="text-3xl font-bold mb-2">{user.company}</h2>
                   <div className="flex items-center space-x-3">
-                    <span className="capitalize bg-white bg-opacity-20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold">
+                    <span className="capitalize bg-black bg-opacity-30 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold border border-white border-opacity-40">
                       {user.accountType}
                     </span>
                     {user.isEmailVerified ? (
