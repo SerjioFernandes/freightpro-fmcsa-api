@@ -1,4 +1,5 @@
-import React, { Component, ReactNode } from 'react';
+import React, { Component } from 'react';
+import type { ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../utils/constants';
@@ -65,7 +66,7 @@ const ErrorFallback: React.FC<{ error: Error | null; resetError: () => void }> =
           We're sorry for the inconvenience. The application encountered an unexpected error.
         </p>
 
-        {process.env.NODE_ENV === 'development' && error && (
+        {import.meta.env.MODE === 'development' && error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-800 font-mono text-xs break-all">
               {error.message}
