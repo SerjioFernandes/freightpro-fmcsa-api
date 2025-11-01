@@ -4,6 +4,9 @@ import loadRoutes from './load.routes.js';
 import shipmentRoutes from './shipment.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import healthRoutes from './health.routes.js';
+import settingsRoutes from './settings.routes.js';
+import messageRoutes from './message.routes.js';
+import supportRoutes from './support.routes.js';
 
 const router = Router();
 
@@ -25,6 +28,9 @@ router.use('/loads', loadRoutes);
 router.use('/shipments', shipmentRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/health', healthRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/messages', messageRoutes);
+router.use('/support', supportRoutes);
 
 export default router;
 

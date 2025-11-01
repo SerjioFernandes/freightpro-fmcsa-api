@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X, Plus, Package } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { 
   canViewLoadBoard, 
@@ -97,6 +97,21 @@ const Header = () => {
           <div className="flex items-center space-x-2">
             {isAuthenticated ? (
               <>
+                <Link
+                  to={ROUTES.MESSAGES}
+                  className="flex items-center space-x-1 text-white hover:text-gray-300 px-2 py-2 transition-colors relative"
+                  title="Messages"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </Link>
+                <Link
+                  to={ROUTES.SETTINGS}
+                  className="flex items-center space-x-1 text-white hover:text-gray-300 px-2 py-2 transition-colors"
+                  title="Settings"
+                >
+                  <Settings className="h-5 w-5" />
+                </Link>
+                <div className="h-8 w-px bg-blue-700 mx-1"></div>
                 <Link
                   to={ROUTES.PROFILE}
                   className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 transition-colors"

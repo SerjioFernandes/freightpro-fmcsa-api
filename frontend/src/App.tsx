@@ -19,7 +19,10 @@ import LoadBoard from './pages/LoadBoard';
 import PostLoad from './pages/PostLoad';
 import Shipments from './pages/Shipments';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import Messages from './pages/Messages';
 import Pricing from './pages/Pricing';
+import SupportChatWidget from './components/SupportChat/SupportChatWidget';
 
 // Protected Route Component
 import ProtectedRouteComponent from './components/auth/ProtectedRoute';
@@ -43,6 +46,7 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Notifications />
+        <SupportChatWidget />
         <Routes>
         {/* Public Routes */}
         <Route path={ROUTES.HOME} element={<MainLayout><Home /></MainLayout>} />
@@ -89,6 +93,22 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><Profile /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SETTINGS}
+          element={
+            <ProtectedRoute>
+              <MainLayout><Settings /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.MESSAGES}
+          element={
+            <ProtectedRoute>
+              <MainLayout><Messages /></MainLayout>
             </ProtectedRoute>
           }
         />

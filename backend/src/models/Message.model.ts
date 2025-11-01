@@ -11,6 +11,10 @@ const messageSchema = new Schema<IMessage>({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Indexes for performance
+messageSchema.index({ sender: 1, receiver: 1, createdAt: -1 });
+messageSchema.index({ receiver: 1, isRead: 1 });
+
 export const Message: Model<IMessage> = mongoose.model<IMessage>('Message', messageSchema);
 
 
