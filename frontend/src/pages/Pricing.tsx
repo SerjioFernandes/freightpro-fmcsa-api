@@ -83,31 +83,10 @@ const Pricing = () => {
       link: ROUTES.REGISTER,
       popular: false,
     },
-    {
-      name: 'Custom',
-      price: 'Custom',
-      period: 'Contact us',
-      monthlyPrice: null,
-      yearlyPrice: null,
-      description: 'For large-scale operations',
-      features: [
-        { name: 'Unlimited everything', included: true },
-        { name: 'Dedicated load board', included: true },
-        { name: '24/7 phone & priority support', included: true },
-        { name: 'Custom integrations', included: true },
-        { name: 'White-label mobile app', included: true },
-        { name: 'Real-time notifications', included: true },
-        { name: 'Advanced analytics & reporting', included: true },
-        { name: 'Full API access', included: true },
-      ],
-      cta: 'Contact Sales',
-      link: ROUTES.CONTACT,
-      popular: false,
-    },
   ];
 
   const getDisplayPrice = (plan: typeof plans[0]) => {
-    if (plan.price === 'Free' || plan.price === 'Custom') return plan.price;
+    if (plan.price === 'Free') return plan.price;
     
     const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
     return `$${price}`;
@@ -115,7 +94,6 @@ const Pricing = () => {
 
   const getDisplayPeriod = (plan: typeof plans[0]) => {
     if (plan.price === 'Free') return 'Forever';
-    if (plan.price === 'Custom') return 'Contact us';
     return billingCycle === 'monthly' ? 'per month' : 'per year';
   };
 
@@ -126,7 +104,7 @@ const Pricing = () => {
     },
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and wire transfers for Custom plans.',
+      answer: 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal.',
     },
     {
       question: 'Is there a contract or can I cancel anytime?',
@@ -139,10 +117,6 @@ const Pricing = () => {
     {
       question: 'What\'s included in the free plan?',
       answer: 'The free plan includes access to post and view up to 10 loads per month, basic search functionality, and email support. It\'s perfect for trying out CargoLume.',
-    },
-    {
-      question: 'How does the Custom plan work?',
-      answer: 'Custom plans are tailored to your specific needs. Contact our sales team to discuss volume discounts, custom integrations, and dedicated support options.',
     },
   ];
 
@@ -194,7 +168,7 @@ const Pricing = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
@@ -221,7 +195,7 @@ const Pricing = () => {
                     <span className="text-5xl font-heading font-bold text-orange-accent">
                       {getDisplayPrice(plan)}
                     </span>
-                    {plan.price !== 'Free' && plan.price !== 'Custom' && (
+                    {plan.price !== 'Free' && (
                       <span className="text-gray-600 text-lg"> / {billingCycle === 'monthly' ? 'month' : 'year'}</span>
                     )}
                   </div>
@@ -277,24 +251,22 @@ const Pricing = () => {
                   <th className="py-4 px-6 text-center font-heading">Basic</th>
                   <th className="py-4 px-6 text-center font-heading bg-orange-accent text-white">Premium</th>
                   <th className="py-4 px-6 text-center font-heading">Ultima</th>
-                  <th className="py-4 px-6 text-center font-heading">Custom</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {[
-                  ['Monthly loads', '10', 'Unlimited', 'Unlimited', 'Unlimited'],
-                  ['Load board access', 'Basic', 'Full', 'Advanced', 'Dedicated'],
-                  ['Support', 'Email', 'Email & Chat', 'Priority + Manager', '24/7 Phone'],
-                  ['Mobile app', '—', '✓', '✓ White-label', '✓ White-label'],
-                  ['Analytics', '—', 'Advanced', 'Advanced + Reports', 'Custom Reports'],
-                  ['API access', '—', '—', 'Full API', 'Full API'],
+                  ['Monthly loads', '10', 'Unlimited', 'Unlimited'],
+                  ['Load board access', 'Basic', 'Full', 'Advanced'],
+                  ['Support', 'Email', 'Email & Chat', 'Priority + Manager'],
+                  ['Mobile app', '—', '✓', '✓ White-label'],
+                  ['Analytics', '—', 'Advanced', 'Advanced + Reports'],
+                  ['API access', '—', '—', 'Full API'],
                 ].map((row, index) => (
                   <tr key={index} className="hover:bg-light-ivory transition-colors">
                     <td className="py-4 px-6 font-medium text-gray-900">{row[0]}</td>
                     <td className="py-4 px-6 text-center text-gray-600">{row[1]}</td>
                     <td className="py-4 px-6 text-center font-semibold text-orange-accent">{row[2]}</td>
                     <td className="py-4 px-6 text-center text-gray-600">{row[3]}</td>
-                    <td className="py-4 px-6 text-center text-gray-600">{row[4]}</td>
                   </tr>
                 ))}
               </tbody>
