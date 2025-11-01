@@ -6,6 +6,7 @@ import { AuthRequest } from '../types/index.js';
 import { PAGINATION } from '../utils/constants.js';
 import { validateState, validatePostalCode } from '../utils/validators.js';
 import { logger } from '../utils/logger.js';
+import { websocketService } from '../services/websocket.service.js';
 
 export class LoadController {
   async getLoads(req: AuthRequest, res: Response): Promise<void> {
@@ -130,6 +131,9 @@ export class LoadController {
       const load = new Load(loadData);
       await load.save();
 
+      // Broadcast new load via WebSocket
+      websocketService.notifyNewLoad(load);
+
       res.status(201).json({
         success: true,
         message: 'Load posted successfully',
@@ -174,6 +178,12 @@ export class LoadController {
         res.status(409).json({ error: 'Load already booked or not available' });
         return;
       }
+
+      // Broadcast load booking via WebSocket
+      websocketService.notifyLoadUpdate(load._id.toString(), {
+        status: load.status,
+        bookedBy: load.bookedBy
+      });
 
       res.json({
         success: true,

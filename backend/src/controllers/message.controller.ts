@@ -3,6 +3,7 @@ import { Message } from '../models/Message.model.js';
 import { User } from '../models/User.model.js';
 import { AuthRequest } from '../types/index.js';
 import mongoose from 'mongoose';
+import { websocketService } from '../services/websocket.service.js';
 
 export const getConversations = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -167,6 +168,9 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
     await newMessage.populate('sender', 'company email accountType');
     await newMessage.populate('receiver', 'company email accountType');
 
+    // Broadcast new message via WebSocket
+    websocketService.emitToUser(receiverId, 'new_message', newMessage);
+
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
@@ -228,6 +232,9 @@ export const editMessage = async (req: AuthRequest, res: Response): Promise<void
     msg.editedAt = new Date();
     await msg.save();
 
+    // Broadcast message update via WebSocket
+    websocketService.emitToUser(msg.receiver.toString(), 'message_updated', msg);
+
     res.json({
       success: true,
       message: 'Message updated successfully',
@@ -257,6 +264,12 @@ export const deleteMessage = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     await msg.deleteOne();
+
+    // Broadcast message deletion via WebSocket
+    websocketService.emitToUser(msg.receiver.toString(), 'message_deleted', { 
+      messageId: msg._id,
+      conversationId: msg.sender === msg.receiver ? msg.sender.toString() : undefined
+    });
 
     res.json({
       success: true,
