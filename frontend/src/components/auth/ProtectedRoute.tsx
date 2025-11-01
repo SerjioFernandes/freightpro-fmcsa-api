@@ -25,10 +25,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
-    addNotification({
-      type: 'error',
-      message: 'Please log in to access this page.',
-    });
+    // Only show notification if not already on login page (to prevent duplicate messages)
+    if (!window.location.pathname.includes('/login')) {
+      addNotification({
+        type: 'error',
+        message: 'Please log in to access this page.',
+      });
+    }
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
