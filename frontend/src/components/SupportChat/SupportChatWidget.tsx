@@ -10,6 +10,13 @@ interface Message {
   timestamp: Date;
 }
 
+const QUICK_QUESTIONS = [
+  { text: 'How to post a load?', query: 'how to post load' },
+  { text: 'How to book a load?', query: 'how to book load' },
+  { text: 'What is USDOT?', query: 'what is usdot' },
+  { text: 'Contact support', query: 'how to contact support' }
+];
+
 const SupportChatWidget = () => {
   const { addNotification } = useUIStore();
   const [isOpen, setIsOpen] = useState(false);
@@ -105,7 +112,7 @@ const SupportChatWidget = () => {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 h-[400px] overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 h-[350px] overflow-y-auto p-4 space-y-4 bg-gray-50">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -134,6 +141,27 @@ const SupportChatWidget = () => {
               </div>
             )}
           </div>
+
+          {/* Quick Questions */}
+          {messages.length <= 1 && (
+            <div className="px-4 pb-2">
+              <p className="text-xs text-gray-500 mb-2">Quick questions:</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_QUESTIONS.map((q) => (
+                  <button
+                    key={q.query}
+                    onClick={() => {
+                      setInput(q.query);
+                      handleSend({ preventDefault: () => {} } as React.FormEvent);
+                    }}
+                    className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
+                  >
+                    {q.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Input */}
           <form onSubmit={handleSend} className="p-4 border-t border-gray-200">

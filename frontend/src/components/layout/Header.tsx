@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { 
   canViewLoadBoard, 
@@ -75,12 +75,21 @@ const Header = () => {
               </Link>
             )}
             {isAuthenticated && (
-              <Link
-                to={ROUTES.DASHBOARD}
-                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  to={ROUTES.DASHBOARD}
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to={ROUTES.DOCUMENTS}
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  Documents
+                </Link>
+              </>
             )}
             <Link
               to={ROUTES.PRICING}
@@ -206,6 +215,30 @@ const Header = () => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    to={ROUTES.DOCUMENTS}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Documents
+                  </Link>
+                  <Link
+                    to={ROUTES.MESSAGES}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Messages
+                  </Link>
+                  <Link
+                    to={ROUTES.SETTINGS}
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
                   </Link>
                   <Link
                     to={ROUTES.PRICING}
