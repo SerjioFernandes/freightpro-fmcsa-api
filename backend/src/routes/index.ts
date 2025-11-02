@@ -12,6 +12,7 @@ import pushRoutes from './push.routes.js';
 import locationRoutes from './location.routes.js';
 import savedSearchRoutes from './savedSearch.routes.js';
 import notificationRoutes from './notification.routes.js';
+import searchRoutes from './search.routes.js';
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.use('/push', pushRoutes);
 router.use('/locations', locationRoutes);
 router.use('/searches', savedSearchRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/search', searchRoutes);
 
 export default router;
 

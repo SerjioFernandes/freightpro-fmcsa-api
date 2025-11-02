@@ -64,6 +64,11 @@ loadSchema.index({ createdAt: -1 }); // For recent loads
 loadSchema.index({ 'origin.coordinates.lat': 1, 'origin.coordinates.lng': 1 }); // 2dsphere not supported, use 2d compound
 loadSchema.index({ 'destination.coordinates.lat': 1, 'destination.coordinates.lng': 1 });
 
+// Full-text search index for search optimization
+loadSchema.index({ title: 'text', description: 'text' }, { weights: { title: 10, description: 5 } });
+loadSchema.index({ 'origin.city': 'text', 'origin.state': 'text' });
+loadSchema.index({ 'destination.city': 'text', 'destination.state': 'text' });
+
 export const Load: Model<ILoad> = mongoose.model<ILoad>('Load', loadSchema);
 
 
