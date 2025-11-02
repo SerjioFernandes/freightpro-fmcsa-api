@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Package, MessageSquare, User, LayoutDashboard } from 'lucide-react';
+import { Package, MessageSquare, User, LayoutDashboard, Bookmark } from 'lucide-react';
 import { ROUTES } from '../../utils/constants';
 
 const MobileBottomNav = () => {
@@ -9,6 +9,7 @@ const MobileBottomNav = () => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: ROUTES.DASHBOARD },
     { icon: Package, label: 'Loads', path: ROUTES.LOAD_BOARD },
+    { icon: Bookmark, label: 'Searches', path: ROUTES.SAVED_SEARCHES },
     { icon: MessageSquare, label: 'Messages', path: ROUTES.MESSAGES },
     { icon: User, label: 'Profile', path: ROUTES.PROFILE }
   ];

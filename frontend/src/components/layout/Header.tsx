@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark } from 'lucide-react';
 import { useState } from 'react';
 import { 
   canViewLoadBoard, 
@@ -89,6 +89,15 @@ const Header = () => {
                   <FileText className="w-4 h-4 mr-1" />
                   Documents
                 </Link>
+                {showLoadBoard && (
+                  <Link
+                    to={ROUTES.SAVED_SEARCHES}
+                    className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+                  >
+                    <Bookmark className="w-4 h-4 mr-1" />
+                    Saved Searches
+                  </Link>
+                )}
               </>
             )}
             <Link
@@ -224,6 +233,16 @@ const Header = () => {
                     <FileText className="h-4 w-4" />
                     Documents
                   </Link>
+                  {showLoadBoard && (
+                    <Link
+                      to={ROUTES.SAVED_SEARCHES}
+                      className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Bookmark className="h-4 w-4" />
+                      Saved Searches
+                    </Link>
+                  )}
                   <Link
                     to={ROUTES.MESSAGES}
                     className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"

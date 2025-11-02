@@ -24,6 +24,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Messages from './pages/Messages';
 import Documents from './pages/Documents';
+import SavedSearches from './pages/SavedSearches';
 import Pricing from './pages/Pricing';
 import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
@@ -128,6 +129,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><Documents /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SAVED_SEARCHES}
+          element={
+            <ProtectedRoute>
+              <MainLayout><SavedSearches /></MainLayout>
             </ProtectedRoute>
           }
         />

@@ -19,6 +19,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
   MESSAGES: '/messages',
   DOCUMENTS: '/documents',
+  SAVED_SEARCHES: '/saved-searches',
   ABOUT: '/about',
   CONTACT: '/contact',
   PRICING: '/pricing',
