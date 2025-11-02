@@ -3,6 +3,7 @@ import { Load } from '../models/Load.model.js';
 import { Shipment, ShipmentRequest } from '../models/Shipment.model.js';
 import { AuthRequest } from '../types/index.js';
 import { logger } from '../utils/logger.js';
+import { analyticsService } from '../services/analytics.service.js';
 
 export class DashboardController {
   async getCarrierStats(req: AuthRequest, res: Response): Promise<void> {
@@ -20,6 +21,13 @@ export class DashboardController {
       const totalMiles = bookedLoads.reduce((sum, load) => sum + (load.distance || 0), 0);
       const activeLoads = bookedLoads.filter(load => ['booked', 'in_transit'].includes(load.status)).length;
 
+      // Get analytics
+      const revenueTimeSeries = await analyticsService.getCarrierRevenueTimeSeries(carrierId || '', 30);
+      const loadCountTimeSeries = await analyticsService.getCarrierLoadCountTimeSeries(carrierId || '', 30);
+      const revenueAnalytics = await analyticsService.getCarrierRevenueAnalytics(carrierId || '', 30);
+      const loadAnalytics = await analyticsService.getCarrierLoadAnalytics(carrierId || '', 30);
+      const topEquipment = await analyticsService.getTopEquipmentTypes(carrierId || '', 'carrier', 5);
+
       res.json({
         success: true,
         stats: {
@@ -30,6 +38,15 @@ export class DashboardController {
           averageRate: totalBooked > 0 ? Math.round(totalEarnings / totalBooked) : 0,
           rating: '5.0' // Placeholder
         },
+        analytics: {
+          revenue: revenueAnalytics,
+          loads: loadAnalytics
+        },
+        timeSeries: {
+          revenue: revenueTimeSeries,
+          loads: loadCountTimeSeries
+        },
+        topEquipment,
         recentLoads: bookedLoads.slice(0, 5)
       });
     } catch (error: any) {
@@ -62,6 +79,10 @@ export class DashboardController {
       const totalRequests = shipmentRequests.length;
       const pendingRequests = shipmentRequests.filter(req => req.status === 'pending').length;
 
+      // Get analytics
+      const loadsTimeSeries = await analyticsService.getBrokerLoadsTimeSeries(brokerId || '', 30);
+      const topEquipment = await analyticsService.getTopEquipmentTypes(brokerId || '', 'broker', 5);
+
       res.json({
         success: true,
         stats: {
@@ -72,6 +93,10 @@ export class DashboardController {
           shipmentRequests: totalRequests,
           pendingRequests
         },
+        timeSeries: {
+          loads: loadsTimeSeries
+        },
+        topEquipment,
         recentLoads: postedLoads.slice(0, 5),
         recentShipmentRequests: shipmentRequests.slice(0, 5)
       });
@@ -109,6 +134,9 @@ export class DashboardController {
       const pendingRequests = shipmentRequests.filter(req => req.status === 'pending').length;
       const approvedRequests = shipmentRequests.filter(req => req.status === 'approved').length;
 
+      // Get analytics
+      const shipmentsTimeSeries = await analyticsService.getShipperShipmentsTimeSeries(shipperId || '', 30);
+
       res.json({
         success: true,
         stats: {
@@ -118,6 +146,9 @@ export class DashboardController {
           totalSpend,
           pendingRequests,
           approvedRequests
+        },
+        timeSeries: {
+          shipments: shipmentsTimeSeries
         },
         recentShipments: shipments.slice(0, 5),
         recentRequests: shipmentRequests.slice(0, 5)
