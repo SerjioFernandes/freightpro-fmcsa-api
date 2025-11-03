@@ -202,9 +202,5 @@ async function seedLoads() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedLoads();
-}
-
-export { seedLoads };
+seedLoads();
 
