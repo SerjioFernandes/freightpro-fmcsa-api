@@ -1,0 +1,56 @@
+=================================================================
+READ THIS FILE BEFORE UPLOADING TO HOSTINGER!
+=================================================================
+
+✅ UPLOAD THESE FILES ONLY:
+
+BACKEND (to api/ folder on Hostinger):
+--------------------------------------
+✓ backend/dist/                    [COMPILED JAVASCRIPT]
+✓ backend/package.json             [DEPENDENCIES]
+✓ backend/package-lock.json        [LOCK FILE]
+✓ Others/ecosystem.config.js       [PM2 CONFIG]
+
+
+FRONTEND (to public_html/ root on Hostinger):
+---------------------------------------------
+First, BUILD the frontend:
+  cd frontend
+  npm install
+  VITE_API_URL=https://api.yourdomain.com/api npm run build
+
+Then upload from frontend/dist/:
+✓ frontend/dist/index.html         [ENTRY POINT]
+✓ frontend/dist/assets/            [ALL CSS/JS BUNDLES]
+✓ frontend/dist/manifest.json      [PWA CONFIG]
+✓ frontend/dist/robots.txt         [SEO]
+✓ frontend/dist/sitemap.xml        [SEO]
+✓ frontend/dist/site.webmanifest   [PWA]
+✓ frontend/dist/sw.js              [SERVICE WORKER]
+
+Also create .htaccess file in public_html/:
+✓ .htaccess                        [CREATE MANUALLY - see guides]
+
+
+=================================================================
+❌ DO NOT UPLOAD:
+
+❌ Others/ folder
+❌ backend/src/ folder (TypeScript source)
+❌ frontend/src/ folder (React source)
+❌ node_modules/ anywhere
+❌ .env files
+❌ .git/ folder
+❌ Documentation files (.md)
+❌ Config files (.json, .ts configs)
+❌ Anything else!
+
+=================================================================
+
+Quick Guide: Read Others/HOSTINGER-SIMPLE-STEPS.md
+
+Total upload size: ~10-20 MB (5-10 minutes)
+
+Good luck! 🚀
+
+=================================================================
