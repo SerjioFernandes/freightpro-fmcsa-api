@@ -1,0 +1,112 @@
+================================================================
+HOSTINGER ADMIN ACCESS - TWO OPTIONS
+================================================================
+
+You have 2 ways to access your app:
+
+================================================================
+OPTION 1: USE YOUR WEBSITE (Simple!)
+================================================================
+
+✅ Login through your website at:
+   https://www.yourdomain.com/login
+
+✅ Register admin account:
+   https://www.yourdomain.com/register
+
+✅ Choose "Admin" role when registering
+
+Then login with those credentials!
+
+NO HOSTINGER PANEL NEEDED!
+
+================================================================
+OPTION 2: HOSTINGER CONTROL PANEL (Advanced)
+================================================================
+
+If you want Hostinger admin access:
+
+✅ You get access through:
+   https://hpanel.hostinger.com
+
+✅ Login with:
+   - Your Hostinger email
+   - Your Hostinger password
+
+✅ From there you can:
+   - Manage files
+   - Configure Node.js app
+   - View logs
+   - Add environment variables
+   - Enable SSL
+
+================================================================
+WHAT YOU NEED TO KNOW
+================================================================
+
+Your app has TWO separate admin systems:
+
+1. APP ADMIN (Your FreightPro admin):
+   - Login at: www.yourdomain.com/login
+   - Manage loads, users, shipments
+   - Already built into your app!
+
+2. HOSTINGER ADMIN (Server access):
+   - Login at: hpanel.hostinger.com
+   - Manage server, files, database
+   - Provided by Hostinger!
+
+You can use BOTH or just the website!
+
+================================================================
+CREDENTIALS YOU NEED
+================================================================
+
+1. HOSTINGER ACCOUNT:
+   - Email: (your Hostinger email)
+   - Password: (your Hostinger password)
+   - Use for: Server management, file upload
+
+2. APP ADMIN ACCOUNT:
+   - Register at: www.yourdomain.com/register
+   - Choose: "Admin" role
+   - Use for: Managing your FreightPro app
+
+3. MONGODB ATLAS:
+   - Already have this!
+   - Cloud database for your app
+
+================================================================
+SIMPLEST WAY TO USE
+================================================================
+
+Just use your WEBSITE for everything:
+
+1. Deploy to Hostinger (upload zips)
+2. Visit: www.yourdomain.com
+3. Click "Register"
+4. Choose "Admin" role
+5. Login with those credentials
+
+DONE! You now have admin access!
+
+You DON'T need to do anything in Hostinger panel
+after initial setup!
+
+================================================================
+SUMMARY
+================================================================
+
+For FreightPro admin access:
+✅ Use your website: www.yourdomain.com/login
+✅ Register with "Admin" role
+✅ Done!
+
+For server management (optional):
+✅ Use Hostinger panel: hpanel.hostinger.com
+✅ Only when you need to upload files or change config
+
+Both are separate and work independently!
+
+================================================================
+
