@@ -3,10 +3,10 @@ services:
     name: freightpro-fmcsa-api
     env: node
     region: oregon
-    rootDir: backend
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
