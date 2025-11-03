@@ -10,7 +10,9 @@ import { logger } from '../utils/logger.js';
 const VAPID_PUBLIC_KEY = config.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = config.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = config.VAPID_SUBJECT || 'mailto:admin@cargolume.com';
-const VAPID_ENABLED = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+// Only enable if both keys are provided and not empty strings
+const VAPID_ENABLED = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && 
+  VAPID_PUBLIC_KEY.trim() !== '' && VAPID_PRIVATE_KEY.trim() !== '');
 
 // Configure web-push only if VAPID keys are provided
 if (VAPID_ENABLED) {
