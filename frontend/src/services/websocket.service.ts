@@ -20,7 +20,7 @@ class WebSocketService {
     }
 
     // Get backend WebSocket URL (same as API without /api)
-    const wsUrl = API_BASE_URL.replace('/api', '');
+    const wsUrl = API_BASE_URL.replace('/api', '').trim();
 
     console.log('[WebSocket] Connecting to server', { url: wsUrl });
 
