@@ -72,12 +72,7 @@ function getRandomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function getRandomElements<T>(array: T[], count: number): T[] {
-  const shuffled = [...array].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
-function calculateDistance(origin: any, destination: any): number {
+function calculateDistance(_origin: any, _destination: any): number {
   // Simple approximate distance calculation
   return Math.floor(Math.random() * 2000) + 200; // 200-2200 miles
 }
