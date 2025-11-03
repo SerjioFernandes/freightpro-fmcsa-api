@@ -1,0 +1,65 @@
+================================================================
+ENVIRONMENT VARIABLE TEMPLATES
+================================================================
+
+Copy these to create your .env files.
+
+================================================================
+1. BACKEND ENVIRONMENT (backend/.env)
+================================================================
+
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/cargolume?retryWrites=true&w=majority
+
+JWT_SECRET=your-super-secret-random-96-character-string-change-in-production
+
+NODE_ENV=production
+PORT=4000
+
+FRONTEND_URL=https://www.yourdomain.com
+
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-gmail-app-password-16-chars
+
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:admin@yourdomain.com
+
+================================================================
+2. FRONTEND ENVIRONMENT (frontend/.env.local)
+================================================================
+
+VITE_API_URL=http://localhost:4000/api
+
+# For production, set in Vercel dashboard, not .env file
+
+================================================================
+GENERATING SECRETS
+================================================================
+
+JWT Secret:
+-----------
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+
+Creates 96-character secure random string.
+
+MongoDB Connection:
+-------------------
+From MongoDB Atlas → Cluster → Connect → Connect your application
+Copy connection string and replace username/password.
+
+Gmail App Password:
+-------------------
+Google Account → Security → 2-Step Verification → App passwords
+Generate → Mail → Custom name → Copy 16-char password
+
+================================================================
+IMPORTANT
+================================================================
+
+❌ NEVER commit .env files (in .gitignore)
+✅ In production, set env vars in Railway/Vercel dashboard
+✅ Rotate secrets regularly
+✅ Use different secrets for dev/staging/production
+
+================================================================
+
