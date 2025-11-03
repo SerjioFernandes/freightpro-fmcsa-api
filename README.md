@@ -1,186 +1,52 @@
-# 🚛 CargoLume - Freight Network Platform
+# FreightPro - Ready for Hostinger Deployment! 🚀
 
-## Overview
-
-**CargoLume** is a modern, full-stack freight network platform connecting carriers, brokers, and shippers in real-time. Built with cutting-edge technologies and best practices.
-
-**Status:** ✅ **PRODUCTION READY**
-
-## 🌐 Live URLs
-
-- **Frontend:** https://frontend-gfjil28dv-serjiofernandes-projects.vercel.app
-- **Backend API:** https://freightpro-fmcsa-api.onrender.com
-- **GitHub:** https://github.com/SerjioFernandes/freightpro-fmcsa-api
-
-## ✨ Key Features
-
-### 🔐 Authentication & Security
-- JWT-based authentication
-- Email verification
-- Role-based access control (RBAC)
-- Secure password hashing
-- Session management
-
-### 🚛 Load Board
-- Real-time load listings
-- Advanced filtering
-- Equipment type selection
-- Authority-based visibility
-- Interstate/intrastate routing
-
-### 📦 Shipments
-- Create and manage shipments
-- Request-based access control
-- Approval workflow
-- Status tracking
-
-### 📊 Dashboards
-- **Carrier:** Earnings, booked loads, miles
-- **Broker:** Posted loads, revenue, requests
-- **Shipper:** Shipments, proposals, spend
-
-### 🎨 Modern UI
-- Responsive design
-- Smooth animations
-- Mobile-first approach
-- Loading states
-- Error handling
-
-## 🛠️ Tech Stack
-
-### Frontend
-- React 18 + TypeScript
-- Vite 7
-- TailwindCSS 3
-- Zustand (State Management)
-- React Router 6
-- Axios
-- Lucide React Icons
-
-### Backend
-- Node.js 20 + Express
-- TypeScript 5
-- MongoDB + Mongoose
-- JWT Authentication
-- bcrypt Hashing
-- Nodemailer
-
-### DevOps
-- Vercel (Frontend Hosting)
-- Render (Backend Hosting)
-- MongoDB Atlas (Database)
-- GitHub (Version Control)
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 20.x or higher
-- MongoDB connection string
-- Vercel account
-- Render account
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/SerjioFernandes/freightpro-fmcsa-api.git
-cd FreightPro
-
-# Install backend dependencies
-cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-```
-
-### Environment Variables
-
-**Backend (.env)**
-```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-FRONTEND_URL=https://your-vercel-url.vercel.app
-NODE_ENV=production
-PORT=4000
-```
-
-**Frontend (.env)**
-```env
-VITE_API_URL=https://your-render-backend-url.onrender.com/api
-```
-
-### Running Locally
-
-```bash
-# Backend
-cd backend
-npm run dev
-
-# Frontend
-cd frontend
-npm run dev
-```
-
-## 📁 Project Structure
+## Your Folder Structure
 
 ```
 FreightPro/
-├── backend/               # Express + TypeScript backend
-│   ├── src/
-│   │   ├── controllers/   # Business logic
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   ├── middleware/    # Auth, validation, etc.
-│   │   ├── services/      # Email, auth services
-│   │   └── utils/         # Helpers, validators
-│   └── package.json
-│
-├── frontend/              # React + TypeScript frontend
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── store/         # Zustand stores
-│   │   ├── services/      # API services
-│   │   ├── utils/         # Helpers
-│   │   └── styles/        # CSS and Tailwind
-│   └── package.json
-│
-└── README.md
+├── backend/          ✅ UPLOAD these files to Hostinger
+├── frontend/         ✅ UPLOAD these files to Hostinger
+├── Others/           ❌ DON'T upload (documentation & old files)
+├── .env              ❌ DON'T upload (local secrets)
+└── .gitignore        ❌ DON'T upload
 ```
 
-## 🔑 Account Types & Permissions
-
-| Feature | Carrier | Broker | Shipper |
-|---------|---------|--------|---------|
-| View Load Board | ✅ | ✅ | ❌ |
-| Post Load | ❌ | ✅ | ❌ |
-| Book Load | ✅ | ❌ | ❌ |
-| Create Shipment | ❌ | ❌ | ✅ |
-| View Own Shipments | ❌ | ❌ | ✅ |
-| View All Shipments | ❌ | ✅ | ❌ |
-| Request Access | ❌ | ✅ | ❌ |
-| Approve Requests | ❌ | ❌ | ✅ |
-
-## 📚 Documentation
-
-- [Complete Implementation Summary](IMPLEMENTATION-COMPLETE-SUMMARY.md)
-- [Project Status](PROJECT-STATUS-FINAL.md)
-- [Final Session Summary](FINAL-SESSION-SUMMARY.md)
-
-## 🤝 Contributing
-
-This is a production application. Please contact the project owner before making changes.
-
-## 📄 License
-
-All rights reserved. Copyright © 2025 CargoLume.
-
-## 🆘 Support
-
-For issues or questions, please open an issue on GitHub.
+**Perfect! Only essential files remain.**
 
 ---
 
-**Built with ❤️ for the freight industry**
+## What to Upload to Hostinger
+
+### Backend (to `api/` folder on Hostinger)
+
+From `backend/` folder:
+
+1. ✅ `backend/dist/` - Entire folder
+2. ✅ `backend/package.json`
+3. ✅ `backend/package-lock.json`
+4. ✅ `Others/ecosystem.config.js` - Move to api/ folder as `ecosystem.config.js`
+
+### Frontend (to `public_html/` root on Hostinger)
+
+First build frontend:
+```powershell
+cd frontend
+npm install
+VITE_API_URL=https://api.yourdomain.com/api npm run build
+```
+
+Then upload from `frontend/dist/`:
+- All files in the `dist/` folder
+
+---
+
+## Quick Guide
+
+**See:** `Others/HOSTINGER-SIMPLE-STEPS.md` for detailed instructions
+
+**Everything you need is in the Others/ folder!**
+
+---
+
+**Ready to deploy!** 🎉
+
