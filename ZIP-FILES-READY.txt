@@ -1,0 +1,133 @@
+=================================================================
+✅ TWO ZIP FILES CREATED AND READY TO UPLOAD!
+=================================================================
+
+📦 backend-deploy.zip      (249 KB)
+📦 frontend-deploy.zip      (342 KB)
+
+TOTAL: ~590 KB - VERY SMALL!
+
+=================================================================
+NOW: HOW TO UPLOAD TO HOSTINGER
+=================================================================
+
+⚠️ DON'T use that "Backup" upload screen!
+✅ Use Hostinger File Manager instead!
+
+=================================================================
+STEP 1: Open Hostinger File Manager
+=================================================================
+
+1. Go to Hostinger Control Panel
+2. Click "Advanced" → "File Manager"
+3. Navigate to: domains/yourdomain.com/public_html/
+
+=================================================================
+STEP 2: Upload Backend ZIP
+=================================================================
+
+1. In File Manager, click "Upload" button
+2. Upload: backend-deploy.zip
+3. AFTER upload completes:
+   - Right-click backend-deploy.zip
+   - Click "Extract Here" or "Unzip"
+   - This creates the files inside api/ folder
+4. Move the extracted files to api/ folder:
+   - Create folder called "api" if it doesn't exist
+   - Move dist/, package.json, package-lock.json, ecosystem.config.js INTO api/
+   - Delete backend-deploy.zip after extracting
+
+=================================================================
+STEP 3: Upload Frontend ZIP
+=================================================================
+
+1. Still in public_html/ root folder
+2. Click "Upload" button
+3. Upload: frontend-deploy.zip
+4. AFTER upload completes:
+   - Right-click frontend-deploy.zip
+   - Click "Extract Here" or "Unzip"
+   - This extracts all files to public_html/ root
+5. Verify files are there:
+   - index.html
+   - assets/ folder
+   - manifest.json
+6. Delete frontend-deploy.zip after extracting
+
+=================================================================
+STEP 4: Create .htaccess File
+=================================================================
+
+1. In public_html/ folder, click "New File"
+2. Name: .htaccess
+3. Content:
+---------------
+Options -MultiViews
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.html [QSA,L]
+---------------
+
+=================================================================
+STEP 5: Configure Node.js App (Backend)
+=================================================================
+
+1. In Hostinger: Advanced → Node.js Apps
+2. Create new app:
+   - App Name: freightpro-backend
+   - App Domain: api.yourdomain.com
+   - Node Version: 18 or 20
+   - Document Root: public_html/api
+   - Start File: dist/server.js
+   - Port: 10000
+
+3. Add Environment Variables:
+   NODE_ENV=production
+   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/freightpro
+   JWT_SECRET=changeme-to-random-32-characters
+   FRONTEND_URL=https://www.yourdomain.com
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
+
+4. Click "Create"
+
+=================================================================
+STEP 6: Enable SSL
+=================================================================
+
+1. Advanced → SSL
+2. Enable Let's Encrypt for:
+   - www.yourdomain.com
+   - api.yourdomain.com
+
+=================================================================
+STEP 7: Test
+=================================================================
+
+Visit: https://www.yourdomain.com
+
+Should load your app!
+
+=================================================================
+REMEMBER
+=================================================================
+
+✅ Upload both ZIP files to File Manager
+✅ Extract both ZIP files in place
+✅ Move backend files to api/ folder
+✅ Leave frontend files in public_html/ root
+✅ Configure Node.js app
+✅ Enable SSL
+✅ Test your site!
+
+=================================================================
+FILES ARE READY!
+
+backend-deploy.zip
+frontend-deploy.zip
+
+Both in your FreightPro folder right now!
+=================================================================
+
+Good luck! 🚀
+

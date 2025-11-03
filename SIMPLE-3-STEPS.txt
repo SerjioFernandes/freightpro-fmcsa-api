@@ -1,0 +1,46 @@
+================================================================
+SUPER SIMPLE: 3 STEPS TO DEPLOY TO HOSTINGER
+================================================================
+
+✅ TWO ZIP FILES READY:
+   backend-deploy.zip  (249 KB)
+   frontend-deploy.zip (342 KB)
+
+================================================================
+STEP 1: UPLOAD BACKEND ZIP
+================================================================
+
+1. In Hostinger File Manager → public_html/
+2. Upload: backend-deploy.zip
+3. Right-click → "Extract Here"
+4. Move extracted files to api/ folder
+   - Create "api" folder if needed
+   - Move dist/, package.json, package-lock.json, ecosystem.config.js
+5. Delete backend-deploy.zip
+
+================================================================
+STEP 2: UPLOAD FRONTEND ZIP
+================================================================
+
+1. Still in public_html/ root folder
+2. Upload: frontend-deploy.zip
+3. Right-click → "Extract Here"
+4. Verify index.html and assets/ are there
+5. Delete frontend-deploy.zip
+
+================================================================
+STEP 3: CONFIGURE NODE.JS APP
+================================================================
+
+1. Hostinger → Advanced → Node.js Apps
+2. Create new app:
+   - Domain: api.yourdomain.com
+   - Root: public_html/api
+   - Start: dist/server.js
+   - Port: 10000
+3. Add environment variables (see ZIP-FILES-READY.txt)
+4. Enable SSL for both domains
+5. DONE! Test your site
+
+================================================================
+
