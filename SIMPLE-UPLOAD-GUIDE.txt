@@ -1,0 +1,48 @@
+=================================================================
+SIMPLE: WHAT TO UPLOAD TO HOSTINGER
+=================================================================
+
+YOU HAVE 2 ZIP FILES READY IN YOUR FREIGHTPRO FOLDER:
+
+1. backend-deploy.zip  (READY NOW)
+2. frontend-deploy.zip (NEEDS REBUILDING)
+
+=================================================================
+
+BEFORE UPLOAD:
+
+⚠️ IMPORTANT: Rebuild frontend with YOUR domain first!
+
+Open PowerShell, run:
+
+cd C:\Users\HAYK\Desktop\FreightPro\frontend
+npm install
+VITE_API_URL=https://api.YOURDOMAIN.com npm run build
+
+Then:
+
+cd ..
+powershell -ExecutionPolicy Bypass -File CREATE-ZIP-FILES.ps1
+
+This creates fresh ZIP files with correct domain.
+
+=================================================================
+
+UPLOAD TO HOSTINGER:
+
+1. Drag: backend-deploy.zip
+   → Extract to: public_html/api/
+
+2. Drag: frontend-deploy.zip  
+   → Extract to: public_html/
+
+=================================================================
+
+THAT'S IT FOR FILES!
+
+Then configure Node.js app in Hostinger Control Panel.
+
+See DEPLOYMENT-CHECKLIST.md for full steps.
+
+=================================================================
+
