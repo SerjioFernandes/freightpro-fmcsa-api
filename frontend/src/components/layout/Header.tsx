@@ -8,6 +8,7 @@ import {
   canPostLoad, 
   canViewShipments 
 } from '../../utils/permissions';
+import NotificationCenter from '../common/NotificationCenter';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -115,6 +116,7 @@ const Header = () => {
           <div className="flex items-center space-x-2">
             {isAuthenticated ? (
               <>
+                <NotificationCenter />
                 <Link
                   to={ROUTES.MESSAGES}
                   className="flex items-center space-x-1 text-white hover:text-gray-300 px-2 py-2 transition-colors relative"

@@ -20,6 +20,7 @@ export const ROUTES = {
   MESSAGES: '/messages',
   DOCUMENTS: '/documents',
   SAVED_SEARCHES: '/saved-searches',
+  ACTIVE_SESSIONS: '/sessions',
   ABOUT: '/about',
   CONTACT: '/contact',
   PRICING: '/pricing',

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { settingsService } from '../services/settings.service';
-import { Settings, Save, Lock, Bell, User as UserIcon, Eye, EyeOff, Camera } from 'lucide-react';
+import { Settings, Save, Lock, Bell, User as UserIcon, Eye, EyeOff, Camera, Shield } from 'lucide-react';
 import api from '../services/api';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../utils/constants';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuthStore();
@@ -475,6 +477,29 @@ const SettingsPage = () => {
                   </>
                 )}
               </button>
+
+              {/* Active Sessions Link */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <Link
+                  to={ROUTES.ACTIVE_SESSIONS}
+                  className="card card-hover bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-primary-blue/30"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-primary-blue/10 rounded-lg">
+                        <Shield className="h-6 w-6 text-primary-blue" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-bold text-gray-900">Manage Active Sessions</h3>
+                        <p className="text-sm text-gray-600">View and logout from active devices</p>
+                      </div>
+                    </div>
+                    <svg className="h-5 w-5 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+              </div>
             </form>
           </div>
         )}

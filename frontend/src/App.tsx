@@ -25,6 +25,7 @@ import Settings from './pages/Settings';
 import Messages from './pages/Messages';
 import Documents from './pages/Documents';
 import SavedSearches from './pages/SavedSearches';
+import ActiveSessions from './pages/ActiveSessions';
 import Pricing from './pages/Pricing';
 import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
@@ -137,6 +138,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><SavedSearches /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ACTIVE_SESSIONS}
+          element={
+            <ProtectedRoute>
+              <MainLayout><ActiveSessions /></MainLayout>
             </ProtectedRoute>
           }
         />
