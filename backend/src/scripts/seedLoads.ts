@@ -204,3 +204,5 @@ async function seedLoads() {
 // Run if called directly
 seedLoads();
 
+export { seedLoads };
+
