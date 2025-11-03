@@ -1,0 +1,162 @@
+================================================================
+GREAT! FILES UPLOADED - WHAT'S NEXT?
+================================================================
+
+✅ Frontend files in public_html/ root
+✅ Backend files in public_html/api/ folder
+
+================================================================
+STEP 1: CREATE .htaccess FILE
+================================================================
+
+In public_html/ root:
+
+1. Click "New File"
+2. Name: .htaccess
+3. Content:
+---------------
+Options -MultiViews
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.html [QSA,L]
+---------------
+
+This is CRITICAL for React Router to work!
+
+================================================================
+STEP 2: CONFIGURE NODE.JS APP (BACKEND)
+================================================================
+
+1. In Hostinger: Go to "Advanced" → "Node.js Apps"
+
+2. Click "Create Node.js App"
+
+3. Fill in settings:
+   ✅ App Name: freightpro-backend
+   ✅ App Domain: api.yourdomain.com (or api.cargolume.com)
+   ✅ Node Version: 18 or 20 (choose latest)
+   ✅ Document Root: public_html/api
+   ✅ Start File: dist/server.js
+   ✅ Port: 10000 (or auto-assigned)
+   ✅ App Mode: Production
+
+4. IMPORTANT: Add Environment Variables:
+
+Click "Add Environment Variable" for each:
+
+Variable 1:
+   Name: NODE_ENV
+   Value: production
+
+Variable 2:
+   Name: PORT
+   Value: 10000
+
+Variable 3:
+   Name: MONGODB_URI
+   Value: mongodb+srv://username:password@cluster.mongodb.net/freightpro?retryWrites=true&w=majority
+   ⚠️ REPLACE with your actual MongoDB connection string!
+
+Variable 4:
+   Name: JWT_SECRET
+   Value: changeme-to-random-32-character-secret-string
+   ⚠️ Generate a random secret!
+
+Variable 5:
+   Name: FRONTEND_URL
+   Value: https://www.yourdomain.com
+   ⚠️ Your actual domain!
+
+Variable 6:
+   Name: EMAIL_USER
+   Value: your-email@gmail.com
+
+Variable 7:
+   Name: EMAIL_PASS
+   Value: your-gmail-app-password
+
+Leave these EMPTY (optional):
+   VAPID_PUBLIC_KEY
+   VAPID_PRIVATE_KEY
+
+5. Click "Create"
+
+6. Wait for app to deploy (2-3 minutes)
+
+================================================================
+STEP 3: ENABLE SSL
+================================================================
+
+1. Go to "Advanced" → "SSL"
+
+2. Enable Let's Encrypt for:
+   ✅ www.yourdomain.com
+   ✅ api.yourdomain.com
+
+3. Wait for SSL installation
+
+================================================================
+STEP 4: TEST
+================================================================
+
+1. Test backend:
+   Visit: https://api.yourdomain.com/api/health
+   Should see: {"status":"ok","timestamp":"..."}
+
+2. Test frontend:
+   Visit: https://www.yourdomain.com
+   Should see: Your app loads!
+
+3. If you see errors:
+   - Check browser console (F12)
+   - Check backend logs in Node.js app
+   - Verify environment variables are set
+
+================================================================
+STEP 5: SEED DEMO DATA (OPTIONAL)
+================================================================
+
+1. Register at your website
+2. Login
+3. Open browser console (F12)
+4. Run:
+```javascript
+const token = localStorage.getItem('authToken');
+fetch('https://api.yourdomain.com/api/admin/seed-loads', {
+  headers: { 'Authorization': `Bearer ${token}` }
+}).then(r => r.json()).then(console.log);
+```
+
+5. Wait 1-2 minutes for seeding
+6. Refresh Load Board
+7. Should see 500 demo loads!
+
+================================================================
+TROUBLESHOOTING
+================================================================
+
+BACKEND NOT STARTING:
+- Check logs in Node.js app manager
+- Verify MONGODB_URI is correct
+- Verify PORT matches in env vars
+
+FRONTEND WHITE SCREEN:
+- Check .htaccess file exists
+- Check browser console for errors
+- Verify API_URL points to backend
+
+404 ERRORS:
+- Verify Node.js app is running
+- Check backend logs
+- Test health endpoint directly
+
+================================================================
+DONE!
+================================================================
+
+Once everything works, you're live on Hostinger! 🎉
+
+Share your domain and I can help test it!
+
+================================================================
+
