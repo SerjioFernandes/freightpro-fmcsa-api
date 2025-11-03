@@ -11,13 +11,13 @@ All identified production errors have been fixed and deployed to GitHub. Render 
 **Problem:** Render was deploying the old `server-backend.js` instead of the new TypeScript backend in `backend/`.
 
 **Solution:**
-- ✅ Created `render.yaml` to explicitly configure Render to use `backend/` as `rootDir`
+- ✅ Created `render.yaml` to configure Render build commands to `cd backend`
 - ✅ Removed `server-backend.js` from root directory
 - ✅ Removed root `package.json` and `package-lock.json`
 - ✅ Added `app.set('trust proxy', 1)` to `backend/src/server.ts` (fixes rate limiting errors)
 
 **Files Changed:**
-- `render.yaml` (created)
+- `render.yaml` (created with `cd backend` in build commands)
 - `backend/src/server.ts` (added trust proxy)
 - Removed root: `server-backend.js`, `package.json`, `package-lock.json`
 
@@ -93,6 +93,11 @@ All identified production errors have been fixed and deployed to GitHub. Render 
 Render and Vercel will automatically redeploy when they detect the new commits.
 
 **Wait 5-10 minutes** for both services to complete deployment.
+
+**Note:** If Render still fails, you may need to manually trigger a deployment to pick up the `render.yaml` changes:
+1. Go to https://dashboard.render.com
+2. Find "freightpro-fmcsa-api" service
+3. Click "Manual Deploy" → "Deploy latest commit"
 
 ---
 
