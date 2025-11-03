@@ -1,0 +1,69 @@
+================================================================
+HOW TO EXTRACT IN HOSTINGER FILE MANAGER
+================================================================
+
+CURRENT SITUATION:
+- Location: /files/public_html/
+- File: frontend-deploy.zip
+- Dialog shows: "Choose folder name:"
+
+================================================================
+FOR FRONTEND (EXTRACT TO ROOT)
+================================================================
+
+✅ WHAT TO DO:
+
+1. In "Choose folder name:" field
+   - LEAVE IT EMPTY (don't type anything!)
+   - Or type just a dot: .
+
+2. Verify "Currently navigating on: /files/public_html/" is shown
+
+3. Uncheck "Overwrite existing files" (first time extracting)
+
+4. Click "EXTRACT" button
+
+RESULT: Files extract directly to /files/public_html/ root!
+
+================================================================
+YOU SHOULD SEE AFTER EXTRACTION:
+================================================================
+
+✅ /files/public_html/
+   ├── index.html
+   ├── assets/
+   ├── manifest.json
+   ├── (other files from frontend/deploy.zip)
+   └── frontend-deploy.zip (can delete this now)
+
+================================================================
+FOR BACKEND LATER (EXTRACT TO api/ FOLDER)
+================================================================
+
+When you upload backend-deploy.zip:
+
+1. Create folder "api" first (or it will be created automatically)
+2. In "Choose folder name:" type: api
+3. Or select "api" as destination
+4. Click "EXTRACT"
+
+RESULT: Files extract to /files/public_html/api/
+
+================================================================
+EXTRACTING FRONTEND - EXACT STEPS
+================================================================
+
+RIGHT NOW for frontend-deploy.zip:
+
+✅ In dialog box showing:
+   - "Choose folder name:" 
+   - "Currently navigating on: /files/public_html/"
+
+ACTION:
+1. Leave "Choose folder name:" EMPTY
+2. Click "EXTRACT"
+
+Done! Files will appear in public_html/ directly!
+
+================================================================
+
