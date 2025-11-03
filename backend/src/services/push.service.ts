@@ -7,16 +7,23 @@ import { logger } from '../utils/logger.js';
 // console.log('VAPID Public Key:', vapidKeys.publicKey);
 // console.log('VAPID Private Key:', vapidKeys.privateKey);
 
-const VAPID_PUBLIC_KEY = config.VAPID_PUBLIC_KEY || 'BGm9l0q2qJxDN-HbG4wV3XPq5xBd8q3jUxfS7yh9DZvJzW5F8HjKdN3QrLpW6XtY4vZ1Aa2Bb3Cc4Dd5Ee6Ff7Gg8';
-const VAPID_PRIVATE_KEY = config.VAPID_PRIVATE_KEY || 'GENERATE_YOUR_OWN_VAPID_KEYS';
+const VAPID_PUBLIC_KEY = config.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = config.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = config.VAPID_SUBJECT || 'mailto:admin@cargolume.com';
+const VAPID_ENABLED = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
 
-// Configure web-push
-webpush.setVapidDetails(
-  VAPID_SUBJECT,
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
+// Configure web-push only if VAPID keys are provided
+if (VAPID_ENABLED) {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    logger.info('Push notification service initialized with VAPID keys');
+  } catch (error: any) {
+    logger.error('Failed to configure VAPID keys', { error: error.message });
+    logger.warn('Push notifications will be disabled');
+  }
+} else {
+  logger.warn('VAPID keys not configured - push notifications disabled');
+}
 
 export interface PushSubscription {
   endpoint: string;
@@ -43,6 +50,11 @@ class PushService {
     subscription: PushSubscription,
     notification: PushNotification
   ): Promise<void> {
+    if (!VAPID_ENABLED) {
+      logger.warn('Push notifications disabled - VAPID keys not configured');
+      return;
+    }
+
     try {
       const payload = JSON.stringify({
         title: notification.title,
@@ -99,7 +111,7 @@ class PushService {
    * Get VAPID public key for frontend
    */
   getPublicKey(): string {
-    return VAPID_PUBLIC_KEY;
+    return VAPID_PUBLIC_KEY || '';
   }
 
   /**
