@@ -20,6 +20,9 @@ const app = express();
 const server: HTTPServer = createServer(app);
 const PORT = config.PORT;
 
+// Trust proxy (required for Render deployment and rate limiting)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {

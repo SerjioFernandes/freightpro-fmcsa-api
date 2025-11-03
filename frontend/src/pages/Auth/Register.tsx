@@ -167,6 +167,7 @@ const Register = () => {
                   className="input"
                   value={formData.email}
                   onChange={handleChange}
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -182,6 +183,7 @@ const Register = () => {
                     className="input pr-10"
                     value={formData.password}
                     onChange={handleChange}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
