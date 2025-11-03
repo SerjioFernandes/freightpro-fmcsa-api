@@ -3,11 +3,21 @@
 ## Problem
 Render is looking for `package.json` in `/opt/render/project/src/package.json` instead of `/opt/render/project/src/backend/package.json`
 
-This indicates that **Render Dashboard settings are overriding the render.yaml file**
+The "Verify Settings" modal is showing incorrect build/start commands with `backend/ $` prefix.
 
 ## Solution
 
-You need to update the Render Dashboard settings manually:
+In the **"Verify Settings" modal** that appears:
+
+1. **Root Directory:** Keep as `backend` ✅
+2. **Build Command:** Change to `npm install && npm run build` (remove `backend/ $` prefix)
+3. **Start Command:** Change to `npm start` (remove `backend/ $` prefix)
+4. Click **"Update Fields"** button
+5. Then trigger a manual deploy
+
+## Alternative: Manual Settings Update
+
+If you closed the modal, update settings manually:
 
 ### Steps:
 
