@@ -56,7 +56,9 @@ const corsOptions = {
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:8000',
-      'http://localhost:4000'
+      'http://localhost:4000',
+      'https://www.cargolume.com',
+      'https://cargolume.com'
     ];
 
     // Allow all Vercel preview and production URLs
@@ -138,10 +140,10 @@ async function startServer() {
     // Ensure default admin user
     await authService.ensureDefaultAdminUser();
     
-    // Start listening
-    server.listen(PORT, () => {
+    // Start listening on all interfaces (0.0.0.0) for Railway deployment
+    server.listen(PORT, '0.0.0.0', () => {
       logger.info('🚛 CargoLume Load Board Server Started');
-      logger.info(`Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT} (0.0.0.0)`);
       logger.info(`Environment: ${config.NODE_ENV}`);
       logger.info('API Endpoints:');
       logger.info(`  - Health: http://localhost:${PORT}/api/health`);
