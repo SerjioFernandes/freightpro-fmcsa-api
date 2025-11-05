@@ -81,9 +81,14 @@ async function seedLoads() {
   try {
     logger.info('Starting load seeding...');
 
-    // Connect to database
-    await mongoose.connect(config.MONGODB_URI);
-    logger.info('Connected to MongoDB');
+    // Only connect if not already connected (when called directly)
+    // If imported, use existing connection from server
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(config.MONGODB_URI);
+      logger.info('Connected to MongoDB');
+    } else {
+      logger.info('Using existing MongoDB connection');
+    }
 
     // Clear existing loads (optional - comment out if you want to keep existing)
     await Load.deleteMany({});
@@ -190,19 +195,31 @@ async function seedLoads() {
 
     logger.info(`Successfully seeded ${loads.length} realistic loads!`);
     
-    // Close connection
-    await mongoose.disconnect();
-    logger.info('Database connection closed');
-    process.exit(0);
+    // Only close connection and exit if called directly (not imported)
+    if (import.meta.url === `file://${process.argv[1]}` || require.main === module) {
+      await mongoose.disconnect();
+      logger.info('Database connection closed');
+      process.exit(0);
+    } else {
+      // If imported, don't disconnect (use existing connection) and don't exit
+      logger.info('Seeding completed successfully');
+    }
   } catch (error: any) {
     logger.error('Seeding failed', { error: error.message });
-    await mongoose.disconnect();
-    process.exit(1);
+    // Don't exit process if imported as a module (only exit if called directly)
+    if (import.meta.url === `file://${process.argv[1]}` || require.main === module) {
+      await mongoose.disconnect();
+      process.exit(1);
+    } else {
+      // If imported, just log and continue (don't disconnect or exit)
+      logger.warn('Seeding failed but continuing server startup');
+    }
   }
 }
 
-// Run if called directly
-seedLoads();
+// DON'T run automatically - only run when explicitly called
+// This prevents seeding from running when the module is imported
+// To seed manually, run: node -r ts-node/register src/scripts/seedLoads.ts
 
 export { seedLoads };
 
