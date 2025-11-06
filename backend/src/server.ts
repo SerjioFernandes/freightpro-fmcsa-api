@@ -48,30 +48,52 @@ app.use(compression());
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, curl, postman, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      logger.debug('CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
 
-    // List of allowed origins
+    // Normalize origin (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+
+    // List of allowed origins (normalized)
     const allowedOrigins = [
-      config.FRONTEND_URL,
+      config.FRONTEND_URL?.replace(/\/$/, ''),
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:8000',
       'http://localhost:4000',
       'https://www.cargolume.com',
-      'https://cargolume.com'
-    ];
+      'https://cargolume.com',
+      'http://www.cargolume.com',
+      'http://cargolume.com'
+    ].filter(Boolean); // Remove undefined values
 
-    // Allow if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin matches (case-insensitive)
+    const isAllowed = allowedOrigins.some(allowed => 
+      normalizedOrigin.toLowerCase() === allowed.toLowerCase()
+    );
+
+    if (isAllowed) {
+      logger.debug('CORS: Allowing origin', { origin: normalizedOrigin });
       return callback(null, true);
     }
 
+    // Log denied origin for debugging
+    logger.warn('CORS: Blocked origin', { 
+      origin: normalizedOrigin, 
+      allowedOrigins,
+      frontendUrl: config.FRONTEND_URL 
+    });
+    
     // Deny by default
-    callback(new Error('Not allowed by CORS'));
+    callback(new Error(`Not allowed by CORS: ${normalizedOrigin}`));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  exposedHeaders: ['X-Request-Id'],
+  maxAge: 86400 // 24 hours
 };
 
 app.options('*', cors(corsOptions));
