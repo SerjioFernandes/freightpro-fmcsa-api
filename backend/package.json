@@ -9,7 +9,6 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit",
-    "vercel-build": "tsc",
     "seed": "tsx src/scripts/seedLoads.ts",
     "test": "NODE_ENV=test jest",
     "test:watch": "NODE_ENV=test jest --watch",

@@ -86,7 +86,7 @@ const SupportChatWidget = () => {
         };
         setMessages(prev => [...prev, aiMessage]);
       }
-    } catch (error: any) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to send message to support' });
     } finally {
       setIsLoading(false);

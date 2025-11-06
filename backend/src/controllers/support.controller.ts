@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types/index.js';
+import { logger } from '../utils/logger.js';
 
 // Simple FAQ database
 const FAQ_DATABASE: Record<string, string> = {
@@ -109,7 +110,7 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       });
     }
   } catch (error: any) {
-    console.error('AI chat error:', error);
+    logger.error('AI chat failed', { error: error.message });
     res.status(500).json({ error: 'Failed to process chat message' });
   }
 };

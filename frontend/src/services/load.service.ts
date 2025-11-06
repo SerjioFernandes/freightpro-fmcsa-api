@@ -7,6 +7,14 @@ export const loadService = {
     const response = await api.get('/loads', {
       params: { page, limit, status },
     });
+    // Handle both response formats: { success, data: { loads, pagination } } or { loads, pagination }
+    if (response.data.success && response.data.data) {
+      return {
+        loads: response.data.data.loads || [],
+        pagination: response.data.data.pagination || { page, limit, total: 0, pages: 0 },
+        success: true
+      };
+    }
     return response.data;
   },
 

@@ -15,14 +15,14 @@ class WebSocketService {
    */
   connect(token: string): void {
     if (this.socket?.connected) {
-      console.log('[WebSocket] Already connected');
+      if (import.meta.env.DEV) console.log('[WebSocket] Already connected');
       return;
     }
 
     // Get backend WebSocket URL (same as API without /api)
     const wsUrl = API_BASE_URL.replace('/api', '').trim();
 
-    console.log('[WebSocket] Connecting to server', { url: wsUrl });
+    if (import.meta.env.DEV) console.log('[WebSocket] Connecting to server', { url: wsUrl });
 
     this.socket = io(wsUrl, {
       auth: { token },
@@ -42,12 +42,12 @@ class WebSocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('[WebSocket] Connected', { socketId: this.socket?.id });
+      if (import.meta.env.DEV) console.log('[WebSocket] Connected', { socketId: this.socket?.id });
       this.connectionAttempts = 0;
     });
 
     this.socket.on('disconnect', (reason: string) => {
-      console.warn('[WebSocket] Disconnected', { reason });
+      if (import.meta.env.DEV) console.warn('[WebSocket] Disconnected', { reason });
       
       if (reason === 'io server disconnect') {
         // Server disconnected, reconnect manually
@@ -56,6 +56,7 @@ class WebSocketService {
     });
 
     this.socket.on('connect_error', (error: Error) => {
+      // Always log connection errors as they're important
       console.error('[WebSocket] Connection error', { message: error.message });
       this.connectionAttempts++;
       
@@ -129,7 +130,7 @@ class WebSocketService {
       } else if (roomName.startsWith('conversation_')) {
         this.socket.emit('join_conversation', roomName.replace('conversation_', ''));
       }
-      console.log('[WebSocket] Joined room', roomName);
+      if (import.meta.env.DEV) console.log('[WebSocket] Joined room', roomName);
     }
   }
 
@@ -143,7 +144,7 @@ class WebSocketService {
       } else if (roomName.startsWith('conversation_')) {
         this.socket.emit('leave_conversation', roomName.replace('conversation_', ''));
       }
-      console.log('[WebSocket] Left room', roomName);
+      if (import.meta.env.DEV) console.log('[WebSocket] Left room', roomName);
     }
   }
 
@@ -173,7 +174,7 @@ class WebSocketService {
       this.socket.disconnect();
       this.socket = null;
       this.listeners.clear();
-      console.log('[WebSocket] Disconnected');
+      if (import.meta.env.DEV) console.log('[WebSocket] Disconnected');
     }
   }
 

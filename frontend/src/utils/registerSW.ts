@@ -8,7 +8,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         scope: '/'
       });
 
-      console.log('[PWA] Service Worker registered:', registration.scope);
+      if (import.meta.env.DEV) console.log('[PWA] Service Worker registered:', registration.scope);
 
       // Handle service worker updates
       registration.addEventListener('updatefound', () => {
@@ -17,7 +17,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker available
-              console.log('[PWA] New service worker available');
+              if (import.meta.env.DEV) console.log('[PWA] New service worker available');
               // You can show a notification to the user here
               if (window.confirm('New version available! Reload to update?')) {
                 window.location.reload();
@@ -29,14 +29,16 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 
       // Handle controller change (when a new SW takes over)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[PWA] Service Worker controller changed');
+        if (import.meta.env.DEV) console.log('[PWA] Service Worker controller changed');
       });
 
       // Handle messages from service worker
       navigator.serviceWorker.addEventListener('message', (event) => {
-        console.log('[PWA] Message from service worker:', event.data);
-        if (event.data && event.data.type === 'SW_UPDATED') {
-          console.log('[PWA] Service worker updated');
+        if (import.meta.env.DEV) {
+          console.log('[PWA] Message from service worker:', event.data);
+          if (event.data && event.data.type === 'SW_UPDATED') {
+            console.log('[PWA] Service worker updated');
+          }
         }
       });
     } catch (error) {
@@ -51,7 +53,7 @@ export const unregisterSW = async () => {
     const registration = await navigator.serviceWorker.ready;
     const success = await registration.unregister();
     if (success) {
-      console.log('[PWA] Service Worker unregistered');
+      if (import.meta.env.DEV) console.log('[PWA] Service Worker unregistered');
     }
   }
 };

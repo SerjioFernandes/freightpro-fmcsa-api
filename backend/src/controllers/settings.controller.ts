@@ -3,6 +3,7 @@ import { User } from '../models/User.model.js';
 import { AuthRequest } from '../types/index.js';
 import { body, validationResult } from 'express-validator';
 import bcryptjs from 'bcryptjs';
+import { logger } from '../utils/logger.js';
 
 export const getSettings = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -18,7 +19,7 @@ export const getSettings = async (req: AuthRequest, res: Response): Promise<void
       data: user
     });
   } catch (error: any) {
-    console.error('Get settings error:', error);
+    logger.error('Get settings failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch settings' });
   }
 };
@@ -69,7 +70,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       data: updatedUser
     });
   } catch (error: any) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile failed', { error: error.message });
     res.status(500).json({ error: 'Failed to update profile' });
   }
 };
@@ -126,7 +127,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       message: 'Password changed successfully'
     });
   } catch (error: any) {
-    console.error('Change password error:', error);
+    logger.error('Change password failed', { error: error.message });
     res.status(500).json({ error: 'Failed to change password' });
   }
 };
@@ -163,7 +164,7 @@ export const updateNotificationSettings = async (req: AuthRequest, res: Response
       data: user.notifications
     });
   } catch (error: any) {
-    console.error('Update notification settings error:', error);
+    logger.error('Update notification settings failed', { error: error.message });
     res.status(500).json({ error: 'Failed to update settings' });
   }
 };
@@ -193,7 +194,7 @@ export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<voi
       data: { profilePhoto: user.profilePhoto }
     });
   } catch (error: any) {
-    console.error('Upload avatar error:', error);
+    logger.error('Upload avatar failed', { error: error.message });
     res.status(500).json({ error: 'Failed to upload profile photo' });
   }
 };

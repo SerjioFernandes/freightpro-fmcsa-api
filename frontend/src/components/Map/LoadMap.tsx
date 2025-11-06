@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
-// @ts-ignore - no types available
+// @ts-ignore - no types available for @changey/react-leaflet-markercluster
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import type { Load } from '../../types/load.types';
 
@@ -15,7 +15,7 @@ import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
+const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconSize: [25, 41],

@@ -244,12 +244,18 @@ class WebSocketService {
   }
 
   /**
-   * Broadcast new message
+   * Broadcast new message to conversation room
    */
   notifyNewMessage(message: any): void {
     if (!this.io) return;
-    this.io.to(`conversation_${message.conversationId}`).emit('new_message', message);
-    logger.debug('Notified new message', { conversationId: message.conversationId, messageId: message._id });
+    const conversationId = message.conversationId || (message.sender && message.receiver 
+      ? [message.sender._id || message.sender, message.receiver._id || message.receiver].sort().join('_')
+      : null);
+    
+    if (conversationId) {
+      this.io.to(`conversation_${conversationId}`).emit('new_message', message);
+      logger.debug('Notified new message to conversation room', { conversationId, messageId: message._id });
+    }
   }
 
   /**

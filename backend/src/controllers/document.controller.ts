@@ -3,6 +3,7 @@ import { Document } from '../models/Document.model.js';
 import { AuthRequest } from '../types/index.js';
 import { getFileUrl, deleteFile } from '../middleware/upload.middleware.js';
 import path from 'path';
+import { logger } from '../utils/logger.js';
 
 export const uploadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -39,7 +40,7 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
       data: document
     });
   } catch (error: any) {
-    console.error('Upload document error:', error);
+    logger.error('Upload document failed', { error: error.message });
     res.status(500).json({ error: 'Failed to upload document' });
   }
 };
@@ -62,7 +63,7 @@ export const listDocuments = async (req: AuthRequest, res: Response): Promise<vo
       data: documents
     });
   } catch (error: any) {
-    console.error('List documents error:', error);
+    logger.error('List documents failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch documents' });
   }
 };
@@ -88,7 +89,7 @@ export const getDocument = async (req: AuthRequest, res: Response): Promise<void
       data: document
     });
   } catch (error: any) {
-    console.error('Get document error:', error);
+    logger.error('Get document failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch document' });
   }
 };
@@ -112,7 +113,7 @@ export const downloadDocument = async (req: AuthRequest, res: Response): Promise
     const filepath = path.join(process.cwd(), 'uploads', 'documents', document.filename);
     res.download(filepath, document.originalName);
   } catch (error: any) {
-    console.error('Download document error:', error);
+    logger.error('Download document failed', { error: error.message });
     res.status(500).json({ error: 'Failed to download document' });
   }
 };
@@ -145,7 +146,7 @@ export const deleteDocument = async (req: AuthRequest, res: Response): Promise<v
       message: 'Document deleted successfully'
     });
   } catch (error: any) {
-    console.error('Delete document error:', error);
+    logger.error('Delete document failed', { error: error.message });
     res.status(500).json({ error: 'Failed to delete document' });
   }
 };
@@ -169,7 +170,7 @@ export const linkToLoad = async (req: AuthRequest, res: Response): Promise<void>
       data: document
     });
   } catch (error: any) {
-    console.error('Link document error:', error);
+    logger.error('Link document to load failed', { error: error.message });
     res.status(500).json({ error: 'Failed to link document' });
   }
 };
@@ -193,7 +194,7 @@ export const linkToShipment = async (req: AuthRequest, res: Response): Promise<v
       data: document
     });
   } catch (error: any) {
-    console.error('Link document error:', error);
+    logger.error('Link document to shipment failed', { error: error.message });
     res.status(500).json({ error: 'Failed to link document' });
   }
 };

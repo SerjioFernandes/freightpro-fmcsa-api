@@ -20,7 +20,7 @@ const app = express();
 const server: HTTPServer = createServer(app);
 const PORT = config.PORT;
 
-// Trust proxy (required for Render deployment and rate limiting)
+// Trust proxy (required for Railway deployment and rate limiting)
 app.set('trust proxy', 1);
 
 // Security middleware
@@ -33,7 +33,7 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://freightpro-fmcsa-api-production.up.railway.app", "wss://freightpro-fmcsa-api-production.up.railway.app", "https://www.cargolume.com", "https://cargolume.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -44,7 +44,7 @@ app.use(helmet({
 // Compression
 app.use(compression());
 
-// CORS configuration with dynamic origin checking for Vercel
+// CORS configuration
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, curl, postman, etc.)
@@ -60,11 +60,6 @@ const corsOptions = {
       'https://www.cargolume.com',
       'https://cargolume.com'
     ];
-
-    // Allow all Vercel preview and production URLs
-    if (origin.includes('.vercel.app')) {
-      return callback(null, true);
-    }
 
     // Allow if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
@@ -82,7 +77,7 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-logger.info('CORS configured to allow all Vercel deployments and configured origins');
+logger.info('CORS configured for Hostinger frontend and localhost');
 
 // Request logging middleware
 app.use((req, res, next) => {

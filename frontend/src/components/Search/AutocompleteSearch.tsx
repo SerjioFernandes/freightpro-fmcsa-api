@@ -26,7 +26,7 @@ const AutocompleteSearch = ({ onSelect, placeholder = 'Search...', type = 'origi
             setIsOpen(true);
           }
         } catch (error) {
-          console.error('Autocomplete error:', error);
+          // Silently fail - autocomplete is optional
         } finally {
           setIsLoading(false);
         }

@@ -93,22 +93,25 @@ const Register = () => {
       
       // Navigate to verify page with email
       navigate(`${ROUTES.VERIFY}?email=${encodeURIComponent(formData.email)}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Registration failed. Please try again.';
       
       // Check for specific error messages
-      if (error.response?.data?.error || error.response?.data?.message) {
-        const backendError = error.response.data.error || error.response.data.message;
-        
-        // User-friendly duplicate email message
-        if (backendError.includes('already exists') || backendError.includes('User already exists')) {
-          errorMessage = `A user with the email address ${formData.email} already exists. Please use a different email or try logging in.`;
-        } 
-        // Other validation errors
-        else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (backendError) {
-          errorMessage = backendError;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errorResponse = error as { response?: { data?: { error?: string; message?: string } } };
+        if (errorResponse.response?.data?.error || errorResponse.response?.data?.message) {
+          const backendError = errorResponse.response.data.error || errorResponse.response.data.message;
+          
+          // User-friendly duplicate email message
+          if (backendError && (backendError.includes('already exists') || backendError.includes('User already exists'))) {
+            errorMessage = `A user with the email address ${formData.email} already exists. Please use a different email or try logging in.`;
+          } 
+          // Other validation errors
+          else if (errorResponse.response.data.message) {
+            errorMessage = errorResponse.response.data.message;
+          } else if (backendError) {
+            errorMessage = backendError;
+          }
         }
       }
       

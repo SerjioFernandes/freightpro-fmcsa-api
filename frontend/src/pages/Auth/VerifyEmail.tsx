@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services/auth.service';
 import { useUIStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
 import { Mail } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const VerifyEmail = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { addNotification } = useUIStore();
+  const { setUser } = useAuthStore();
   const navigate = useNavigate();
 
   const handleVerify = async (e: React.FormEvent) => {
@@ -21,13 +23,23 @@ const VerifyEmail = () => {
     setIsLoading(true);
 
     try {
-      await authService.verifyEmail(email, code);
-      addNotification({ type: 'success', message: 'Email verified successfully!' });
+      const response = await authService.verifyEmail(email, code);
+      addNotification({ type: 'success', message: 'Email verified successfully! Please log in.' });
+      
+      // If response includes user data, update auth store
+      if (response.user) {
+        setUser(response.user);
+      }
+      
+      // Navigate to login after successful verification
       navigate(ROUTES.LOGIN);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Verification failed. Please check your code.'
+        : 'Verification failed. Please check your code.';
       addNotification({ 
         type: 'error', 
-        message: error.response?.data?.message || 'Verification failed. Please check your code.' 
+        message: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -38,10 +50,13 @@ const VerifyEmail = () => {
     try {
       await authService.resendCode(email);
       addNotification({ type: 'success', message: 'Verification code resent!' });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to resend code.'
+        : 'Failed to resend code.';
       addNotification({ 
         type: 'error', 
-        message: error.response?.data?.message || 'Failed to resend code.' 
+        message: errorMessage
       });
     }
   };

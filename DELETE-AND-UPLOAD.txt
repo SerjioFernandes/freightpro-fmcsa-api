@@ -1,0 +1,44 @@
+================================================================
+📋 SIMPLE INSTRUCTIONS: DELETE AND UPLOAD
+================================================================
+
+🗑️ DELETE FROM HOSTINGER (public_html/):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ api/ folder (ENTIRE FOLDER - backend is on Railway)
+❌ default.php
+❌ frontend-deploy.zip
+❌ vite.svg (optional)
+❌ Old index.html (if exists)
+❌ Old assets/ folder (if exists)
+
+✅ KEEP:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ .htaccess (DON'T DELETE - it's correct!)
+
+📤 UPLOAD TO HOSTINGER (public_html/):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 Extract: hostinger-upload.zip
+📤 Upload ALL files from extracted zip:
+   ✅ index.html
+   ✅ assets/ folder (entire folder)
+   ✅ manifest.json
+   ✅ robots.txt
+   ✅ sitemap.xml
+   ✅ site.webmanifest
+   ✅ sw.js
+
+📍 Zip File Location:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C:\Users\HAYK\Desktop\FreightPro\hostinger-upload.zip
+
+✅ After Upload:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Clear browser cache (Ctrl+Shift+Delete)
+2. Visit: https://www.cargolume.com
+3. Test registration/login
+4. Should work! ✅
+
+================================================================
+🎯 YES, DELETE THE api/ FOLDER - Backend is on Railway!
+================================================================
+

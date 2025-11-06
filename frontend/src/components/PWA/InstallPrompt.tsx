@@ -42,7 +42,7 @@ const InstallPrompt = () => {
 
     // Listen for successful installation
     window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App installed successfully');
+      if (import.meta.env.DEV) console.log('[PWA] App installed successfully');
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
@@ -63,10 +63,10 @@ const InstallPrompt = () => {
     const choiceResult = await deferredPrompt.userChoice;
 
     if (choiceResult.outcome === 'accepted') {
-      console.log('[PWA] User accepted install prompt');
+      if (import.meta.env.DEV) console.log('[PWA] User accepted install prompt');
       setIsInstalled(true);
     } else {
-      console.log('[PWA] User dismissed install prompt');
+      if (import.meta.env.DEV) console.log('[PWA] User dismissed install prompt');
       localStorage.setItem('pwa-install-dismissed', Date.now().toString());
     }
 

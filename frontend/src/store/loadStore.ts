@@ -28,13 +28,13 @@ export const useLoadStore = create<LoadState>((set) => ({
     try {
       const response = await loadService.getLoads(page, limit, status);
       set({
-        loads: (response as any).loads || response.data || [],
-        pagination: response.pagination,
+        loads: response.loads || [],
+        pagination: response.pagination || null,
         isLoading: false,
       });
     } catch (error: any) {
       set({
-        error: error.response?.data?.message || 'Failed to fetch loads',
+        error: error.response?.data?.message || error.response?.data?.error || 'Failed to fetch loads',
         isLoading: false,
       });
     }

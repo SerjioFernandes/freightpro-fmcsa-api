@@ -4,6 +4,7 @@ import { User } from '../models/User.model.js';
 import { AuthRequest } from '../types/index.js';
 import mongoose from 'mongoose';
 import { websocketService } from '../services/websocket.service.js';
+import { logger } from '../utils/logger.js';
 
 export const getConversations = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -90,7 +91,7 @@ export const getConversations = async (req: AuthRequest, res: Response): Promise
       data: conversations
     });
   } catch (error: any) {
-    console.error('Get conversations error:', error);
+    logger.error('Get conversations failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch conversations' });
   }
 };
@@ -133,7 +134,7 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
       data: messages
     });
   } catch (error: any) {
-    console.error('Get conversation error:', error);
+    logger.error('Get conversation failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch conversation' });
   }
 };
@@ -168,8 +169,18 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
     await newMessage.populate('sender', 'company email accountType');
     await newMessage.populate('receiver', 'company email accountType');
 
-    // Broadcast new message via WebSocket
-    websocketService.emitToUser(receiverId, 'new_message', newMessage);
+    // Generate conversation ID (consistent ordering: smaller ID first)
+    const conversationId = [userId, receiverId].sort().join('_');
+    
+    // Broadcast new message via WebSocket to both sender and receiver
+    websocketService.emitToUser(receiverId, 'new_message', {
+      ...newMessage.toObject(),
+      conversationId
+    });
+    websocketService.emitToUser(userId, 'new_message', {
+      ...newMessage.toObject(),
+      conversationId
+    });
 
     res.status(201).json({
       success: true,
@@ -177,7 +188,7 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
       data: newMessage
     });
   } catch (error: any) {
-    console.error('Send message error:', error);
+    logger.error('Send message failed', { error: error.message });
     res.status(500).json({ error: 'Failed to send message' });
   }
 };
@@ -196,7 +207,7 @@ export const getUnreadCount = async (req: AuthRequest, res: Response): Promise<v
       data: { count: unreadCount }
     });
   } catch (error: any) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count failed', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch unread count' });
   }
 };
@@ -241,7 +252,7 @@ export const editMessage = async (req: AuthRequest, res: Response): Promise<void
       data: msg
     });
   } catch (error: any) {
-    console.error('Edit message error:', error);
+    logger.error('Edit message failed', { error: error.message });
     res.status(500).json({ error: 'Failed to edit message' });
   }
 };
@@ -276,7 +287,7 @@ export const deleteMessage = async (req: AuthRequest, res: Response): Promise<vo
       message: 'Message deleted successfully'
     });
   } catch (error: any) {
-    console.error('Delete message error:', error);
+    logger.error('Delete message failed', { error: error.message });
     res.status(500).json({ error: 'Failed to delete message' });
   }
 };

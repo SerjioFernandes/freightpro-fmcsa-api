@@ -49,7 +49,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     } catch (err) {
-      console.error('Error checking subscription status:', err);
+      if (import.meta.env.DEV) console.error('[Push] Error checking subscription status:', err);
     }
   };
 
@@ -96,10 +96,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       );
 
       setIsSubscribed(true);
-      console.log('[Push] Successfully subscribed');
-    } catch (err: any) {
+      if (import.meta.env.DEV) console.log('[Push] Successfully subscribed');
+    } catch (err: unknown) {
       console.error('[Push] Subscription error:', err);
-      setError(err.message || 'Failed to subscribe to push notifications');
+      const errorMessage = err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+        ? err.message
+        : 'Failed to subscribe to push notifications';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -132,11 +135,14 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         );
 
         setIsSubscribed(false);
-        console.log('[Push] Successfully unsubscribed');
+        if (import.meta.env.DEV) console.log('[Push] Successfully unsubscribed');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Push] Unsubscribe error:', err);
-      setError(err.message || 'Failed to unsubscribe from push notifications');
+      const errorMessage = err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+        ? err.message
+        : 'Failed to unsubscribe from push notifications';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -161,10 +167,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         }
       );
 
-      console.log('[Push] Test notification sent');
-    } catch (err: any) {
+      if (import.meta.env.DEV) console.log('[Push] Test notification sent');
+    } catch (err: unknown) {
       console.error('[Push] Test notification error:', err);
-      setError(err.message || 'Failed to send test notification');
+      const errorMessage = err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+        ? err.message
+        : 'Failed to send test notification';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

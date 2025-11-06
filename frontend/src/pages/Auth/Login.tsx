@@ -23,10 +23,13 @@ const Login = () => {
       await login(email, password);
       addNotification({ type: 'success', message: 'Login successful!' });
       navigate(ROUTES.DASHBOARD);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Login failed. Please check your credentials.'
+        : 'Login failed. Please check your credentials.';
       addNotification({ 
         type: 'error', 
-        message: error.response?.data?.message || 'Login failed. Please check your credentials.' 
+        message: errorMessage
       });
     } finally {
       setIsLoading(false);

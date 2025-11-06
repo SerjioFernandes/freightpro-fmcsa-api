@@ -12,14 +12,14 @@ interface AdvancedFiltersProps {
     dateRange?: { from: Date; to: Date };
     radius?: number;
   };
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: AdvancedFiltersProps['filters']) => void;
   onSaveSearch?: () => void;
 }
 
 const AdvancedFilters = ({ filters, onFiltersChange, onSaveSearch }: AdvancedFiltersProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const updateFilter = (key: string, value: any) => {
+  const updateFilter = (key: string, value: string | number | string[] | { from: Date; to: Date } | undefined) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 

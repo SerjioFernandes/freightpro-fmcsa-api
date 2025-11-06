@@ -29,7 +29,7 @@ const BrokerDashboard = () => {
         setDashboardData(response.data);
       }
     } catch (error: any) {
-      console.error('Failed to load dashboard stats:', error);
+      // Silently fail - stats are optional
     } finally {
       setIsLoadingStats(false);
     }

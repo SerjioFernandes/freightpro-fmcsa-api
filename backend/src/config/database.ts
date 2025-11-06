@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { config } from './environment.js';
+import { logger } from '../utils/logger.js';
 
 export async function connectToDatabase(): Promise<void> {
   try {
@@ -14,13 +15,13 @@ export async function connectToDatabase(): Promise<void> {
 
     await mongoose.connect(uri);
     
-    console.log('✅ Connected to MongoDB successfully');
+    logger.info('Connected to MongoDB successfully');
   } catch (error: any) {
-    console.error('❌ MongoDB connection failed:', error?.message || error);
+    logger.error('MongoDB connection failed', { error: error?.message || error });
     
     if (error?.message?.toLowerCase().includes('bad auth') || error?.codeName === 'AuthenticationFailed') {
-      console.error('👉 Check your MongoDB username/password in .env (MONGODB_URI).');
-      console.error('👉 Also ensure your current IP is allowed in MongoDB Atlas Network Access.');
+      logger.error('Check your MongoDB username/password in .env (MONGODB_URI)');
+      logger.error('Also ensure your current IP is allowed in MongoDB Atlas Network Access');
     }
     
     process.exit(1);
@@ -31,9 +32,9 @@ export async function connectToDatabase(): Promise<void> {
 export async function disconnectDatabase(): Promise<void> {
   try {
     await mongoose.connection.close();
-    console.log('✅ MongoDB connection closed');
-  } catch (error) {
-    console.error('❌ Error closing MongoDB connection:', error);
+    logger.info('MongoDB connection closed');
+  } catch (error: any) {
+    logger.error('Error closing MongoDB connection', { error: error?.message || error });
   }
 }
 

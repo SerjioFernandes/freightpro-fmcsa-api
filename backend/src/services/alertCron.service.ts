@@ -159,7 +159,7 @@ class AlertCronService {
           <p>We found <strong>${matchingLoads.length}</strong> new load${matchingLoads.length > 1 ? 's' : ''} matching your saved search "<strong>${search.name}</strong>":</p>
           ${loadListHtml}
           <div style="margin-top: 30px; text-align: center;">
-            <a href="https://cargolume.netlify.app/loads" 
+            <a href="https://www.cargolume.com/loads" 
                style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Load Board
             </a>

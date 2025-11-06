@@ -1,11 +1,9 @@
 // API Configuration
 export const API_BASE_URL = 
   import.meta.env.VITE_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
-    ? 'https://freightpro-fmcsa-api.onrender.com/api'
-    : (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? `https://api.${window.location.hostname.replace('www.', '')}/api`
-      : 'http://localhost:4000/api'));
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://freightpro-fmcsa-api-production.up.railway.app/api'
+    : 'http://localhost:4000/api');
 
 // Application Routes
 export const ROUTES = {

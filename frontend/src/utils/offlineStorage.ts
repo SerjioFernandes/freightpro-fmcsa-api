@@ -122,6 +122,8 @@ export const offlineStorage = new OfflineStorage();
 
 // Initialize on load
 if (typeof window !== 'undefined') {
-  offlineStorage.init().catch(console.error);
+  offlineStorage.init().catch((error) => {
+    if (import.meta.env.DEV) console.error('[OfflineStorage] Initialization failed:', error);
+  });
 }
 

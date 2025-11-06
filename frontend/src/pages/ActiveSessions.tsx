@@ -8,13 +8,19 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 const ActiveSessions = () => {
   const { addNotification } = useUIStore();
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [securityInfo, setSecurityInfo] = useState<any>(null);
+  const [securityInfo, setSecurityInfo] = useState<{ 
+    totalSessions: number; 
+    activeSessions: number; 
+    lastLogin?: string;
+    hasSuspiciousActivity?: boolean;
+    suspiciousIPs?: string[];
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadSessions();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSessions = async () => {
     setIsLoading(true);
@@ -31,7 +37,7 @@ const ActiveSessions = () => {
       if (securityResponse.success && securityResponse.data) {
         setSecurityInfo(securityResponse.data);
       }
-    } catch (error: any) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to load active sessions' });
     } finally {
       setIsLoading(false);
@@ -49,7 +55,7 @@ const ActiveSessions = () => {
       } else {
         addNotification({ type: 'error', message: 'Failed to log out device' });
       }
-    } catch (error) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to log out device' });
     }
   };
@@ -68,7 +74,7 @@ const ActiveSessions = () => {
       } else {
         addNotification({ type: 'error', message: 'Failed to log out all devices' });
       }
-    } catch (error) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to log out all devices' });
     } finally {
       setIsDeleting(false);
@@ -138,7 +144,7 @@ const ActiveSessions = () => {
                 </h3>
                 <p className="text-gray-700">
                   {securityInfo.hasSuspiciousActivity
-                    ? `Suspicious activity detected: ${securityInfo.suspiciousIPs.length} suspicious IP address(es)`
+                    ? `Suspicious activity detected: ${securityInfo.suspiciousIPs?.length || 0} suspicious IP address(es)`
                     : 'No suspicious activity detected in your account'
                   }
                 </p>

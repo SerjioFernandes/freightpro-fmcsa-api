@@ -88,10 +88,13 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen, onClo
       onClose();
       setSelectedFile(null);
       setDocumentType('BOL');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to upload document'
+        : 'Failed to upload document';
       addNotification({ 
         type: 'error', 
-        message: error.response?.data?.error || 'Failed to upload document' 
+        message: errorMessage
       });
     } finally {
       setIsUploading(false);

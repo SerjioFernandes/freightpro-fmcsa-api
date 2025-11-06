@@ -14,7 +14,8 @@ export interface PaginationParams {
 }
 
 export interface PaginatedResponse<T> extends ApiResponse {
-  data: T[];
+  loads?: T[];
+  data?: T[];
   pagination: PaginationParams;
 }
 

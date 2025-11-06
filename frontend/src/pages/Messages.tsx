@@ -18,25 +18,47 @@ const Messages = () => {
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
 
+  const { subscribe, joinRoom, leaveRoom } = useWebSocket();
+
   useEffect(() => {
     loadConversations();
   }, []);
 
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedUser && user) {
       loadConversation(selectedUser.userId);
+      
+      // Join conversation room for real-time updates
+      const conversationId = [user.id, selectedUser.userId].sort().join('_');
+      joinRoom(`conversation_${conversationId}`);
+      
+      return () => {
+        leaveRoom(`conversation_${conversationId}`);
+      };
     }
-  }, [selectedUser]);
+  }, [selectedUser, user, joinRoom, leaveRoom]);
 
   // WebSocket real-time message updates
   useEffect(() => {
     const unsubscribeNewMessage = subscribe('new_message', (message: any) => {
+      const senderId = typeof message.sender === 'object' ? message.sender._id?.toString() : message.sender?._id?.toString();
+      const receiverId = typeof message.receiver === 'object' ? message.receiver._id?.toString() : message.receiver?._id?.toString();
+      
+      // Check if message is for current conversation
       if (selectedUser && (
-        message.sender._id === selectedUser.userId || 
-        message.receiver._id === selectedUser.userId
+        senderId === selectedUser.userId || 
+        receiverId === selectedUser.userId ||
+        senderId === user?.id ||
+        receiverId === user?.id
       )) {
-        setMessages(prev => [...prev, message]);
+        // Only add if not already in messages (prevent duplicates)
+        setMessages(prev => {
+          const exists = prev.some(msg => msg._id === message._id);
+          if (exists) return prev;
+          return [...prev, message];
+        });
       }
+      // Always refresh conversations list to update unread counts
       loadConversations();
     });
 
@@ -55,7 +77,7 @@ const Messages = () => {
       unsubscribeMessageUpdate();
       unsubscribeMessageDelete();
     };
-  }, [subscribe, selectedUser]);
+  }, [subscribe, selectedUser, user, loadConversations]);
 
   const loadConversations = async () => {
     try {
@@ -64,7 +86,7 @@ const Messages = () => {
         setConversations(response.data);
       }
     } catch (error: any) {
-      console.error('Failed to load conversations:', error);
+      addNotification({ type: 'error', message: 'Failed to load conversations' });
     }
   };
 
