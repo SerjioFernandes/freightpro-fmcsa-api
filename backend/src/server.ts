@@ -101,7 +101,16 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-logger.info('CORS configured for Hostinger frontend and localhost');
+logger.info('CORS configured', { 
+  frontendUrl: config.FRONTEND_URL,
+  allowedOrigins: [
+    config.FRONTEND_URL?.replace(/\/$/, ''),
+    'https://www.cargolume.com',
+    'https://cargolume.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ].filter(Boolean)
+});
 
 // Request logging middleware
 app.use((req, res, next) => {
