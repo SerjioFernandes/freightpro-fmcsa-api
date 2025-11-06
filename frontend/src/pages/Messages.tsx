@@ -8,7 +8,7 @@ import { MessageSquare, Send, Loader2, Edit2, Trash2 } from 'lucide-react';
 const Messages = () => {
   const { addNotification } = useUIStore();
   const { user } = useAuthStore();
-  const { subscribe } = useWebSocket();
+  const { subscribe, joinRoom, leaveRoom } = useWebSocket();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -18,7 +18,16 @@ const Messages = () => {
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
 
-  const { subscribe, joinRoom, leaveRoom } = useWebSocket();
+  const loadConversations = async () => {
+    try {
+      const response = await messageService.getConversations();
+      if (response.success) {
+        setConversations(response.data);
+      }
+    } catch (error: any) {
+      addNotification({ type: 'error', message: 'Failed to load conversations' });
+    }
+  };
 
   useEffect(() => {
     loadConversations();
@@ -77,18 +86,7 @@ const Messages = () => {
       unsubscribeMessageUpdate();
       unsubscribeMessageDelete();
     };
-  }, [subscribe, selectedUser, user, loadConversations]);
-
-  const loadConversations = async () => {
-    try {
-      const response = await messageService.getConversations();
-      if (response.success) {
-        setConversations(response.data);
-      }
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to load conversations' });
-    }
-  };
+  }, [subscribe, selectedUser, user]);
 
   const loadConversation = async (userId: string) => {
     try {
