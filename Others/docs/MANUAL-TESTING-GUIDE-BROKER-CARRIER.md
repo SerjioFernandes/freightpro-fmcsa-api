@@ -1,6 +1,11 @@
 # Manual Testing Guide: Broker & Carrier Accounts
+
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical testing guide from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **CargoLume Platform - Complete Testing Checklist**  
-**URL:** https://freightpro-fmcsa-api.onrender.com/
+**URL:** https://freightpro-fmcsa-api.onrender.com/ (OLD - DO NOT USE)
 
 ---
 

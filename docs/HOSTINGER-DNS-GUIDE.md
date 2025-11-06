@@ -1,13 +1,13 @@
 # 🌐 Hostinger DNS Configuration Guide
 
-Complete DNS setup to connect your FreightPro/CargoLume domain to Vercel (frontend) and Railway (backend).
+Complete DNS setup to connect your FreightPro/CargoLume domain to Hostinger (frontend) and Railway (backend).
 
 ---
 
 ## Prerequisites
 
 - ✅ Domain registered with Hostinger
-- ✅ Vercel deployment complete (get your Vercel URL)
+- ✅ Frontend files uploaded to Hostinger File Manager
 - ✅ Railway deployment complete (get your Railway URL)
 - ✅ Access to Hostinger DNS management
 
@@ -15,42 +15,19 @@ Complete DNS setup to connect your FreightPro/CargoLume domain to Vercel (fronte
 
 ## DNS Records Overview
 
-You need to add 3 DNS records:
+You need to add 1 DNS record:
 
-1. **CNAME** for `www` → Vercel
-2. **A** record for root `@` → Vercel IP
-3. **CNAME** for `api` → Railway
+1. **CNAME** for `api` → Railway (for backend API subdomain)
 
----
-
-## Step 1: Get Vercel DNS Information
-
-### 1.1 Get Vercel Domain
-1. Go to Vercel Dashboard → Your Project → **Settings** → **Domains**
-2. Add your domain: `www.yourdomain.com`
-3. Vercel shows DNS instructions like:
-
-```
-Add these records to your DNS:
-CNAME www → cname.vercel-dns.com
-A @ → 76.76.21.21 (or another IP provided by Vercel)
-```
-
-**Save these values!**
-
-### 1.2 Verify Vercel IP
-The A record IP may vary. Common Vercel IPs:
-- `76.76.21.21`
-- `76.223.126.88`
-- Or check Vercel dashboard for your specific IP
+**Note:** The frontend is hosted directly on Hostinger, so no DNS records are needed for the main domain or www subdomain.
 
 ---
 
-## Step 2: Get Railway DNS Information
+## Step 1: Get Railway DNS Information
 
-### 2.1 Get Railway Domain
+### 1.1 Get Railway Domain
 1. Go to Railway Dashboard → Your Service → **Settings** → **Domains**
-2. Add custom domain: `api.yourdomain.com`
+2. Add custom domain: `api.yourdomain.com` (optional, for custom API subdomain)
 3. Railway shows:
 
 ```
@@ -61,37 +38,19 @@ Value: freightpro-production.up.railway.app (your Railway domain)
 
 **Save this value!**
 
+**Note:** If you don't need a custom API subdomain, you can skip this step and use the Railway-provided domain directly.
+
 ---
 
-## Step 3: Add DNS Records in Hostinger
+## Step 2: Add DNS Records in Hostinger
 
-### 3.1 Access DNS Management
+### 2.1 Access DNS Management
 1. Log in to Hostinger hPanel
 2. Go to **Domains** → **Manage**
 3. Click **DNS** / **Advanced DNS**
 4. Click **"Manage DNS Records"** or **"Add DNS Record"**
 
-### 3.2 Add CNAME for www
-
-1. Click **"Add Record"**
-2. Fill in:
-   - **Type**: `CNAME`
-   - **Name/Host**: `www`
-   - **Points to/Target**: `cname.vercel-dns.com` (or what Vercel shows)
-   - **TTL**: `3600` (1 hour)
-3. Click **"Add"** or **"Save"**
-
-### 3.3 Add A Record for Root
-
-1. Click **"Add Record"**
-2. Fill in:
-   - **Type**: `A`
-   - **Name/Host**: `@` (or blank, or your domain name)
-   - **Points to/Target**: `76.76.21.21` (or Vercel IP from Step 1)
-   - **TTL**: `3600`
-3. Click **"Add"** or **"Save"**
-
-### 3.4 Add CNAME for api
+### 2.2 Add CNAME for api (Optional)
 
 1. Click **"Add Record"**
 2. Fill in:
@@ -105,25 +64,19 @@ Value: freightpro-production.up.railway.app (your Railway domain)
 
 ## Step 4: Verify DNS Propagation
 
-### 4.1 Check DNS Status
+### 3.1 Check DNS Status
 
 Wait 5-60 minutes for DNS to propagate, then verify:
 
 ```bash
-# Check www subdomain
-nslookup www.yourdomain.com
-
-# Should show CNAME to Vercel
-
-# Check root domain
+# Check root domain (should point to Hostinger)
 nslookup yourdomain.com
 
-# Should show A record to Vercel IP
+# Check www subdomain (should point to Hostinger)
+nslookup www.yourdomain.com
 
-# Check api subdomain
+# Check api subdomain (if configured, should show CNAME to Railway)
 nslookup api.yourdomain.com
-
-# Should show CNAME to Railway
 ```
 
 ### 4.2 Online DNS Checkers
@@ -134,31 +87,30 @@ Use these tools to verify propagation globally:
 - https://dnschecker.org
 
 Enter:
-- `www.yourdomain.com`
 - `yourdomain.com`
-- `api.yourdomain.com`
+- `www.yourdomain.com`
+- `api.yourdomain.com` (if configured)
 
 All should show correct records after propagation.
 
 ---
 
-## Step 5: Verify SSL Certificates
+## Step 4: Verify SSL Certificates
 
-### 5.1 Check Vercel SSL
+### 4.1 Check Hostinger SSL
 
-1. Go to Vercel Dashboard → Project → **Settings** → **Domains**
-2. Look for `www.yourdomain.com`
-3. Status should show: **"Valid"** with green checkmark
-4. If not valid, wait 5-10 minutes or trigger manual SSL
+1. Go to Hostinger hPanel → **SSL** section
+2. Ensure SSL certificate is active for your domain
+3. Hostinger usually provides free SSL certificates automatically
 
-### 5.2 Check Railway SSL
+### 4.2 Check Railway SSL
 
 1. Go to Railway Dashboard → Service → **Settings** → **Domains**
 2. Look for `api.yourdomain.com`
 3. Status should show: **"Valid"** (or provisioning)
 4. Wait if provisioning (usually 2-5 minutes)
 
-### 5.3 Test HTTPS
+### 4.3 Test HTTPS
 
 ```bash
 # Test frontend
@@ -166,13 +118,16 @@ curl https://www.yourdomain.com
 
 # Should return 200 OK
 
-# Test backend
-curl https://api.yourdomain.com/api/health
+# Test backend (using Railway domain)
+curl https://freightpro-fmcsa-api-production.up.railway.app/api/health
 
 # Should return JSON health check
+
+# Or if you configured api subdomain:
+curl https://api.yourdomain.com/api/health
 ```
 
-### 5.4 Browser Test
+### 4.4 Browser Test
 
 1. Visit: `https://www.yourdomain.com`
 2. Check for green padlock 🔒 in address bar
@@ -203,13 +158,6 @@ curl https://api.yourdomain.com/api/health
 1. Remove conflicting A records for same hostname
 2. CNAME and A cannot coexist for same name
 
-### Wrong IP Address
-
-**If Vercel A record shows wrong IP:**
-1. Check Vercel dashboard for correct IP
-2. Delete old A record
-3. Add new A record with correct IP
-
 ### Railway CNAME Issues
 
 **If Railway shows different format:**
@@ -222,8 +170,9 @@ curl https://api.yourdomain.com/api/health
 **Certificate not provisioning:**
 1. Verify DNS propagated (use online checker)
 2. Wait 10-15 minutes
-3. Trigger manual SSL in Vercel/Railway
-4. Check for DNS validation errors
+3. Check Hostinger SSL settings in hPanel
+4. For Railway, check SSL status in Railway dashboard
+5. Check for DNS validation errors
 
 **Mixed content warnings:**
 - Ensure all resources loaded over HTTPS
@@ -318,7 +267,6 @@ See **README_LAUNCH_CHECKLIST.md** for complete testing checklist.
 ## Support
 
 - **Hostinger DNS**: https://www.hostinger.com/tutorials/how-to-manage-dns
-- **Vercel DNS**: https://vercel.com/docs/concepts/projects/domains
 - **Railway DNS**: https://docs.railway.app/develop/config#domains
 - **General DNS**: https://www.cloudflare.com/learning/dns/what-is-dns/
 

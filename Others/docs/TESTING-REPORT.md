@@ -1,7 +1,11 @@
 # CargoLume Platform - Live Testing Report
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical testing report from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Date**: October 28, 2025  
-**Environment**: Production (https://freightpro-fmcsa-api.onrender.com/)  
+**Environment**: Production (https://freightpro-fmcsa-api.onrender.com/) (OLD - DO NOT USE)  
 **Testing Method**: Automated browser testing + Code analysis
 
 ---

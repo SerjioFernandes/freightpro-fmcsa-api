@@ -104,7 +104,7 @@ First build frontend:
 ```powershell
 cd frontend
 npm install
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 Then go to `frontend/dist/` folder:

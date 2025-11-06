@@ -1,5 +1,9 @@
 # 🎯 Production Deployment Fixes - COMPLETE
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical deployment fixes from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Summary
 All identified production errors have been fixed and deployed to GitHub. Render and Vercel should now automatically redeploy with the corrected code.
 

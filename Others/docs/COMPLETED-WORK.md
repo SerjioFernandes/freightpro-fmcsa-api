@@ -1,5 +1,9 @@
 # 🎉 CargoLume Platform - Work Completed
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical work summary from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Date**: October 28, 2025  
 **Status**: ✅ ALL PLAN TASKS COMPLETED  
 **Production Ready**: 95% (1 minor backend fix needed)

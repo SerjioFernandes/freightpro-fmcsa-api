@@ -30,7 +30,8 @@ VAPID_SUBJECT=mailto:admin@yourdomain.com
 
 VITE_API_URL=http://localhost:4000/api
 
-# For production, set in Vercel dashboard, not .env file
+# For production, the API URL is hardcoded in constants.ts
+# No need to set this environment variable
 
 ================================================================
 GENERATING SECRETS
@@ -57,7 +58,7 @@ IMPORTANT
 ================================================================
 
 ❌ NEVER commit .env files (in .gitignore)
-✅ In production, set env vars in Railway/Vercel dashboard
+✅ In production, set env vars in Railway dashboard
 ✅ Rotate secrets regularly
 ✅ Use different secrets for dev/staging/production
 

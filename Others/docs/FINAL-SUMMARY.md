@@ -1,5 +1,9 @@
 # 🎯 Final Summary: CargoLume Platform Complete Audit & Implementation
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical summary from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Date:** October 28, 2025  
 **Project:** CargoLume Freight Management Platform  
 **Status:** ✅ **ALL TASKS COMPLETED**

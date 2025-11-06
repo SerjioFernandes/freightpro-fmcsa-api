@@ -1,4 +1,9 @@
 # Code Verification: Broker & Carrier Features
+
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical code verification from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **CargoLume Platform - Implementation Review**  
 **Date:** October 28, 2025
 

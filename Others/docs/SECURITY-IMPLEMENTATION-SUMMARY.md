@@ -1,5 +1,9 @@
 # Secure Shipment Request/Approval System - Implementation Summary
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical security implementation notes from previous setup (Netlify/Render).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## 🎉 IMPLEMENTATION COMPLETE
 
 ### Status: READY FOR TESTING (NOT COMMITTED YET)

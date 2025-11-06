@@ -1,6 +1,11 @@
 # Comprehensive Testing Report
+
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical testing information from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Date:** October 28, 2025  
-**Website:** https://freightpro-fmcsa-api.onrender.com/  
+**Website:** https://freightpro-fmcsa-api.onrender.com/ (OLD - DO NOT USE)  
 **Status:** ✅ All Critical Issues Fixed
 
 ---

@@ -1,5 +1,9 @@
 # 🚀 Quick Reference Card
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical quick reference from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **CargoLume Platform - Testing & Features**
 
 ---

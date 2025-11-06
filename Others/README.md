@@ -8,8 +8,8 @@
 
 ## 🌐 Live URLs
 
-- **Frontend:** https://frontend-gfjil28dv-serjiofernandes-projects.vercel.app
-- **Backend API:** https://freightpro-fmcsa-api.onrender.com
+- **Frontend:** https://www.cargolume.com
+- **Backend API:** https://freightpro-fmcsa-api-production.up.railway.app
 - **GitHub:** https://github.com/SerjioFernandes/freightpro-fmcsa-api
 
 ## ✨ Key Features
@@ -66,8 +66,8 @@
 - Nodemailer
 
 ### DevOps
-- Vercel (Frontend Hosting)
-- Render (Backend Hosting)
+- Hostinger (Frontend Hosting)
+- Railway (Backend Hosting)
 - MongoDB Atlas (Database)
 - GitHub (Version Control)
 
@@ -76,8 +76,8 @@
 ### Prerequisites
 - Node.js 20.x or higher
 - MongoDB connection string
-- Vercel account
-- Render account
+- Hostinger hosting account
+- Railway account
 
 ### Installation
 
@@ -101,14 +101,15 @@ npm install
 ```env
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
-FRONTEND_URL=https://your-vercel-url.vercel.app
+FRONTEND_URL=https://www.yourdomain.com
 NODE_ENV=production
 PORT=4000
 ```
 
 **Frontend (.env)**
 ```env
-VITE_API_URL=https://your-render-backend-url.onrender.com/api
+# No need to set VITE_API_URL - it's hardcoded in constants.ts
+# API URL is automatically set to Railway backend in production
 ```
 
 ### Running Locally

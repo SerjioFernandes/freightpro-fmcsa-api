@@ -28,7 +28,7 @@ npm run build
 # Build frontend  
 cd ../frontend
 npm install
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 **Replace `yourdomain.com` with your actual domain!**
@@ -144,7 +144,7 @@ EMAIL_PASS=your-gmail-app-password
 ### Frontend (at build time)
 
 ```bash
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 ---
@@ -229,7 +229,7 @@ public_html/
 **Local build:**
 ```bash
 cd backend && npm run build
-cd ../frontend && VITE_API_URL=https://api.yourdomain.com npm run build
+cd ../frontend && npm run build
 ```
 
 **Check backend logs (SSH):**

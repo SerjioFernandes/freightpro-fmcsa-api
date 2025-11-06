@@ -41,12 +41,8 @@ cd ..
 echo -e "\n${YELLOW}🔨 Building frontend...${NC}"
 cd frontend
 
-# Check for .env.production
-if [ ! -f ".env.production" ]; then
-    echo -e "${YELLOW}⚠️  Warning: .env.production not found${NC}"
-    echo "Create .env.production with VITE_API_URL for production build"
-    echo "Continuing with default API URL..."
-fi
+# Note: Frontend API URL is hardcoded in constants.ts
+# No .env.production file needed - Railway backend URL is built-in
 
 if [ ! -d "node_modules" ]; then
     echo "Installing frontend dependencies..."
@@ -104,7 +100,7 @@ echo -e "\n${GREEN}✅ Build and zip complete!${NC}"
 echo ""
 echo "Next steps:"
 echo "1. Upload backend-deploy.zip to your hosting (Railway/VPS)"
-echo "2. Upload frontend-deploy.zip to your hosting (Vercel/VPS)"
+echo "2. Upload frontend-deploy.zip to your hosting (Hostinger File Manager)"
 echo ""
 echo "See docs/RAILWAY-DEPLOY-GUIDE.md or docs/HOSTINGER-VPS-SETUP.md for deployment instructions"
 

@@ -1,5 +1,9 @@
 # Production Fixes Completed
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical fixes from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Summary
 
 All critical fixes have been implemented and pushed to GitHub. The backend requires a manual configuration update in the Render dashboard to complete deployment.

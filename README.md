@@ -10,7 +10,7 @@
 
 Complete deployment package ready with:
 - ✅ Full production deployment plan
-- ✅ Railway + Vercel guides (FREE hosting)
+- ✅ Railway backend + Hostinger frontend guides
 - ✅ Hostinger VPS alternative
 - ✅ All configuration files
 - ✅ Automated scripts
@@ -28,7 +28,6 @@ FreightPro/
 │
 ├── docs/                            📚 Documentation
 │   ├── RAILWAY-DEPLOY-GUIDE.md     🚂 Backend deployment
-│   ├── VERCEL-DEPLOY-GUIDE.md       ▲ Frontend deployment
 │   ├── HOSTINGER-DNS-GUIDE.md      🌐 DNS setup
 │   ├── HOSTINGER-VPS-SETUP.md      🖥️  VPS alternative
 │   ├── SMOKE_TESTS.md               🧪 Testing
@@ -66,7 +65,7 @@ FreightPro/
 
 ## 🎯 Quick Deploy
 
-**Recommended:** Railway + Vercel (FREE)
+**Recommended:** Railway backend + Hostinger frontend
 
 ```bash
 # 1. Read START-HERE.md
@@ -74,7 +73,7 @@ cat START-HERE.md
 
 # 2. Follow LAUNCH_PLAN.md
 # - Deploy backend to Railway (10-15 min)
-# - Deploy frontend to Vercel (5-10 min)
+# - Deploy frontend to Hostinger (5-10 min)
 # - Configure DNS (5 min)
 # - Run tests (10 min)
 
@@ -95,7 +94,7 @@ cat START-HERE.md
 ### Deployment Guides:
 
 - **Railway Backend:** `docs/RAILWAY-DEPLOY-GUIDE.md`
-- **Vercel Frontend:** `docs/VERCEL-DEPLOY-GUIDE.md`
+- **Hostinger Frontend:** Upload built files to Hostinger File Manager
 - **DNS Setup:** `docs/HOSTINGER-DNS-GUIDE.md`
 - **VPS Alternative:** `docs/HOSTINGER-VPS-SETUP.md`
 
@@ -130,10 +129,10 @@ cat START-HERE.md
 - **Winston** - Logging
 
 ### Infrastructure
-- **Railway.app** - Backend hosting (FREE)
-- **Vercel** - Frontend hosting (FREE)
+- **Railway.app** - Backend hosting
+- **Hostinger** - Frontend hosting
 - **MongoDB Atlas** - Database (FREE tier)
-- **MongoDB Atlas** or **VPS** - Alternative hosting
+- **VPS** - Alternative hosting option
 
 ---
 
@@ -159,11 +158,11 @@ Required variables:
 
 ## 🚀 Deployment Options
 
-### Option 1: FREE (Recommended)
+### Option 1: Railway + Hostinger (Recommended)
 - **Railway.app** - Backend hosting
-- **Vercel** - Frontend hosting
+- **Hostinger** - Frontend hosting
 - **MongoDB Atlas** - Database
-- **Cost:** $0/month (low-medium traffic)
+- **Cost:** Low cost (Railway free tier + Hostinger hosting)
 
 ### Option 2: VPS
 - **Hostinger VPS** - $10-20/month
@@ -251,7 +250,7 @@ Common issues:
 ## 📞 Support
 
 - **Railway:** https://docs.railway.app
-- **Vercel:** https://vercel.com/docs
+- **Hostinger:** https://www.hostinger.com/tutorials
 - **MongoDB:** https://docs.atlas.mongodb.com
 - **GitHub Issues:** Report bugs here
 

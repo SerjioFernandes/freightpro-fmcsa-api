@@ -6,9 +6,9 @@ Quick smoke tests to verify your deployment is working.
 
 ## Prerequisites
 
-- ✅ Backend deployed to Railway/VPS
-- ✅ Frontend deployed to Vercel
-- ✅ DNS configured
+- ✅ Backend deployed to Railway
+- ✅ Frontend deployed to Hostinger
+- ✅ DNS configured (if using custom API subdomain)
 - ✅ SSL certificates active
 
 ---

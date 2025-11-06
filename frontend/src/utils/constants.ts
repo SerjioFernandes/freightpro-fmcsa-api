@@ -1,9 +1,10 @@
 // API Configuration
+// Always use Railway backend URL in production
+// In development, use localhost
 export const API_BASE_URL = 
-  import.meta.env.VITE_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'https://freightpro-fmcsa-api-production.up.railway.app/api'
-    : 'http://localhost:4000/api');
+  typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:4000/api'
+    : 'https://freightpro-fmcsa-api-production.up.railway.app/api';
 
 // Application Routes
 export const ROUTES = {

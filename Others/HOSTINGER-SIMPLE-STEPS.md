@@ -20,7 +20,7 @@ Choose: **"Upload backup files"**
 cd C:\Users\HAYK\Desktop\FreightPro\frontend
 npm install
 # IMPORTANT: Replace yourdomain.com with YOUR domain!
-$env:VITE_API_URL="https://api.yourdomain.com/api"; npm run build
+npm run build
 ```
 
 This creates `frontend/dist/` with ready files.
@@ -109,7 +109,7 @@ Advanced → SSL:
 
 ## TL;DR
 
-1. Build frontend: `cd frontend && npm run build` (with VITE_API_URL)
+1. Build frontend: `cd frontend && npm run build` (API URL is hardcoded)
 2. Upload backend files to `api/` folder
 3. Upload frontend files to `public_html/` root
 4. Create Node.js app in Hostinger

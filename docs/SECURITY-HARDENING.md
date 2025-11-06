@@ -364,7 +364,7 @@ openssl s_client -connect api.yourdomain.com:443
 - Node.js Security: https://nodejs.org/en/docs/guides/security/
 - MongoDB Security: https://docs.mongodb.com/manual/security/
 - Railway Security: https://docs.railway.app/develop/security
-- Vercel Security: https://vercel.com/docs/concepts/security
+- Hostinger Security: https://www.hostinger.com/tutorials/website-security
 
 ---
 

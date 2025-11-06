@@ -1,7 +1,11 @@
 # CargoLume Platform - Implementation & Testing Summary
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical implementation summary from previous deployment (Render/Netlify).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Date**: October 28, 2025  
-**Deployment**: Production (https://freightpro-fmcsa-api.onrender.com/)  
+**Deployment**: Production (https://freightpro-fmcsa-api.onrender.com/) (OLD - DO NOT USE)  
 **Status**: ✅ All Plan Items Completed
 
 ---

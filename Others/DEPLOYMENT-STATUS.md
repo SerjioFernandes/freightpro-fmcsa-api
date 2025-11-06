@@ -1,5 +1,9 @@
 # Deployment Status
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical deployment status from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Current Situation
 
 **Backend Status:** 502 Bad Gateway (Service unavailable)

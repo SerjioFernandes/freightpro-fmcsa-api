@@ -1,5 +1,9 @@
 # Full Hostinger Deployment Guide
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical deployment information from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Overview
 
 This guide deploys both frontend AND backend to Hostinger. You'll need:
@@ -211,14 +215,14 @@ Before building, ensure `frontend/src/utils/constants.ts` has:
 
 ```typescript
 export const API_BASE_URL = 
-  import.meta.env.VITE_API_URL || 
+  // API URL is hardcoded to Railway backend 
   'https://api.yourdomain.com/api';
 ```
 
 Or set environment variable:
 
 ```bash
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 ### 3.3 Upload Frontend Files
@@ -327,12 +331,12 @@ Via Hostinger Control Panel → SSL
 ✅ VAPID_PRIVATE_KEY= (empty OK)
 ```
 
-### Frontend (VITE_API_URL)
+### Frontend (Build)
 
 Set during build:
 
 ```bash
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 ---
@@ -408,7 +412,7 @@ pm2 restart freightpro-backend
 - Check mod_rewrite enabled
 
 **API errors:**
-- Verify VITE_API_URL points to correct backend
+- Verify API URL in constants.ts points to Railway backend
 - Check CORS allows your domain
 - Test backend health: https://api.yourdomain.com/api/health
 

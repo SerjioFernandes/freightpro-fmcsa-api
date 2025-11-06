@@ -61,7 +61,7 @@ Open PowerShell in FreightPro folder:
 ```powershell
 cd frontend
 npm install
-VITE_API_URL=https://api.yourdomain.com/api npm run build
+npm run build
 ```
 
 **Then upload from:**

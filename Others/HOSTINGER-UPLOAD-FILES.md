@@ -69,7 +69,7 @@ cd C:\Users\HAYK\Desktop\FreightPro
 cd frontend
 npm install
 # Replace yourdomain.com with your actual domain!
-$env:VITE_API_URL="https://api.yourdomain.com/api"; npm run build
+npm run build
 ```
 
 This creates `frontend/dist/` with all files ready.

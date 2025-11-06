@@ -1,5 +1,9 @@
 # 🎨 CargoLume Premium Design Implementation
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical design implementation notes from previous setup (Vercel/Render).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## ✅ Implementation Complete
 
 Successfully implemented the **Grok AI Premium Color Scheme** across the entire CargoLume platform with professional UI/UX improvements.

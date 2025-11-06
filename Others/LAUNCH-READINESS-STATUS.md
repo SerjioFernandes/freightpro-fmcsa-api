@@ -1,5 +1,9 @@
 # 🚀 CARGOLUME LAUNCH READINESS STATUS
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical launch status from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 **Updated:** December 3, 2025 (Latest)
 **Status:** 98% COMPLETE - Ready for Launch
 

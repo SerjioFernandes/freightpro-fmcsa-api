@@ -1,5 +1,9 @@
 # 🧪 Testing Guide - Secure Shipment Request System
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical testing guide from previous deployment (Netlify/Render).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Quick Start Testing
 
 ### Prerequisites

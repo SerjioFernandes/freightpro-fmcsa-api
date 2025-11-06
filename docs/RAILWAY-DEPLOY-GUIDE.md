@@ -81,7 +81,7 @@ PORT=4000
 ```
 
 ```
-FRONTEND_URL=https://your-app.vercel.app
+FRONTEND_URL=https://www.yourdomain.com
 ```
 
 ```
@@ -214,17 +214,11 @@ Look for these messages:
 
 ### 8.1 Get Backend URL
 Your backend URL is either:
-- `https://freightpro-production.up.railway.app` (default)
+- `https://freightpro-fmcsa-api-production.up.railway.app` (default)
 - `https://api.yourdomain.com` (custom domain)
 
-### 8.2 Update Vercel Environment
-1. Go to Vercel dashboard
-2. Project → **Settings** → **Environment Variables**
-3. Update `VITE_API_URL`:
-   ```
-   VITE_API_URL=https://api.yourdomain.com/api
-   ```
-4. Redeploy frontend
+### 8.2 Frontend Configuration
+The frontend API URL is hardcoded in `frontend/src/utils/constants.ts` to use the Railway backend. No environment variable configuration is needed for the frontend.
 
 ---
 
@@ -312,9 +306,9 @@ Now every push to main auto-deploys.
 
 After Railway deployment:
 
-1. ✅ Deploy frontend to Vercel (see docs/VERCEL-DEPLOY-GUIDE.md)
+1. ✅ Deploy frontend to Hostinger (upload built files from `frontend/dist/`)
 2. ✅ Configure DNS (see docs/HOSTINGER-DNS-GUIDE.md)
-3. ✅ Seed demo data (see scripts/seedLoads.ts)
+3. ✅ Seed demo data (see backend/src/scripts/seedLoads.ts)
 4. ✅ Run smoke tests (see scripts/smoke-test.sh)
 5. ✅ Set up monitoring (see LAUNCH_PLAN.md)
 

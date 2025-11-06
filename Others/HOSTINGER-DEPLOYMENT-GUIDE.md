@@ -1,5 +1,9 @@
 # Hostinger Deployment Guide for FreightPro
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical deployment information from previous setup (Render/Vercel).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Current Situation
 
 Your app is NOT currently live because:

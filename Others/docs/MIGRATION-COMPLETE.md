@@ -1,5 +1,9 @@
 # CargoLume Enterprise Migration - Complete ✅
 
+**⚠️ ARCHIVED DOCUMENTATION - OUTDATED**
+This file contains historical migration information from previous setup (Vercel/Render).
+Current setup: Railway (backend) + Hostinger (frontend)
+
 ## Summary
 
 Successfully transformed the monolithic 15,739-line `index.html` application into a modern, enterprise-grade platform with React, TypeScript, and modular architecture.
