@@ -75,15 +75,17 @@ const corsOptions = {
     );
 
     if (isAllowed) {
-      logger.debug('CORS: Allowing origin', { origin: normalizedOrigin });
+      logger.info('CORS: Allowing origin', { origin: normalizedOrigin });
       return callback(null, true);
     }
 
-    // Log denied origin for debugging
-    logger.warn('CORS: Blocked origin', { 
+    // Log denied origin for debugging (use info level so it's always visible)
+    logger.info('CORS: Blocked origin - DEBUG INFO', { 
       origin: normalizedOrigin, 
-      allowedOrigins,
-      frontendUrl: config.FRONTEND_URL 
+      allowedOrigins: allowedOrigins.filter(Boolean),
+      frontendUrl: config.FRONTEND_URL,
+      normalizedOrigin,
+      originLowercase: normalizedOrigin.toLowerCase()
     });
     
     // Deny by default
