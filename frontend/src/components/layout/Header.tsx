@@ -45,7 +45,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex flex-wrap items-center gap-1">
             <Link
               to={ROUTES.HOME}
               className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
