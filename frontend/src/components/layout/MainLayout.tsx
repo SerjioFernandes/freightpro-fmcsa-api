@@ -1,6 +1,8 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import MobileBottomNav from './MobileBottomNav';
+import AdminLayout from './AdminLayout';
 import { useAuthStore } from '../../store/authStore';
 
 interface MainLayoutProps {
@@ -8,8 +10,17 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const location = useLocation();
+  const isAdmin = user?.role === 'admin';
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
+  // If user is admin and NOT already on an admin route, use admin layout everywhere
+  if (isAdmin && !isAdminRoute) {
+    return <AdminLayout>{children}</AdminLayout>;
+  }
+
+  // Regular layout for non-admin users
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

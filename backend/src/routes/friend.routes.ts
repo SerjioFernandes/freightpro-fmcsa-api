@@ -20,3 +20,4 @@ router.get('/', listFriends);
 
 export default router;
 
+

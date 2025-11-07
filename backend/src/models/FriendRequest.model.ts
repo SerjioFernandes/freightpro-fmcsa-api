@@ -28,3 +28,4 @@ export const FriendRequest: Model<IFriendRequest> = mongoose.model<IFriendReques
 
 export type { IFriendRequest };
 
+
