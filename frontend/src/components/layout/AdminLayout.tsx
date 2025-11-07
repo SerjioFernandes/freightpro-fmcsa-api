@@ -1,4 +1,4 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldAlert, Users, Activity, FileText, Gauge, LogOut, ArrowLeft, Menu, X, Home } from 'lucide-react';
 import { ROUTES } from '../../utils/constants';
 import { useAuthStore } from '../../store/authStore';
@@ -21,7 +21,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
   const { user, logout } = useAuthStore();
   const { addNotification } = useUIStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     await logout();
@@ -163,6 +165,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
                   {title || 'Administrator Console'}
                 </h1>
               </div>
+              {!isAdminRoute && (
+                <Link
+                  to={ROUTES.ADMIN_DASHBOARD}
+                  className="hidden md:inline-flex items-center gap-2 rounded-xl border border-red-600/40 bg-red-600/20 px-4 py-2 text-sm font-semibold text-red-100 shadow-lg shadow-red-900/30 transition-all hover:bg-red-600/30"
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  Admin Command Center
+                </Link>
+              )}
               <div className="bg-slate-900/60 border border-slate-800 rounded-xl px-3 md:px-4 py-2 md:py-3 flex items-center gap-3 shadow-inner shadow-black/40">
                 <div className="text-right">
                   <p className="text-xs text-slate-500 uppercase tracking-widest hidden md:block">Admin</p>
@@ -212,6 +223,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
           </div>
         </main>
       </div>
+      {!isAdminRoute && (
+        <Link
+          to={ROUTES.ADMIN_DASHBOARD}
+          className="fixed bottom-6 right-6 z-[9999] inline-flex items-center gap-3 rounded-2xl border border-red-600/50 bg-red-600/30 px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-red-900/40 backdrop-blur-md transition-all hover:bg-red-600/40"
+        >
+          <ShieldAlert className="h-5 w-5" />
+          Enter Admin Console
+        </Link>
+      )}
     </div>
   );
 };

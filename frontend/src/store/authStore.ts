@@ -17,7 +17,7 @@ interface AuthState {
   // Actions
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
   checkAuth: () => void;
   clearError: () => void;
@@ -102,7 +102,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             });
           }, 1800);
         }
+
+        return response.user;
       }
+      return null;
     } catch (error: any) {
       set({
         error: error.response?.data?.message || 'Login failed',
