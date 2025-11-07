@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark, LayoutDashboard } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark, LayoutDashboard, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { 
   canViewLoadBoard, 
@@ -14,6 +14,7 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -90,6 +91,15 @@ const Header = () => {
                   <LayoutDashboard className="w-4 h-4 mr-1" />
                   Dashboard
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to={ROUTES.ADMIN_DASHBOARD}
+                    className="text-white text-sm px-3 py-2 hover:bg-red-700/80 rounded transition-colors flex items-center bg-red-600/40 border border-red-500/60 shadow-lg shadow-red-500/30"
+                  >
+                    <Shield className="w-4 h-4 mr-1" />
+                    Admin Console
+                  </Link>
+                )}
                 <Link
                   to={ROUTES.DOCUMENTS}
                   className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
@@ -146,6 +156,11 @@ const Header = () => {
                   <User className="h-4 w-4" />
                   <span className="text-sm">{user?.company || 'Profile'}</span>
                 </Link>
+                {isAdmin && (
+                  <span className="px-3 py-1.5 bg-red-600/20 text-red-200 text-xs font-semibold uppercase tracking-wider rounded-full border border-red-500/40">
+                    Admin Mode Active
+                  </span>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 transition-colors"
@@ -235,6 +250,16 @@ const Header = () => {
                     <LayoutDashboard className="h-4 w-4" />
                     Dashboard
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      to={ROUTES.ADMIN_DASHBOARD}
+                      className="text-white px-4 py-2 hover:bg-red-700 rounded transition-colors flex items-center gap-2 bg-red-600/40 border border-red-500/50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Shield className="h-4 w-4" />
+                      Admin Console
+                    </Link>
+                  )}
                   <Link
                     to={ROUTES.DOCUMENTS}
                     className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"

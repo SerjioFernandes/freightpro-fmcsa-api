@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedAccountTypes?: AccountType[];
   requireAuth?: boolean;
+  requireAdmin?: boolean;
 }
 
 /**
@@ -19,9 +20,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedAccountTypes,
   requireAuth = true,
+  requireAdmin = false,
 }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isLoading } = useAuthStore();
   const { addNotification } = useUIStore();
+
+  // Wait for auth to load before making routing decisions
+  if (isLoading) {
+    return null; // Or a loading spinner
+  }
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
@@ -45,6 +52,31 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       });
       return <Navigate to={ROUTES.DASHBOARD} replace />;
     }
+  }
+
+  if (requireAdmin) {
+    if (!user || user.role !== 'admin') {
+      if (import.meta.env.DEV) {
+        console.log('[ProtectedRoute] Admin check failed:', {
+          hasUser: !!user,
+          userRole: user?.role,
+          userEmail: user?.email,
+          requireAdmin,
+        });
+      }
+      addNotification({
+        type: 'error',
+        message: 'Administrator privileges required.',
+      });
+      return <Navigate to={ROUTES.DASHBOARD} replace />;
+    }
+  }
+
+  if (import.meta.env.DEV && requireAdmin) {
+    console.log('[ProtectedRoute] Admin check passed:', {
+      userRole: user?.role,
+      userEmail: user?.email,
+    });
   }
 
   return <>{children}</>;

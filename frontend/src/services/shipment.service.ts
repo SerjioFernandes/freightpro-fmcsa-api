@@ -1,6 +1,6 @@
 import api from './api';
 import type { Shipment, ShipmentRequest, ShipmentFormData, ShipmentRequestFormData } from '../types/shipment.types';
-import type { PaginatedResponse } from '../types/api.types';
+// import type { PaginatedResponse } from '../types/api.types';
 
 export interface ShipmentsResponse {
   success: boolean;

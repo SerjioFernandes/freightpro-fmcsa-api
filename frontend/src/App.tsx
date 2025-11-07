@@ -30,13 +30,18 @@ import Pricing from './pages/Pricing';
 import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
 import InstallPrompt from './components/PWA/InstallPrompt';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import UserManagement from './pages/Admin/UserManagement';
+import UserDetails from './pages/Admin/UserDetails';
+import AuditLogs from './pages/Admin/AuditLogs';
+import SystemHealth from './pages/Admin/SystemHealth';
 
 // Protected Route Component
 import ProtectedRouteComponent from './components/auth/ProtectedRoute';
 
-function ProtectedRoute({ children, allowedAccountTypes }: { children: React.ReactNode; allowedAccountTypes?: AccountType[] }) {
+function ProtectedRoute({ children, allowedAccountTypes, requireAdmin }: { children: React.ReactNode; allowedAccountTypes?: AccountType[]; requireAdmin?: boolean }) {
   return (
-    <ProtectedRouteComponent allowedAccountTypes={allowedAccountTypes}>
+    <ProtectedRouteComponent allowedAccountTypes={allowedAccountTypes} requireAdmin={requireAdmin}>
       {children}
     </ProtectedRouteComponent>
   );
@@ -146,6 +151,48 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout><ActiveSessions /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path={ROUTES.ADMIN_DASHBOARD}
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_USERS}
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users/:id"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_AUDIT}
+          element={
+            <ProtectedRoute requireAdmin>
+              <AuditLogs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_SYSTEM_HEALTH}
+          element={
+            <ProtectedRoute requireAdmin>
+              <SystemHealth />
             </ProtectedRoute>
           }
         />

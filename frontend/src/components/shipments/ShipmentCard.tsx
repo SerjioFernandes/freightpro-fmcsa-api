@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Package, Calendar, Edit, Trash2, Eye, CheckCircle, XCircle, Send, X } from 'lucide-react';
+import { MapPin, Trash2, Eye, CheckCircle, XCircle, Send, X } from 'lucide-react';
 import type { Shipment } from '../../types/shipment.types';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';

@@ -3,7 +3,7 @@ import { shipmentService } from '../../services/shipment.service';
 import { useUIStore } from '../../store/uiStore';
 import { US_STATES } from '../../utils/constants';
 import type { ShipmentFormData } from '../../types/shipment.types';
-import { MapPin, Package, X } from 'lucide-react';
+import { MapPin, Package } from 'lucide-react';
 
 interface CreateShipmentFormProps {
   onSuccess?: () => void;

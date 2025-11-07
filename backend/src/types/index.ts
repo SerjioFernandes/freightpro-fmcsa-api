@@ -290,6 +290,8 @@ export interface EnvironmentConfig {
   FRONTEND_URL: string;
   ADMIN_EMAIL?: string;
   ADMIN_PASSWORD?: string;
+  ADMIN_ALLOWED_IPS?: string;
+  ADMIN_2FA_SECRET?: string;
   EMAIL_USER?: string;
   EMAIL_PASS?: string;
   EMAIL_VERIFICATION_TTL_MS: number;

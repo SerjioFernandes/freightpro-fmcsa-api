@@ -14,7 +14,7 @@ const ShipperDashboard = () => {
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [_isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -142,7 +142,7 @@ const ShipperDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-          {stats.map((stat, index) => (
+          {stats.map((stat) => (
             <div 
               key={stat.label}
               className="bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-100 p-5 md:p-6 transition-all duration-300 hover:-translate-y-1"
@@ -185,7 +185,7 @@ const ShipperDashboard = () => {
             </div>
           ) : shipments.length > 0 ? (
             <div className="space-y-4">
-              {shipments.slice(0, 5).map((shipment, index) => {
+              {shipments.slice(0, 5).map((shipment) => {
                 const shipmentRequests = requests.filter(r => r.shipmentId._id === shipment._id);
                 return (
                   <div 
@@ -263,7 +263,7 @@ const ShipperDashboard = () => {
             </div>
             
             <div className="space-y-4">
-              {requests.slice(0, 3).map((request, index) => (
+              {requests.slice(0, 3).map((request) => (
                 <div 
                   key={request._id} 
                   className={`border-2 rounded-xl p-5 hover:shadow-lg transition-all duration-300 ${

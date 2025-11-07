@@ -86,7 +86,7 @@ const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
 
   return (
     <div className="space-y-6">
-      {shipments.map((shipment, index) => (
+      {shipments.map((shipment) => (
         <ShipmentCard
           key={shipment._id}
           shipment={shipment}

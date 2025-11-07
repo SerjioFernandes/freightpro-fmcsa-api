@@ -15,6 +15,7 @@ import notificationRoutes from './notification.routes.js';
 import searchRoutes from './search.routes.js';
 import sessionRoutes from './session.routes.js';
 import adminRoutes from './admin.routes.js';
+import friendRoutes from './friend.routes.js';
 
 const router = Router();
 
@@ -47,6 +48,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/admin', adminRoutes);
+router.use('/friends', friendRoutes);
 
 export default router;
 

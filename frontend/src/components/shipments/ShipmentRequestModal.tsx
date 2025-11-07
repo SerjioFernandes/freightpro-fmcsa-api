@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { shipmentService } from '../../services/shipment.service';
 import { useUIStore } from '../../store/uiStore';
-import { X, Send, CheckCircle, XCircle } from 'lucide-react';
+import { X, CheckCircle, XCircle } from 'lucide-react';
 import type { ShipmentRequest } from '../../types/shipment.types';
 
 interface ShipmentRequestModalProps {

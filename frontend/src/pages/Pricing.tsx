@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, Zap, Shield, Truck, Star, ArrowRight } from 'lucide-react';
-import Button from '../components/common/Button';
+// import Button from '../components/common/Button';
 import { ROUTES } from '../utils/constants';
 import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
@@ -180,7 +180,7 @@ const Pricing = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
-            {plans.map((plan, index) => (
+            {plans.map((plan) => (
               <div
                 key={plan.name}
                 className={`relative bg-white rounded-xl shadow-lg border-2 h-full flex flex-col hover:shadow-2xl transition-all duration-300 ${

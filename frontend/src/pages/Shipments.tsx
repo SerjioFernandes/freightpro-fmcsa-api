@@ -2,26 +2,23 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { canViewShipments } from '../utils/permissions';
 import { shipmentService } from '../services/shipment.service';
-import { useUIStore } from '../store/uiStore';
-import { Lock, Plus, Package, Users, Filter, X } from 'lucide-react';
+// import { useUIStore } from '../store/uiStore';
+import { Lock, Plus, Users, Filter, X } from 'lucide-react';
 import ShipmentList from '../components/shipments/ShipmentList';
 import CreateShipmentForm from '../components/forms/CreateShipmentForm';
 import ShipmentRequestModal from '../components/shipments/ShipmentRequestModal';
-import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { ShipmentRequest } from '../types/shipment.types';
 
 const Shipments = () => {
   const { user } = useAuthStore();
-  const { addNotification } = useUIStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ShipmentRequest | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
-  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [_isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const isShipper = user?.accountType === 'shipper';
-  const isBroker = user?.accountType === 'broker';
 
   // Load shipment requests for shippers
   useEffect(() => {

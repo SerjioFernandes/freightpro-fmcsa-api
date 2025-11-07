@@ -25,6 +25,10 @@ export const ROUTES = {
   ABOUT: '/about',
   CONTACT: '/contact',
   PRICING: '/pricing',
+  ADMIN_DASHBOARD: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_AUDIT: '/admin/audit-logs',
+  ADMIN_SYSTEM_HEALTH: '/admin/system-health',
 };
 
 // US States

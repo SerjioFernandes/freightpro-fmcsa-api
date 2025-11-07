@@ -33,10 +33,21 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
 }
 
 export function authenticateAdmin(req: AuthRequest, res: Response, next: NextFunction): void {
-  if (req.user?.email !== config.ADMIN_EMAIL) {
+  const user = req.user;
+
+  if (!user) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
+  const isAdminRole = user.role === 'admin';
+  const isAdminEmail = config.ADMIN_EMAIL ? user.email === config.ADMIN_EMAIL : false;
+
+  if (!isAdminRole && !isAdminEmail) {
     res.status(403).json({ error: 'Admin access required' });
     return;
   }
+
   next();
 }
 

@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
-  isLoading: false,
+  isLoading: true, // Start as loading to prevent premature routing decisions
   error: null,
 
   setUser: (user) => {
@@ -72,18 +72,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuth: () => {
+    set({ isLoading: true });
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
     
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        set({ token, user, isAuthenticated: true });
+        set({ token, user, isAuthenticated: true, isLoading: false });
       } catch {
-        set({ token: null, user: null, isAuthenticated: false });
+        set({ token: null, user: null, isAuthenticated: false, isLoading: false });
       }
     } else {
-      set({ token: null, user: null, isAuthenticated: false });
+      set({ token: null, user: null, isAuthenticated: false, isLoading: false });
     }
   },
 

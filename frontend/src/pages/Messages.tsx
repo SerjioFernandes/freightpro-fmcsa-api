@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { messageService } from '../services/message.service';
+import { friendService } from '../services/friend.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X, Search, ArrowRight } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import type { FriendConnection, FriendRequest } from '../types/friend.types';
 
 const Messages = () => {
   const { addNotification } = useUIStore();
@@ -25,6 +27,11 @@ const Messages = () => {
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [connections, setConnections] = useState<FriendConnection[]>([]);
+  const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
+  const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
+  const [isFriendsLoading, setIsFriendsLoading] = useState(false);
+  const [isRequestsLoading, setIsRequestsLoading] = useState(false);
 
   const loadConversations = useCallback(async () => {
     setIsConversationsLoading(true);
@@ -45,6 +52,46 @@ const Messages = () => {
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  const loadFriends = useCallback(async () => {
+    setIsFriendsLoading(true);
+    try {
+      const response = await friendService.getFriends();
+      if (response.success) {
+        setConnections(response.data);
+      }
+    } catch (error) {
+      addNotification({ type: 'error', message: 'Failed to load connections' });
+    } finally {
+      setIsFriendsLoading(false);
+    }
+  }, [addNotification]);
+
+  const loadFriendRequests = useCallback(async () => {
+    setIsRequestsLoading(true);
+    try {
+      const [incoming, outgoing] = await Promise.all([
+        friendService.getRequests('incoming'),
+        friendService.getRequests('outgoing'),
+      ]);
+
+      if (incoming.success) {
+        setIncomingRequests(incoming.data);
+      }
+      if (outgoing.success) {
+        setOutgoingRequests(outgoing.data);
+      }
+    } catch (error) {
+      addNotification({ type: 'error', message: 'Failed to load friend requests' });
+    } finally {
+      setIsRequestsLoading(false);
+    }
+  }, [addNotification]);
+
+  useEffect(() => {
+    loadFriends();
+    loadFriendRequests();
+  }, [loadFriends, loadFriendRequests]);
 
   const loadConversation = useCallback(async (userId: string) => {
     setIsMessagesLoading(true);
@@ -140,6 +187,12 @@ const Messages = () => {
       return;
     }
 
+    const isConnected = connections.some(connection => connection.friendId === selectedUser.userId);
+    if (!isConnected) {
+      addNotification({ type: 'error', message: 'Connect with this user before sending messages.' });
+      return;
+    }
+
     setIsSending(true);
     try {
       await messageService.sendMessage({
@@ -154,7 +207,8 @@ const Messages = () => {
       await loadConversations();
       addNotification({ type: 'success', message: 'Message sent!' });
     } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to send message' });
+      const errorMessage = error.response?.data?.error || 'Failed to send message';
+      addNotification({ type: 'error', message: errorMessage });
     } finally {
       setIsSending(false);
     }
@@ -205,22 +259,68 @@ const Messages = () => {
     }
   };
 
-  const handleSelectUser = (selectedUser: any) => {
-    setSelectedUser({
-      userId: selectedUser._id,
-      company: selectedUser.company,
-      email: selectedUser.email,
-      accountType: selectedUser.accountType
-    });
-    setShowNewMessageModal(false);
-    setUserSearchQuery('');
+  const handleSendFriendRequest = async (recipientId: string) => {
+    try {
+      const response = await friendService.sendRequest(recipientId);
+      if (response.success) {
+        addNotification({ type: 'success', message: response.message || 'Connection request sent!' });
+      }
+      await loadFriendRequests();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to send connection request';
+      addNotification({ type: 'error', message: errorMessage });
+    } finally {
+      setShowNewMessageModal(false);
+      setUserSearchQuery('');
+    }
   };
 
-  const filteredUsers = availableUsers.filter(u => 
-    u.company.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    u.accountType.toLowerCase().includes(userSearchQuery.toLowerCase())
-  );
+  const handleRespondToRequest = async (requestId: string, action: 'accept' | 'decline') => {
+    try {
+      const response = await friendService.respond(requestId, action);
+      if (response.success) {
+        addNotification({ type: action === 'accept' ? 'success' : 'info', message: response.message });
+        await Promise.all([loadFriendRequests(), loadFriends(), loadConversations()]);
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to update request';
+      addNotification({ type: 'error', message: errorMessage });
+    }
+  };
+
+  const handleCancelFriendRequest = async (requestId: string) => {
+    try {
+      const response = await friendService.cancel(requestId);
+      if (response.success) {
+        addNotification({ type: 'info', message: response.message || 'Request cancelled' });
+        await loadFriendRequests();
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to cancel request';
+      addNotification({ type: 'error', message: errorMessage });
+    }
+  };
+
+  const handleSelectUser = (selectedUser: any) => {
+    handleSendFriendRequest(selectedUser._id);
+  };
+
+  const blockedUserIds = new Set<string>();
+  incomingRequests.forEach(request => blockedUserIds.add(request.requester._id));
+  outgoingRequests.forEach(request => blockedUserIds.add(request.recipient._id));
+  connections.forEach(connection => blockedUserIds.add(connection.friendId));
+
+  const filteredUsers = availableUsers
+    .filter(u => !blockedUserIds.has(u._id))
+    .filter(u =>
+      u.company.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      u.accountType.toLowerCase().includes(userSearchQuery.toLowerCase())
+    );
+
+  const canMessageSelected = selectedUser
+    ? connections.some(connection => connection.friendId === selectedUser.userId)
+    : false;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -235,14 +335,121 @@ const Messages = () => {
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
           >
             <Plus className="h-5 w-5" />
-            New Message
+            New Connection
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Conversations List */}
-          <div className="lg:col-span-1">
-            <div className="card min-h-[420px] md:h-[540px] lg:h-[600px] overflow-hidden flex flex-col">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Trusted Connections</h2>
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                  {connections.length} Active
+                </span>
+              </div>
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {isFriendsLoading ? (
+                  <div className="py-8 flex justify-center"><LoadingSpinner /></div>
+                ) : connections.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No confirmed connections yet.</p>
+                ) : (
+                  connections.map((connection) => (
+                    <button
+                      key={connection.connectionId}
+                      onClick={() => setSelectedUser({
+                        userId: connection.friendId,
+                        company: connection.company,
+                        email: connection.email,
+                        accountType: connection.accountType,
+                      })}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors border ${
+                        selectedUser?.userId === connection.friendId
+                          ? 'bg-blue-50 border-blue-500 text-blue-900'
+                          : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-sm">{connection.company}</span>
+                        <span className="text-xs text-gray-500">{new Date(connection.connectedAt).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">{connection.email}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Connection Requests</h2>
+                {isRequestsLoading && <Loader2 className="h-4 w-4 animate-spin text-primary-blue" />}
+              </div>
+              <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
+                {incomingRequests.length === 0 && outgoingRequests.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No pending requests.</p>
+                ) : (
+                  <>
+                    {incomingRequests.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Incoming</p>
+                        <div className="space-y-2">
+                          {incomingRequests.map((request) => (
+                            <div key={request._id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-semibold text-sm text-gray-900">{request.requester.company}</p>
+                                  <p className="text-xs text-gray-500">{request.requester.email}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleRespondToRequest(request._id, 'accept')}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-700"
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    onClick={() => handleRespondToRequest(request._id, 'decline')}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
+                                  >
+                                    Decline
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {outgoingRequests.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Outgoing</p>
+                        <div className="space-y-2">
+                          {outgoingRequests.map((request) => (
+                            <div key={request._id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-semibold text-sm text-gray-900">{request.recipient.company}</p>
+                                  <p className="text-xs text-gray-500">{request.recipient.email}</p>
+                                </div>
+                                <button
+                                  onClick={() => handleCancelFriendRequest(request._id)}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-white hover:bg-gray-900"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="card min-h-[220px] md:h-[320px] lg:h-[360px] overflow-hidden flex flex-col">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-4 border-b border-gray-200">
                 Conversations
               </h2>
@@ -384,6 +591,11 @@ const Messages = () => {
                   </div>
 
                   <form onSubmit={handleSendMessage} className="space-y-2">
+                    {!canMessageSelected && (
+                      <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg px-4 py-3">
+                        Establish a connection first to enable secure messaging with this company.
+                      </div>
+                    )}
                     <input
                       type="text"
                       placeholder="Subject"
@@ -391,6 +603,7 @@ const Messages = () => {
                       onChange={(e) => setSubject(e.target.value)}
                       className="input w-full"
                       required
+                      disabled={!canMessageSelected}
                     />
                     <div className="flex gap-2">
                       <textarea
@@ -405,11 +618,12 @@ const Messages = () => {
                         }}
                         className="input flex-1 min-h-[80px] resize-none"
                         required
+                        disabled={!canMessageSelected}
                       />
                       <button
                         type="submit"
-                        disabled={isSending}
-                        className="btn btn-primary px-6 flex items-center justify-center"
+                        disabled={isSending || !canMessageSelected}
+                        className="btn btn-primary px-6 flex items-center justify-center disabled:opacity-60"
                       >
                         {isSending ? (
                           <Loader2 className="h-5 w-5 animate-spin" />
@@ -439,7 +653,7 @@ const Messages = () => {
               <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800 rounded-t-xl">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <Plus className="h-5 w-5" />
-                  New Message
+                  New Connection Request
                 </h2>
                 <button
                   onClick={() => {
@@ -455,7 +669,7 @@ const Messages = () => {
               <div className="p-5 flex-1 overflow-y-auto">
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Search Users
+                    Search Verified Users
                   </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -468,6 +682,10 @@ const Messages = () => {
                     />
                   </div>
                 </div>
+
+                <p className="text-xs text-gray-500 mb-4">
+                  Send a connection request. Once accepted, the conversation will unlock and appear in your trusted connections list.
+                </p>
 
                 <div className="space-y-2">
                   {filteredUsers.length === 0 ? (
@@ -487,7 +705,10 @@ const Messages = () => {
                               {u.accountType}
                             </span>
                           </div>
-                          <ArrowRight className="h-5 w-5 text-gray-400" />
+                          <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600">
+                            Send Request
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
                         </div>
                       </button>
                     ))

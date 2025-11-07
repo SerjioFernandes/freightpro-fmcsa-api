@@ -13,6 +13,8 @@ export const config: EnvironmentConfig = {
   FRONTEND_URL: (process.env.FRONTEND_URL || 'http://localhost:5173').trim(),
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+  ADMIN_ALLOWED_IPS: process.env.ADMIN_ALLOWED_IPS,
+  ADMIN_2FA_SECRET: process.env.ADMIN_2FA_SECRET,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   EMAIL_VERIFICATION_TTL_MS: Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000,

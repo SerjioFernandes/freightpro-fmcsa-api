@@ -5,6 +5,7 @@ import { AuthRequest } from '../types/index.js';
 import mongoose from 'mongoose';
 import { websocketService } from '../services/websocket.service.js';
 import { logger } from '../utils/logger.js';
+import { checkFriendship } from './friend.controller.js';
 
 export const getConversations = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -106,6 +107,14 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
+    const isAdmin = req.user?.role === 'admin';
+    const areFriends = await checkFriendship(userId, otherUserId);
+
+    if (!isAdmin && !areFriends) {
+      res.status(403).json({ error: 'You must be connected before viewing this conversation' });
+      return;
+    }
+
     // Get all messages between current user and other user
     const messages = await Message.find({
       $or: [
@@ -153,6 +162,14 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       res.status(404).json({ error: 'Receiver not found' });
+      return;
+    }
+
+    const isAdmin = req.user?.role === 'admin';
+    const areFriends = await checkFriendship(userId, receiverId);
+
+    if (!isAdmin && !areFriends) {
+      res.status(403).json({ error: 'Send a connection request before messaging this user' });
       return;
     }
 
