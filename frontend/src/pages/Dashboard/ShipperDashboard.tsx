@@ -118,57 +118,69 @@ const ShipperDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900">
-            Shipper Dashboard
-          </h1>
-          <p className="text-xl text-gray-700 mt-2">
-            Welcome back, <span className="text-orange-accent font-semibold">{user?.company}</span>! 📦
-          </p>
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                Dashboard Overview
+              </h1>
+              <div className="inline-flex items-center bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 px-4 py-2 rounded-full shadow-sm">
+                <span className="text-sm md:text-base font-semibold text-blue-900">
+                  {user?.company}
+                </span>
+              </div>
+            </div>
+            <Link to={ROUTES.SHIPMENTS} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hidden md:flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              New Shipment
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {stats.map((stat, index) => (
             <div 
               key={stat.label}
-              className="card card-hover group animate-scale-in"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-100 p-5 md:p-6 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium uppercase tracking-wide mb-2">
-                    {stat.label}
-                  </p>
-                  <p className="text-3xl md:text-4xl font-heading font-bold text-gray-900">
-                    {stat.value}
-                  </p>
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`${stat.bgColor} p-3 rounded-xl shadow-sm`}>
+                    <div className={`${stat.color} scale-90 md:scale-100`}>
+                      {stat.icon}
+                    </div>
+                  </div>
                 </div>
-                <div className={`${stat.color} ${stat.bgColor} p-3 rounded-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
-                  {stat.icon}
-                </div>
+                <p className="text-xs md:text-sm text-gray-500 font-semibold uppercase tracking-wider mb-2">
+                  {stat.label}
+                </p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                  {stat.value}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Shipment Requests */}
-        <div className="card animate-slide-up">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-heading font-bold text-gray-900">
-              My Shipments
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 md:p-7">
+          <div className="flex justify-between items-center mb-5 md:mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              Active Shipments
             </h2>
-            <Link to={ROUTES.SHIPMENTS} className="btn btn-accent text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Shipment
+            <Link to={ROUTES.SHIPMENTS} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 text-sm md:text-base flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden md:inline">Create New Shipment</span>
+              <span className="md:hidden">New</span>
             </Link>
           </div>
           
           {isLoading ? (
-            <div className="py-16">
+            <div className="py-12">
               <LoadingSpinner size="lg" className="mx-auto" />
             </div>
           ) : shipments.length > 0 ? (
@@ -178,40 +190,42 @@ const ShipperDashboard = () => {
                 return (
                   <div 
                     key={shipment._id} 
-                    className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    className="border border-gray-200 rounded-xl p-5 md:p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-gray-50"
                   >
-                    <div className="flex justify-between items-start flex-wrap gap-4">
+                    <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-heading font-semibold text-gray-900 text-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="font-semibold text-gray-900 text-base md:text-lg">
                             {shipment.title}
                           </h3>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            shipment.status === 'open' ? 'bg-green-100 text-green-800' : 
-                            'bg-gray-100 text-gray-800'
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            shipment.status === 'open' ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 
+                            'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700'
                           }`}>
                             {shipment.status?.toUpperCase()}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <MapPin className="h-4 w-4 text-primary-blue flex-shrink-0" />
-                          <p className="text-sm">
-                            <span className="font-medium">{shipment.pickup.city}, {shipment.pickup.state}</span>
-                            {' → '}
-                            <span className="font-medium">{shipment.delivery.city}, {shipment.delivery.state}</span>
+                        <div className="flex items-center gap-2 text-gray-600 mb-2">
+                          <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                          <p className="text-sm md:text-base">
+                            {shipment.pickup.city}, {shipment.pickup.state} → {shipment.delivery.city}, {shipment.delivery.state}
                           </p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          ID: {shipment.shipmentId}
-                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            ID: {shipment.shipmentId}
+                          </span>
+                          <span className="text-xs font-medium text-blue-600">
+                            {shipmentRequests.length} request{shipmentRequests.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">
-                          {shipmentRequests.length} request{shipmentRequests.length !== 1 ? 's' : ''}
-                        </p>
-                        <Link to={ROUTES.SHIPMENTS} className="text-primary-blue hover:text-orange-accent font-medium text-sm flex items-center justify-end gap-1">
-                          View Details <ArrowRight className="h-4 w-4" />
+                      <div className="flex items-center">
+                        <Link 
+                          to={ROUTES.SHIPMENTS} 
+                          className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                        >
+                          Details <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
@@ -220,27 +234,30 @@ const ShipperDashboard = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-16">
-              <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg mb-4">No shipments yet</p>
+            <div className="text-center py-16 md:py-20">
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+                <Package className="h-10 w-10 md:h-12 md:w-12 text-gray-400" />
+              </div>
+              <p className="text-gray-700 text-base md:text-lg font-semibold mb-2">No active shipments</p>
+              <p className="text-gray-500 text-sm mb-6">Create your first shipment to get started</p>
               <Link to={ROUTES.SHIPMENTS}>
-                <button className="btn btn-accent text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Shipment
+                <button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base flex items-center gap-2 mx-auto">
+                  <Plus className="h-5 w-5" />
+                  Create Shipment
                 </button>
               </Link>
             </div>
           )}
         </div>
 
-        {/* Broker Proposals */}
+        {/* Broker Requests */}
         {requests.length > 0 && (
-          <div className="card animate-slide-up mt-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-heading font-bold text-gray-900">
-                Broker Requests
+          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 md:p-7 mt-6">
+            <div className="flex justify-between items-center mb-5 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                Pending Requests
               </h2>
-              <Link to={ROUTES.SHIPMENTS} className="text-primary-blue hover:text-orange-accent font-medium flex items-center gap-2 transition-colors">
+              <Link to={ROUTES.SHIPMENTS} className="text-blue-600 hover:text-blue-800 font-semibold text-sm flex items-center gap-1 transition-all duration-300 hover:gap-2">
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -249,39 +266,38 @@ const ShipperDashboard = () => {
               {requests.slice(0, 3).map((request, index) => (
                 <div 
                   key={request._id} 
-                  className={`border-2 rounded-lg p-5 hover:shadow-lg transition-all duration-200 animate-fade-in ${
-                    request.status === 'pending' ? 'border-yellow-200 bg-yellow-50' :
-                    request.status === 'approved' ? 'border-green-200 bg-green-50' :
-                    'border-red-200 bg-red-50'
+                  className={`border-2 rounded-xl p-5 hover:shadow-lg transition-all duration-300 ${
+                    request.status === 'pending' ? 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-yellow-100/50 hover:border-yellow-300' :
+                    request.status === 'approved' ? 'border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 hover:border-green-300' :
+                    'border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 hover:border-red-300'
                   }`}
-                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="flex justify-between items-start flex-wrap gap-4">
+                  <div className="flex justify-between items-start gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-heading font-semibold text-gray-900 text-lg">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-base md:text-lg">
                           {request.brokerId.company}
                         </h3>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                          request.status === 'pending' ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white' :
+                          request.status === 'approved' ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' :
+                          'bg-gradient-to-r from-red-400 to-red-500 text-white'
                         }`}>
                           {request.status.toUpperCase()}
                         </span>
                       </div>
                       {request.brokerMessage && (
-                        <p className="text-sm text-gray-700 mb-2">{request.brokerMessage}</p>
+                        <p className="text-sm md:text-base text-gray-700 mb-2 line-clamp-2">{request.brokerMessage}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        For shipment: {request.shipmentId.title}
+                      <p className="text-xs text-gray-500 mt-2">
+                        Shipment: {request.shipmentId.title}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center">
                       {request.status === 'pending' && (
                         <Link
                           to={ROUTES.SHIPMENTS}
-                          className="btn btn-primary text-sm"
+                          className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold text-xs md:text-sm shadow-md hover:shadow-lg transition-all duration-300"
                         >
                           Review
                         </Link>

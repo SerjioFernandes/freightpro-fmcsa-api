@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark } from 'lucide-react';
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { 
   canViewLoadBoard, 
@@ -31,11 +31,17 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
-          <div className="flex items-center space-x-2 group cursor-pointer">
+          <Link to={ROUTES.HOME} className="flex items-center space-x-2 group cursor-pointer">
             <Truck className="h-6 w-6 text-white transition-transform group-hover:scale-110" />
             <span className="text-xl font-bold text-white">CargoLume</span>
-            <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">LIVE</span>
-          </div>
+            <span className="px-3 py-1 bg-green-600/90 text-white text-xs font-bold rounded-full uppercase tracking-wide flex items-center gap-1.5 shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-100"></span>
+              </span>
+              LIVE
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-1">
@@ -79,8 +85,9 @@ const Header = () => {
               <>
                 <Link
                   to={ROUTES.DASHBOARD}
-                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors"
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
                 >
+                  <LayoutDashboard className="w-4 h-4 mr-1" />
                   Dashboard
                 </Link>
                 <Link
@@ -222,9 +229,10 @@ const Header = () => {
                   )}
                   <Link
                     to={ROUTES.DASHBOARD}
-                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors"
+                    className="text-white px-4 py-2 hover:bg-blue-700 rounded transition-colors flex items-center gap-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <LayoutDashboard className="h-4 w-4" />
                     Dashboard
                   </Link>
                   <Link

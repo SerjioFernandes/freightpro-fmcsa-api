@@ -132,14 +132,14 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Hero Section */}
-      <section className="gradient-bg-dark py-20">
+      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-16 md:py-20">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-heading font-bold text-white mb-6 animate-fade-in">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6">
             Choose Your Plan
           </h1>
-          <p className="text-xl md:text-2xl text-white max-w-3xl mx-auto mb-8 animate-slide-up">
+          <p className="text-base md:text-xl text-gray-100 max-w-3xl mx-auto mb-6 md:mb-8">
             Scale your freight business with CargoLume's premium platform.
             <br />
             Start free, upgrade when you're ready.
@@ -148,81 +148,86 @@ const Pricing = () => {
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           {/* Billing Cycle Toggle */}
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex items-center bg-white rounded-lg p-1 shadow-md">
+          <div className="flex justify-center mb-8 md:mb-12">
+            <div className="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-gray-200">
               <button
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                className={`px-5 md:px-6 py-2 md:py-2.5 rounded-lg font-semibold text-sm md:text-base transition-all duration-300 ${
                   billingCycle === 'monthly'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                className={`px-5 md:px-6 py-2 md:py-2.5 rounded-lg font-semibold text-sm md:text-base transition-all duration-300 flex items-center gap-2 ${
                   billingCycle === 'yearly'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Yearly
-                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
                   20% Off
                 </span>
               </button>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`relative card h-full flex flex-col ${plan.popular ? 'ring-4 ring-orange-accent' : ''} hover:shadow-2xl transition-all duration-300 animate-scale-in`}
-                style={{ animationDelay: `${index * 100}ms` }}
+                className={`relative bg-white rounded-xl shadow-lg border-2 h-full flex flex-col hover:shadow-2xl transition-all duration-300 ${
+                  plan.popular ? 'border-blue-500' : 'border-gray-200'
+                }`}
               >
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="badge-gold px-6 py-2 glow-orange">
-                      <Star className="h-4 w-4 inline-block mr-1" />
-                      Most Popular
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2 rounded-full shadow-lg flex items-center gap-1.5">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="font-bold text-sm">Most Popular</span>
                     </div>
                   </div>
                 )}
 
                 {/* Plan Header */}
-                <div className={`text-center pb-6 mb-6 border-b-2 ${plan.popular ? 'border-orange-accent' : 'border-primary-blue/30'}`}>
-                  <h3 className="text-2xl font-heading font-bold text-gray-900 mb-2">
+                <div className={`text-center p-6 md:p-8 ${plan.popular ? 'bg-gradient-to-br from-blue-50 to-blue-100' : 'bg-gray-50'} rounded-t-xl`}>
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
+                  <p className="text-sm text-gray-600 mb-6">{plan.description}</p>
                   <div className="mb-2">
-                    <span className="text-5xl font-heading font-bold text-orange-accent">
+                    <span className="text-4xl md:text-5xl font-bold text-blue-700">
                       {getDisplayPrice(plan)}
                     </span>
                     {plan.price !== 'Free' && (
-                      <span className="text-gray-600 text-lg"> / {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                      <span className="text-gray-600 text-base"> / {billingCycle === 'monthly' ? 'month' : 'year'}</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{getDisplayPeriod(plan)}</p>
+                  <p className="text-sm text-gray-600">{getDisplayPeriod(plan)}</p>
                 </div>
 
                 {/* Features List */}
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-3 p-6 md:p-8 flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature.name} className="flex items-start gap-3">
                       {feature.included ? (
-                        <Check className="h-5 w-5 text-primary-blue flex-shrink-0 mt-0.5" />
+                        <div className="bg-blue-100 rounded-full p-1">
+                          <Check className="h-4 w-4 text-blue-700 flex-shrink-0" />
+                        </div>
                       ) : (
-                        <X className="h-5 w-5 text-gray-300 flex-shrink-0 mt-0.5" />
+                        <div className="bg-gray-100 rounded-full p-1">
+                          <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        </div>
                       )}
-                      <span className={feature.included ? 'text-gray-900' : 'text-gray-400'}>
+                      <span className={`text-sm ${feature.included ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
                         {feature.name}
                       </span>
                     </li>
@@ -230,16 +235,16 @@ const Pricing = () => {
                 </ul>
 
                 {/* CTA Button */}
-                <div className="mt-auto">
-                  <button onClick={() => handlePlanClick(plan.link)} className="block w-full">
-                    <Button
-                      variant={plan.popular ? 'accent' : 'primary'}
-                      fullWidth
-                      icon={<ArrowRight className="h-5 w-5" />}
-                      iconPosition="right"
-                    >
-                      {plan.cta}
-                    </Button>
+                <div className="p-6 md:p-8 pt-0">
+                  <button 
+                    onClick={() => handlePlanClick(plan.link)} 
+                    className={`w-full py-3 md:py-3.5 rounded-lg font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 ${
+                      plan.popular 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                        : 'bg-white border-2 border-gray-300 hover:border-blue-500 text-gray-900 hover:bg-blue-50'
+                    }`}
+                  >
+                    {plan.cta}
                   </button>
                 </div>
               </div>
@@ -249,88 +254,96 @@ const Pricing = () => {
       </section>
 
       {/* Feature Comparison Table */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-heading font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
             Compare Plans
           </h2>
           <div className="max-w-6xl mx-auto overflow-x-auto">
-            <table className="w-full bg-soft-ivory rounded-lg shadow-lg">
-              <thead>
-                <tr className="bg-primary-blue-darker text-white">
-                  <th className="py-4 px-6 text-left font-heading">Feature</th>
-                  <th className="py-4 px-6 text-center font-heading">Basic</th>
-                  <th className="py-4 px-6 text-center font-heading bg-orange-accent text-white">Premium</th>
-                  <th className="py-4 px-6 text-center font-heading">Ultima</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {[
-                  ['Monthly loads', '10', 'Unlimited', 'Unlimited'],
-                  ['Load board access', 'Basic', 'Full', 'Advanced'],
-                  ['Support', 'Email', 'Email & Chat', 'Priority + Manager'],
-                  ['Mobile app', '—', '✓', '✓ White-label'],
-                  ['Analytics', '—', 'Advanced', 'Advanced + Reports'],
-                  ['API access', '—', '—', 'Full API'],
-                ].map((row, index) => (
-                  <tr key={index} className="hover:bg-light-ivory transition-colors">
-                    <td className="py-4 px-6 font-medium text-gray-900">{row[0]}</td>
-                    <td className="py-4 px-6 text-center text-gray-600">{row[1]}</td>
-                    <td className="py-4 px-6 text-center font-semibold text-orange-accent">{row[2]}</td>
-                    <td className="py-4 px-6 text-center text-gray-600">{row[3]}</td>
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-gray-900 to-gray-800">
+                    <th className="py-4 px-4 md:px-6 text-left font-bold text-white">Feature</th>
+                    <th className="py-4 px-4 md:px-6 text-center font-bold text-white">Basic</th>
+                    <th className="py-4 px-4 md:px-6 text-center font-bold bg-blue-600 text-white">Premium</th>
+                    <th className="py-4 px-4 md:px-6 text-center font-bold text-white">Ultima</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    ['Monthly loads', '10', 'Unlimited', 'Unlimited'],
+                    ['Load board access', 'Basic', 'Full', 'Advanced'],
+                    ['Support', 'Email', 'Email & Chat', 'Priority + Manager'],
+                    ['Mobile app', '—', '✓', '✓ White-label'],
+                    ['Analytics', '—', 'Advanced', 'Advanced + Reports'],
+                    ['API access', '—', '—', 'Full API'],
+                  ].map((row, index) => (
+                    <tr key={index} className="hover:bg-blue-50/50 transition-colors">
+                      <td className="py-4 px-4 md:px-6 font-semibold text-gray-900">{row[0]}</td>
+                      <td className="py-4 px-4 md:px-6 text-center text-gray-700">{row[1]}</td>
+                      <td className="py-4 px-4 md:px-6 text-center font-bold text-blue-700 bg-blue-50/50">{row[2]}</td>
+                      <td className="py-4 px-4 md:px-6 text-center text-gray-700">{row[3]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Trust Badges */}
-      <section className="py-16 bg-primary-blue-darker">
+      <section className="py-12 md:py-16 bg-gradient-to-r from-gray-900 to-gray-800">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="animate-fade-in">
-              <Shield className="h-12 w-12 text-orange-accent mx-auto mb-4" />
-              <h3 className="text-xl font-heading font-bold text-white mb-2">Secure & Reliable</h3>
-              <p className="text-gray-200">Bank-level encryption for all transactions</p>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8 text-center">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Shield className="h-8 w-8 text-blue-700" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Secure & Reliable</h3>
+              <p className="text-gray-300 text-sm md:text-base">Bank-level encryption for all transactions</p>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-              <Zap className="h-12 w-12 text-orange-accent mx-auto mb-4" />
-              <h3 className="text-xl font-heading font-bold text-white mb-2">Lightning Fast</h3>
-              <p className="text-gray-200">Real-time updates and instant notifications</p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Zap className="h-8 w-8 text-blue-700" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Lightning Fast</h3>
+              <p className="text-gray-300 text-sm md:text-base">Real-time updates and instant notifications</p>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <Truck className="h-12 w-12 text-orange-accent mx-auto mb-4" />
-              <h3 className="text-xl font-heading font-bold text-white mb-2">Industry Leading</h3>
-              <p className="text-gray-200">Trusted by thousands of freight companies</p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Truck className="h-8 w-8 text-blue-700" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Industry Leading</h3>
+              <p className="text-gray-300 text-sm md:text-base">Trusted by thousands of freight companies</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20">
+      <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-heading font-bold text-midnight-ocean text-center mb-12">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
             Frequently Asked Questions
           </h2>
           <div className="max-w-3xl mx-auto space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="card border border-emerald-whisper/30 hover:border-saffron-gold transition-colors">
+              <div key={index} className="bg-white rounded-xl border-2 border-gray-200 p-5 md:p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
                 <button
                   className="w-full text-left flex justify-between items-center"
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 >
-                  <h3 className="text-lg font-heading font-semibold text-midnight-ocean pr-4">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 pr-4">
                     {faq.question}
                   </h3>
-                  <span className="text-saffron-gold text-2xl flex-shrink-0">
+                  <span className="text-blue-600 text-2xl font-bold flex-shrink-0">
                     {openFaq === index ? '−' : '+'}
                   </span>
                 </button>
                 {openFaq === index && (
-                  <p className="mt-4 text-gray-700 animate-slide-down">
+                  <p className="mt-4 text-gray-700 text-sm md:text-base">
                     {faq.answer}
                   </p>
                 )}
@@ -341,24 +354,26 @@ const Pricing = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="gradient-bg-dark py-20">
+      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-16 md:py-20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-heading font-bold text-white mb-6">
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-white max-w-2xl mx-auto mb-8">
+          <p className="text-base md:text-xl text-gray-100 max-w-2xl mx-auto mb-6 md:mb-8">
             Join thousands of carriers, brokers, and shippers growing their business with CargoLume.
           </p>
-          <div className="flex justify-center gap-4">
-            <button onClick={() => handlePlanClick(ROUTES.REGISTER)}>
-              <Button variant="accent" size="lg" icon={<ArrowRight className="h-6 w-6" />} iconPosition="right">
-                Start Free Trial
-              </Button>
+          <div className="flex flex-col md:flex-row justify-center gap-4">
+            <button 
+              onClick={() => handlePlanClick(ROUTES.REGISTER)}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              Start Free Trial
+              <ArrowRight className="h-5 w-5" />
             </button>
             <Link to={ROUTES.CONTACT}>
-              <Button variant="secondary" size="lg">
+              <button className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 w-full md:w-auto">
                 Contact Sales
-              </Button>
+              </button>
             </Link>
           </div>
         </div>

@@ -12,6 +12,11 @@ export const messageService = {
     return response.data;
   },
 
+  async getAvailableUsers(): Promise<any> {
+    const response = await api.get('/messages/users');
+    return response.data;
+  },
+
   async getConversation(userId: string): Promise<any> {
     const response = await api.get(`/messages/conversation/${userId}`);
     return response.data;

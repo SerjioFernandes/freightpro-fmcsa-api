@@ -1,7 +1,7 @@
 // Service Worker for CargoLume PWA
-const CACHE_NAME = 'cargolume-v2.0.0';
-const RUNTIME_CACHE = 'cargolume-runtime-v2';
-const STATIC_CACHE = 'cargolume-static-v2';
+const CACHE_NAME = 'cargolume-v3.0.0';
+const RUNTIME_CACHE = 'cargolume-runtime-v3';
+const STATIC_CACHE = 'cargolume-static-v3';
 
 // Assets to cache on install (will be populated dynamically)
 const STATIC_ASSETS = [

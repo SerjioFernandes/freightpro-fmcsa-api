@@ -145,9 +145,9 @@ const NotificationCenter = ({ onNotificationClick }: NotificationCenterProps) =>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border-2 border-gray-200 z-50 animate-slide-down">
+        <div className="absolute right-0 top-full mt-0.5 w-96 max-w-[95vw] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 animate-slide-down overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800 rounded-t-lg">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800">
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-white" />
               <h3 className="text-lg font-bold text-white">Notifications</h3>
@@ -166,27 +166,33 @@ const NotificationCenter = ({ onNotificationClick }: NotificationCenterProps) =>
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-2 p-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center gap-2 p-4 border-b border-gray-200 bg-white">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                filter === 'all' ? 'bg-primary-blue text-white' : 'text-gray-600 hover:bg-gray-200'
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-sm ${
+                filter === 'all' 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
               }`}
             >
               All
             </button>
             <button
               onClick={() => setFilter('unread')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                filter === 'unread' ? 'bg-primary-blue text-white' : 'text-gray-600 hover:bg-gray-200'
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-sm ${
+                filter === 'unread' 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
               }`}
             >
               Unread
             </button>
             <button
               onClick={() => setFilter('important')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                filter === 'important' ? 'bg-primary-blue text-white' : 'text-gray-600 hover:bg-gray-200'
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-sm ${
+                filter === 'important' 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
               }`}
             >
               Important
@@ -195,11 +201,11 @@ const NotificationCenter = ({ onNotificationClick }: NotificationCenterProps) =>
 
           {/* Actions */}
           {notifications.length > 0 && (
-            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-primary-blue hover:bg-blue-50 rounded-md transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all duration-300 shadow-sm"
                 >
                   <CheckCheck className="h-4 w-4" />
                   Mark all read
@@ -207,7 +213,7 @@ const NotificationCenter = ({ onNotificationClick }: NotificationCenterProps) =>
               </div>
               <button
                 onClick={handleDeleteAll}
-                className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all duration-300 shadow-sm"
               >
                 <Trash2 className="h-4 w-4" />
                 Clear all

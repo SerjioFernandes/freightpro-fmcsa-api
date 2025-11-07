@@ -97,8 +97,9 @@ const SupportChatWidget = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full p-4 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-110 z-50 flex items-center justify-center"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full p-4 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-110 z-[9999] flex items-center justify-center"
         title="Open Support Chat"
+        aria-label="Open Support Chat"
       >
         <Headphones className="h-6 w-6" />
       </button>
@@ -107,28 +108,30 @@ const SupportChatWidget = () => {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 transition-all ${
-        isMinimized ? 'w-80 h-16' : 'w-96 h-[500px]'
+      className={`fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] flex flex-col transition-all ${
+        isMinimized ? 'w-[90vw] max-w-[320px] h-16' : 'w-[90vw] max-w-[400px] h-[500px] md:h-[560px]'
       }`}
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 md:p-4 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <Headphones className="h-5 w-5" />
-          <span className="font-semibold">Support Chat</span>
+          <span className="font-semibold text-sm md:text-base">Support Chat</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="hover:bg-white/20 p-1 rounded transition-colors"
+            className="hover:bg-white/20 p-1.5 rounded transition-colors"
             title={isMinimized ? 'Maximize' : 'Minimize'}
+            aria-label={isMinimized ? 'Maximize' : 'Minimize'}
           >
             {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
           </button>
           <button
             onClick={() => setIsOpen(false)}
-            className="hover:bg-white/20 p-1 rounded transition-colors"
+            className="hover:bg-white/20 p-1.5 rounded transition-colors"
             title="Close"
+            aria-label="Close Support Chat"
           >
             <X className="h-4 w-4" />
           </button>
@@ -138,20 +141,20 @@ const SupportChatWidget = () => {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 h-[350px] overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50 min-h-0">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[85%] rounded-lg p-2.5 md:p-3 ${
                     msg.sender === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white border border-gray-200 text-gray-900'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                  <p className="text-xs md:text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                 </div>
               </div>
             ))}
@@ -170,9 +173,9 @@ const SupportChatWidget = () => {
 
           {/* Quick Questions */}
           {messages.length <= 1 && (
-            <div className="px-4 pb-2">
+            <div className="px-3 md:px-4 py-2 shrink-0 bg-white border-t border-gray-100">
               <p className="text-xs text-gray-500 mb-2">Quick questions:</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
                 {getQuickQuestionsForUser(user?.accountType).map((q) => (
                   <button
                     key={q.query}
@@ -180,7 +183,7 @@ const SupportChatWidget = () => {
                       setInput(q.query);
                       handleSend({ preventDefault: () => {} } as React.FormEvent);
                     }}
-                    className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
+                    className="text-xs bg-blue-50 text-blue-700 px-2.5 md:px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
                   >
                     {q.text}
                   </button>
@@ -190,20 +193,21 @@ const SupportChatWidget = () => {
           )}
 
           {/* Input */}
-          <form onSubmit={handleSend} className="p-4 border-t border-gray-200">
+          <form onSubmit={handleSend} className="p-3 md:p-4 border-t border-gray-200 bg-white rounded-b-lg shrink-0">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your question..."
-                className="flex-1 input text-sm"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
               />
               <button
                 type="submit"
-                disabled={isLoading}
-                className="btn btn-primary px-4 flex items-center"
+                disabled={isLoading || !input.trim()}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 md:px-4 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0"
+                aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </button>

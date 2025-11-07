@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { documentService } from '../services/document.service';
 import { useUIStore } from '../store/uiStore';
-import { FileText, Upload, Trash2, Download, Filter, Grid3x3, List, Plus } from 'lucide-react';
+import { FileText, Upload, Trash2, Download, Filter, Grid3x3, List, Plus, Eye } from 'lucide-react';
 import DocumentUploadModal from '../components/Documents/DocumentUploadModal';
 
 const DOCUMENT_TYPES = [
@@ -71,6 +71,18 @@ const Documents = () => {
     }
   };
 
+  const handleView = async (doc: any) => {
+    try {
+      const blob = await documentService.downloadDocument(doc._id);
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      // Clean up after a delay to ensure the new tab can load the file
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error: any) {
+      addNotification({ type: 'error', message: 'Failed to open document' });
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
@@ -90,95 +102,129 @@ const Documents = () => {
         onClose={() => setShowUploadModal(false)} 
         onUploaded={loadDocuments}
       />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FileText className="h-8 w-8 text-primary-blue" />
-              Documents
-            </h1>
-            <p className="text-gray-600 mt-2">Manage your freight documents</p>
-          </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="btn btn-primary flex items-center gap-2"
-          >
-            <Plus className="h-5 w-5" />
-            Upload Document
-          </button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="container mx-auto px-4 py-6 md:py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  Documents
+                </h1>
+                <p className="text-sm md:text-base text-gray-600">Manage your freight documents</p>
+              </div>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                <span className="hidden md:inline">Upload Document</span>
+                <span className="md:inline lg:hidden">Upload</span>
+              </button>
+            </div>
 
-        {/* Filters and View Toggle */}
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-600" />
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="input"
-            >
-              {DOCUMENT_TYPES.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-            >
-              <Grid3x3 className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-            >
-              <List className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+            {/* Filters and View Toggle */}
+            <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Filter className="h-5 w-5 text-gray-600" />
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 hover:border-blue-400 transition-all"
+                >
+                  {DOCUMENT_TYPES.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 md:p-2.5 rounded-lg transition-all duration-300 ${
+                    viewMode === 'grid' 
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                      : 'bg-white text-gray-600 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid3x3 className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 md:p-2.5 rounded-lg transition-all duration-300 ${
+                    viewMode === 'list' 
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                      : 'bg-white text-gray-600 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                  }`}
+                  title="List View"
+                >
+                  <List className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
 
         {/* Documents Grid/List */}
         {isLoading ? (
-          <div className="text-center py-12">
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading documents...</p>
           </div>
         ) : documents.length === 0 ? (
-          <div className="card text-center py-12">
-            <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 mb-6">No documents uploaded yet</p>
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
+            <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+              <FileText className="h-10 w-10 text-gray-400" />
+            </div>
+            <p className="text-gray-700 text-lg font-semibold mb-2">No documents uploaded yet</p>
+            <p className="text-gray-500 text-sm mb-6">Upload your first document to get started</p>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="btn btn-primary"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 mx-auto"
             >
-              <Upload className="h-5 w-5 mr-2" />
+              <Upload className="h-5 w-5" />
               Upload First Document
             </button>
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {documents.map((doc) => (
-              <div key={doc._id} className="card hover:shadow-lg transition-shadow">
-                <div className="text-4xl mb-3">{getFileIcon(doc.mimeType)}</div>
-                <h3 className="font-semibold text-gray-900 mb-2 truncate">{doc.originalName}</h3>
-                <div className="text-sm text-gray-600 space-y-1 mb-4">
-                  <p><span className="font-medium">Type:</span> {doc.type}</p>
-                  <p><span className="font-medium">Size:</span> {formatFileSize(doc.size)}</p>
-                  <p><span className="font-medium">Uploaded:</span> {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+              <div key={doc._id} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
+                <div className="text-3xl mb-3 flex justify-center">{getFileIcon(doc.mimeType)}</div>
+                <h3 className="font-semibold text-gray-900 mb-3 truncate text-sm">{doc.originalName}</h3>
+                <div className="text-xs text-gray-600 space-y-1.5 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Type:</span>
+                    <span className="font-medium bg-gray-100 px-2 py-0.5 rounded">{doc.type}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Size:</span>
+                    <span className="font-medium">{formatFileSize(doc.size)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Uploaded:</span>
+                    <span className="font-medium">{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
+                    onClick={() => handleView(doc)}
+                    className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white py-2.5 rounded-lg font-semibold text-xs shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                    title="View Document"
+                  >
+                    <Eye className="h-4 w-4" />
+                    View
+                  </button>
+                  <button
                     onClick={() => handleDownload(doc)}
-                    className="flex-1 btn btn-secondary flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-lg font-semibold text-xs shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                    title="Download Document"
                   >
                     <Download className="h-4 w-4" />
                     Download
                   </button>
                   <button
                     onClick={() => handleDelete(doc._id)}
-                    className="btn btn-danger flex items-center justify-center"
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+                    title="Delete Document"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -187,44 +233,57 @@ const Documents = () => {
             ))}
           </div>
         ) : (
-          <div className="card overflow-hidden">
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Icon</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Document Name</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Size</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-100">
                   {documents.map((doc) => (
-                    <tr key={doc._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={doc._id} className="hover:bg-blue-50/50 transition-colors">
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap">
                         <span className="text-2xl">{getFileIcon(doc.mimeType)}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{doc.originalName}</div>
+                      <td className="px-4 md:px-6 py-3">
+                        <div className="text-sm font-semibold text-gray-900 truncate max-w-xs">{doc.originalName}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">{doc.type}</span>
+                      </td>
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">
                         {formatFileSize(doc.size)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm text-gray-600">
                         {new Date(doc.uploadedAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap">
                         <div className="flex gap-2">
                           <button
+                            onClick={() => handleView(doc)}
+                            className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => handleDownload(doc)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                            title="Download"
                           >
                             <Download className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(doc._id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                            title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -237,6 +296,7 @@ const Documents = () => {
             </div>
           </div>
         )}
+          </div>
         </div>
       </div>
     </>

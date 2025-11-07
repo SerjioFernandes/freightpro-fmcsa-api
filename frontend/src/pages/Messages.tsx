@@ -3,7 +3,7 @@ import { messageService } from '../services/message.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { MessageSquare, Send, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X, Search, ArrowRight } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Messages = () => {
@@ -22,6 +22,9 @@ const Messages = () => {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
 
   const loadConversations = useCallback(async () => {
     setIsConversationsLoading(true);
@@ -75,9 +78,13 @@ const Messages = () => {
 
   // WebSocket real-time message updates
   useEffect(() => {
+    if (import.meta.env.DEV) console.log('[Messages] Setting up WebSocket listeners');
+
     const unsubscribeNewMessage = subscribe('new_message', (message: any) => {
-      const senderId = typeof message.sender === 'object' ? message.sender._id?.toString() : message.sender?._id?.toString();
-      const receiverId = typeof message.receiver === 'object' ? message.receiver._id?.toString() : message.receiver?._id?.toString();
+      if (import.meta.env.DEV) console.log('[Messages] Received new_message event', message);
+      
+      const senderId = typeof message.sender === 'object' ? message.sender._id?.toString() : message.sender?.toString();
+      const receiverId = typeof message.receiver === 'object' ? message.receiver._id?.toString() : message.receiver?.toString();
       
       // Check if message is for current conversation
       if (selectedUser && (
@@ -86,14 +93,20 @@ const Messages = () => {
         senderId === user?.id ||
         receiverId === user?.id
       )) {
+        if (import.meta.env.DEV) console.log('[Messages] Adding message to current conversation');
         // Only add if not already in messages (prevent duplicates)
         setMessages(prev => {
           const exists = prev.some(msg => msg._id === message._id);
-          if (exists) return prev;
+          if (exists) {
+            if (import.meta.env.DEV) console.log('[Messages] Message already exists, skipping');
+            return prev;
+          }
+          if (import.meta.env.DEV) console.log('[Messages] Adding new message to list');
           return [...prev, message];
         });
       }
-      // Always refresh conversations list to update unread counts
+      
+      // Refresh conversations list to update unread counts (but don't reload current messages)
       loadConversations();
     });
 
@@ -180,13 +193,51 @@ const Messages = () => {
     return !!(user && msg.sender?._id?.toString() === user.id);
   };
 
+  const handleNewMessage = async () => {
+    try {
+      const response = await messageService.getAvailableUsers();
+      if (response.success) {
+        setAvailableUsers(response.data || []);
+        setShowNewMessageModal(true);
+      }
+    } catch (error: any) {
+      addNotification({ type: 'error', message: 'Failed to load users' });
+    }
+  };
+
+  const handleSelectUser = (selectedUser: any) => {
+    setSelectedUser({
+      userId: selectedUser._id,
+      company: selectedUser.company,
+      email: selectedUser.email,
+      accountType: selectedUser.accountType
+    });
+    setShowNewMessageModal(false);
+    setUserSearchQuery('');
+  };
+
+  const filteredUsers = availableUsers.filter(u => 
+    u.company.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+    u.accountType.toLowerCase().includes(userSearchQuery.toLowerCase())
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-          <MessageSquare className="h-8 w-8 text-primary-blue" />
-          Messages
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <MessageSquare className="h-8 w-8 text-primary-blue" />
+            Messages
+          </h1>
+          <button
+            onClick={handleNewMessage}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            New Message
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Conversations List */}
@@ -380,6 +431,72 @@ const Messages = () => {
             </div>
           </div>
         </div>
+
+        {/* New Message Modal */}
+        {showNewMessageModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800 rounded-t-xl">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  New Message
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowNewMessageModal(false);
+                    setUserSearchQuery('');
+                  }}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="p-5 flex-1 overflow-y-auto">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Search Users
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={userSearchQuery}
+                      onChange={(e) => setUserSearchQuery(e.target.value)}
+                      placeholder="Search by company, email, or type..."
+                      className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {filteredUsers.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No users found</p>
+                  ) : (
+                    filteredUsers.map((u) => (
+                      <button
+                        key={u._id}
+                        onClick={() => handleSelectUser(u)}
+                        className="w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 bg-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-900">{u.company}</p>
+                            <p className="text-sm text-gray-600">{u.email}</p>
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded capitalize">
+                              {u.accountType}
+                            </span>
+                          </div>
+                          <ArrowRight className="h-5 w-5 text-gray-400" />
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

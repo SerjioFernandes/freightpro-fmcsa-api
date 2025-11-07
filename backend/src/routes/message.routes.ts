@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticateToken);
 
 router.get('/conversations', messageController.getConversations);
+router.get('/users', messageController.getAvailableUsers);
 router.get('/conversation/:userId', messageController.getConversation);
 router.post('/send', messageController.sendMessage);
 router.get('/unread-count', messageController.getUnreadCount);

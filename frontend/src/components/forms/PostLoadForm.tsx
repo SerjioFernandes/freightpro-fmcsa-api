@@ -409,7 +409,6 @@ const PostLoadForm = () => {
               />
             </div>
             {errors.weight && <p className="text-red-500 text-xs mt-1">{errors.weight}</p>}
-            </div>
           </div>
         </div>
       </div>

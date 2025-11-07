@@ -257,6 +257,33 @@ export const editMessage = async (req: AuthRequest, res: Response): Promise<void
   }
 };
 
+export const getAvailableUsers = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    // Get all users except current user, limit to verified users only
+    const users = await User.find({
+      _id: { $ne: userId },
+      isEmailVerified: true
+    })
+      .select('company email accountType usdotNumber mcNumber')
+      .sort({ company: 1 })
+      .limit(100);
+
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (error: any) {
+    logger.error('Get available users failed', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+};
+
 export const deleteMessage = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
