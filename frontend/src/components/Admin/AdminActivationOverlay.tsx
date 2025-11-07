@@ -12,12 +12,12 @@ const AdminActivationOverlay = () => {
 
     const activatingTimer = setTimeout(() => {
       setStage('welcome');
-    }, 1500);
+    }, 2000);
 
     const dismissTimer = setTimeout(() => {
       dismissAdminActivation();
       setStage('activating');
-    }, 4500);
+    }, 5500);
 
     return () => {
       clearTimeout(activatingTimer);
