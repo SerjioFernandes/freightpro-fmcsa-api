@@ -10,6 +10,7 @@ import MainLayout from './components/layout/MainLayout';
 import Notifications from './components/common/Notifications';
 import OfflineIndicator from './components/common/OfflineIndicator';
 import ErrorBoundary from './components/ErrorBoundary';
+import AdminActivationOverlay from './components/Admin/AdminActivationOverlay';
 
 // Pages
 import Home from './pages/Home';
@@ -62,6 +63,7 @@ function App() {
       <Router>
         <Notifications />
         <OfflineIndicator />
+        <AdminActivationOverlay />
         <InstallPrompt />
         <SupportChatWidget />
         <Routes>
