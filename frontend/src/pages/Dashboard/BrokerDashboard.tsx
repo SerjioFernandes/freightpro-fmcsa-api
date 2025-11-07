@@ -35,8 +35,11 @@ const BrokerDashboard = () => {
     }
   };
 
-  // Filter loads posted by this broker
-  const postedLoads = loads.filter(load => load.postedBy?._id === user?.id);
+  // Filter loads posted by this broker (check if postedBy is object or ID)
+  const postedLoads = loads.filter(load => {
+    const postedById = typeof load.postedBy === 'object' ? load.postedBy?._id : load.postedBy;
+    return postedById === user?.id;
+  });
   const activeLoads = postedLoads.filter(load => load.status === 'available');
   const bookedLoads = postedLoads.filter(load => load.status === 'booked');
 

@@ -37,8 +37,19 @@ const PostLoadForm = () => {
     shipmentId: '',
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Clear error for this field when user starts typing
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (newErrors[name]) {
+        delete newErrors[name];
+      }
+      return newErrors;
+    });
 
     if (name.startsWith('origin.')) {
       const field = name.split('.')[1];
@@ -49,6 +60,14 @@ const PostLoadForm = () => {
           [field]: value,
         },
       }));
+      // Clear error for nested field
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        if (newErrors[`origin.${field}`]) {
+          delete newErrors[`origin.${field}`];
+        }
+        return newErrors;
+      });
     } else if (name.startsWith('destination.')) {
       const field = name.split('.')[1];
       setFormData(prev => ({
@@ -58,6 +77,14 @@ const PostLoadForm = () => {
           [field]: value,
         },
       }));
+      // Clear error for nested field
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        if (newErrors[`destination.${field}`]) {
+          delete newErrors[`destination.${field}`];
+        }
+        return newErrors;
+      });
     } else {
       setFormData(prev => ({
         ...prev,
@@ -66,39 +93,93 @@ const PostLoadForm = () => {
     }
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title?.trim()) {
+      newErrors.title = 'Load title is required';
+    }
+
+    if (!formData.description?.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    if (!formData.origin.city?.trim()) {
+      newErrors['origin.city'] = 'Pickup city is required';
+    }
+
+    if (!formData.origin.state) {
+      newErrors['origin.state'] = 'Pickup state is required';
+    }
+
+    if (!formData.origin.zip?.trim()) {
+      newErrors['origin.zip'] = 'Pickup ZIP code is required';
+    } else if (!/^\d{5}$/.test(formData.origin.zip)) {
+      newErrors['origin.zip'] = 'ZIP code must be 5 digits';
+    }
+
+    if (!formData.destination.city?.trim()) {
+      newErrors['destination.city'] = 'Delivery city is required';
+    }
+
+    if (!formData.destination.state) {
+      newErrors['destination.state'] = 'Delivery state is required';
+    }
+
+    if (!formData.destination.zip?.trim()) {
+      newErrors['destination.zip'] = 'Delivery ZIP code is required';
+    } else if (!/^\d{5}$/.test(formData.destination.zip)) {
+      newErrors['destination.zip'] = 'ZIP code must be 5 digits';
+    }
+
+    if (!formData.pickupDate) {
+      newErrors.pickupDate = 'Pickup date is required';
+    } else {
+      const pickupDate = new Date(formData.pickupDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (pickupDate < today) {
+        newErrors.pickupDate = 'Pickup date cannot be in the past';
+      }
+    }
+
+    if (!formData.deliveryDate) {
+      newErrors.deliveryDate = 'Delivery date is required';
+    } else if (formData.pickupDate) {
+      const pickupDate = new Date(formData.pickupDate);
+      const deliveryDate = new Date(formData.deliveryDate);
+      if (deliveryDate <= pickupDate) {
+        newErrors.deliveryDate = 'Delivery date must be after pickup date';
+      }
+    }
+
+    if (!formData.equipmentType) {
+      newErrors.equipmentType = 'Equipment type is required';
+    }
+
+    if (!formData.weight || formData.weight <= 0) {
+      newErrors.weight = 'Weight must be greater than 0';
+    }
+
+    if (!formData.rate || formData.rate <= 0) {
+      newErrors.rate = 'Rate must be greater than 0';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      addNotification({ type: 'error', message: 'Please fix the errors in the form' });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validate required fields
-      if (!formData.title || !formData.description || !formData.origin.city || 
-          !formData.origin.state || !formData.origin.zip || !formData.destination.city ||
-          !formData.destination.state || !formData.destination.zip || !formData.pickupDate ||
-          !formData.deliveryDate || !formData.equipmentType || !formData.weight || !formData.rate) {
-        addNotification({ type: 'error', message: 'Please fill in all required fields' });
-        setIsLoading(false);
-        return;
-      }
-
-      // Validate dates
-      const pickupDate = new Date(formData.pickupDate);
-      const deliveryDate = new Date(formData.deliveryDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (pickupDate < today) {
-        addNotification({ type: 'error', message: 'Pickup date cannot be in the past' });
-        setIsLoading(false);
-        return;
-      }
-
-      if (deliveryDate <= pickupDate) {
-        addNotification({ type: 'error', message: 'Delivery date must be after pickup date' });
-        setIsLoading(false);
-        return;
-      }
-
       await loadService.postLoad(formData);
       addNotification({ type: 'success', message: 'Load posted successfully!' });
       
@@ -124,11 +205,12 @@ const PostLoadForm = () => {
           type="text"
           name="title"
           required
-          className="input"
+          className={`input ${errors.title ? 'border-red-500' : ''}`}
           value={formData.title}
           onChange={handleChange}
           placeholder="e.g., Dry Van Load from LA to NYC"
         />
+        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
       </div>
 
       <div>
@@ -139,11 +221,12 @@ const PostLoadForm = () => {
           name="description"
           required
           rows={4}
-          className="input"
+          className={`input ${errors.description ? 'border-red-500' : ''}`}
           value={formData.description}
           onChange={handleChange}
           placeholder="Describe the load details, special requirements, etc."
         />
+        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
       {/* Origin */}
@@ -159,17 +242,18 @@ const PostLoadForm = () => {
               type="text"
               name="origin.city"
               required
-              className="input"
+              className={`input ${errors['origin.city'] ? 'border-red-500' : ''}`}
               value={formData.origin.city}
               onChange={handleChange}
             />
+            {errors['origin.city'] && <p className="text-red-500 text-xs mt-1">{errors['origin.city']}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
             <select
               name="origin.state"
               required
-              className="input"
+              className={`input ${errors['origin.state'] ? 'border-red-500' : ''}`}
               value={formData.origin.state}
               onChange={handleChange}
             >
@@ -178,6 +262,7 @@ const PostLoadForm = () => {
                 <option key={state.code} value={state.code}>{state.name}</option>
               ))}
             </select>
+            {errors['origin.state'] && <p className="text-red-500 text-xs mt-1">{errors['origin.state']}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
@@ -187,10 +272,11 @@ const PostLoadForm = () => {
               required
               pattern="[0-9]{5}"
               maxLength={5}
-              className="input"
+              className={`input ${errors['origin.zip'] ? 'border-red-500' : ''}`}
               value={formData.origin.zip}
               onChange={handleChange}
             />
+            {errors['origin.zip'] && <p className="text-red-500 text-xs mt-1">{errors['origin.zip']}</p>}
           </div>
         </div>
       </div>
@@ -208,17 +294,18 @@ const PostLoadForm = () => {
               type="text"
               name="destination.city"
               required
-              className="input"
+              className={`input ${errors['destination.city'] ? 'border-red-500' : ''}`}
               value={formData.destination.city}
               onChange={handleChange}
             />
+            {errors['destination.city'] && <p className="text-red-500 text-xs mt-1">{errors['destination.city']}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
             <select
               name="destination.state"
               required
-              className="input"
+              className={`input ${errors['destination.state'] ? 'border-red-500' : ''}`}
               value={formData.destination.state}
               onChange={handleChange}
             >
@@ -227,6 +314,7 @@ const PostLoadForm = () => {
                 <option key={state.code} value={state.code}>{state.name}</option>
               ))}
             </select>
+            {errors['destination.state'] && <p className="text-red-500 text-xs mt-1">{errors['destination.state']}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
@@ -236,10 +324,11 @@ const PostLoadForm = () => {
               required
               pattern="[0-9]{5}"
               maxLength={5}
-              className="input"
+              className={`input ${errors['destination.zip'] ? 'border-red-500' : ''}`}
               value={formData.destination.zip}
               onChange={handleChange}
             />
+            {errors['destination.zip'] && <p className="text-red-500 text-xs mt-1">{errors['destination.zip']}</p>}
           </div>
         </div>
       </div>
@@ -257,11 +346,12 @@ const PostLoadForm = () => {
               type="date"
               name="pickupDate"
               required
-              className="input"
+              className={`input ${errors.pickupDate ? 'border-red-500' : ''}`}
               value={formData.pickupDate}
               onChange={handleChange}
               min={new Date().toISOString().split('T')[0]}
             />
+            {errors.pickupDate && <p className="text-red-500 text-xs mt-1">{errors.pickupDate}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Date *</label>
@@ -269,11 +359,12 @@ const PostLoadForm = () => {
               type="date"
               name="deliveryDate"
               required
-              className="input"
+              className={`input ${errors.deliveryDate ? 'border-red-500' : ''}`}
               value={formData.deliveryDate}
               onChange={handleChange}
               min={formData.pickupDate || new Date().toISOString().split('T')[0]}
             />
+            {errors.deliveryDate && <p className="text-red-500 text-xs mt-1">{errors.deliveryDate}</p>}
           </div>
         </div>
       </div>
@@ -290,7 +381,7 @@ const PostLoadForm = () => {
             <select
               name="equipmentType"
               required
-              className="input"
+              className={`input ${errors.equipmentType ? 'border-red-500' : ''}`}
               value={formData.equipmentType}
               onChange={handleChange}
             >
@@ -299,6 +390,7 @@ const PostLoadForm = () => {
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
+            {errors.equipmentType && <p className="text-red-500 text-xs mt-1">{errors.equipmentType}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -311,10 +403,12 @@ const PostLoadForm = () => {
                 name="weight"
                 required
                 min="1"
-                className="input pl-10"
+                className={`input pl-10 ${errors.weight ? 'border-red-500' : ''}`}
                 value={formData.weight || ''}
                 onChange={handleChange}
               />
+            </div>
+            {errors.weight && <p className="text-red-500 text-xs mt-1">{errors.weight}</p>}
             </div>
           </div>
         </div>
@@ -352,11 +446,12 @@ const PostLoadForm = () => {
                 required
                 min="1"
                 step="0.01"
-                className="input pl-10"
+                className={`input pl-10 ${errors.rate ? 'border-red-500' : ''}`}
                 value={formData.rate || ''}
                 onChange={handleChange}
               />
             </div>
+            {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
           </div>
         </div>
       </div>

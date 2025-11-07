@@ -36,8 +36,11 @@ const CarrierDashboard = () => {
     }
   };
 
-  // Filter booked loads for this carrier
-  const bookedLoads = loads.filter(load => load.bookedBy === user?.id);
+  // Filter booked loads for this carrier (check if bookedBy is object or ID)
+  const bookedLoads = loads.filter(load => {
+    const bookedById = typeof load.bookedBy === 'object' ? load.bookedBy?._id : load.bookedBy;
+    return bookedById === user?.id;
+  });
 
   // Use API data if available, fallback to local calculations
   const stats = dashboardData?.stats ? [

@@ -17,10 +17,25 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const passwordValue = password.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      addNotification({ type: 'error', message: 'Please enter a valid email address.' });
+      return;
+    }
+
+    if (!passwordValue) {
+      addNotification({ type: 'error', message: 'Password is required.' });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(trimmedEmail, passwordValue);
       addNotification({ type: 'success', message: 'Login successful!' });
       navigate(ROUTES.DASHBOARD);
     } catch (error: unknown) {

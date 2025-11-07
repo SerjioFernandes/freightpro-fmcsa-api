@@ -42,16 +42,16 @@ const Documents = () => {
     }
   };
 
-  const handleDownload = async (document: any) => {
+  const handleDownload = async (doc: any) => {
     try {
-      const blob = await documentService.downloadDocument(document._id);
+      const blob = await documentService.downloadDocument(doc._id);
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
-      link.download = document.originalName;
-      document.body.appendChild(link);
+      link.download = doc.originalName;
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       addNotification({ type: 'success', message: 'Download started' });
     } catch (error: any) {

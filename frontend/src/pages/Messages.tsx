@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { messageService } from '../services/message.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageSquare, Send, Loader2, Edit2, Trash2 } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Messages = () => {
   const { addNotification } = useUIStore();
@@ -17,21 +18,46 @@ const Messages = () => {
   const [isSending, setIsSending] = useState(false);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
+  const [isConversationsLoading, setIsConversationsLoading] = useState(true);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false);
+  const [conversationsError, setConversationsError] = useState<string | null>(null);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
+    setIsConversationsLoading(true);
+    setConversationsError(null);
     try {
       const response = await messageService.getConversations();
       if (response.success) {
         setConversations(response.data);
       }
     } catch (error: any) {
+      setConversationsError('Failed to load conversations');
       addNotification({ type: 'error', message: 'Failed to load conversations' });
+    } finally {
+      setIsConversationsLoading(false);
     }
-  };
+  }, [addNotification]);
 
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [loadConversations]);
+
+  const loadConversation = useCallback(async (userId: string) => {
+    setIsMessagesLoading(true);
+    setMessagesError(null);
+    try {
+      const response = await messageService.getConversation(userId);
+      if (response.success) {
+        setMessages(response.data);
+      }
+    } catch (error: any) {
+      setMessagesError('Failed to load conversation');
+      addNotification({ type: 'error', message: 'Failed to load conversation' });
+    } finally {
+      setIsMessagesLoading(false);
+    }
+  }, [addNotification]);
 
   useEffect(() => {
     if (selectedUser && user) {
@@ -45,7 +71,7 @@ const Messages = () => {
         leaveRoom(`conversation_${conversationId}`);
       };
     }
-  }, [selectedUser, user, joinRoom, leaveRoom]);
+  }, [selectedUser, user, joinRoom, leaveRoom, loadConversation]);
 
   // WebSocket real-time message updates
   useEffect(() => {
@@ -86,18 +112,7 @@ const Messages = () => {
       unsubscribeMessageUpdate();
       unsubscribeMessageDelete();
     };
-  }, [subscribe, selectedUser, user]);
-
-  const loadConversation = async (userId: string) => {
-    try {
-      const response = await messageService.getConversation(userId);
-      if (response.success) {
-        setMessages(response.data);
-      }
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to load conversation' });
-    }
-  };
+  }, [subscribe, selectedUser, user, loadConversations]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,12 +191,19 @@ const Messages = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Conversations List */}
           <div className="lg:col-span-1">
-            <div className="card h-[600px] overflow-hidden flex flex-col">
+            <div className="card min-h-[420px] md:h-[540px] lg:h-[600px] overflow-hidden flex flex-col">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-4 border-b border-gray-200">
                 Conversations
               </h2>
               <div className="flex-1 overflow-y-auto space-y-2">
-                {conversations.length === 0 ? (
+                {isConversationsLoading ? (
+                  <div className="py-12 flex justify-center"><LoadingSpinner /></div>
+                ) : conversationsError ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-500 mb-3">{conversationsError}</p>
+                    <button onClick={loadConversations} className="btn btn-secondary">Retry</button>
+                  </div>
+                ) : conversations.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">No conversations yet</p>
                 ) : (
                   conversations.map((conv) => (
@@ -204,7 +226,7 @@ const Messages = () => {
                       </div>
                       <p className="text-sm text-gray-600 truncate">{conv.lastMessage?.subject}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {new Date(conv.lastMessage?.createdAt).toLocaleString()}
+                        {conv.lastMessage?.createdAt ? new Date(conv.lastMessage.createdAt).toLocaleString() : 'No messages yet'}
                       </p>
                     </button>
                   ))
@@ -215,7 +237,7 @@ const Messages = () => {
 
           {/* Message Thread */}
           <div className="lg:col-span-2">
-            <div className="card h-[600px] flex flex-col">
+            <div className="card min-h-[420px] md:h-[540px] lg:h-[600px] flex flex-col">
               {selectedUser ? (
                 <>
                   <div className="border-b border-gray-200 pb-4 mb-4">
@@ -224,7 +246,14 @@ const Messages = () => {
                   </div>
 
                   <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                    {messages.length === 0 ? (
+                    {isMessagesLoading ? (
+                      <div className="py-12 flex justify-center"><LoadingSpinner /></div>
+                    ) : messagesError ? (
+                      <div className="text-center py-8">
+                        <p className="text-red-500 mb-3">{messagesError}</p>
+                        <button onClick={() => loadConversation(selectedUser.userId)} className="btn btn-secondary">Retry</button>
+                      </div>
+                    ) : messages.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">No messages yet. Start a conversation!</p>
                     ) : (
                       messages.map((msg: any) => (

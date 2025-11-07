@@ -19,6 +19,7 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const { addNotification } = useUIStore();
   const navigate = useNavigate();
@@ -61,24 +62,86 @@ const Register = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name } = e.target;
     let value = e.target.value;
     
     // Auto-format EIN and Phone
-    if (e.target.name === 'ein') {
+    if (name === 'ein') {
       value = formatEIN(value);
-    } else if (e.target.name === 'phone') {
+    } else if (name === 'phone') {
       value = formatPhone(value);
     }
-    
-    setFormData({ ...formData, [e.target.name]: value });
+
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear field-level errors when user updates input
+    setErrors(prev => {
+      if (!prev[name]) return prev;
+      const { [name]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const trimmedEmail = formData.email.trim().toLowerCase();
+    const passwordValue = formData.password.trim();
+    const companyValue = formData.company.trim();
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    const usdotDigits = (formData.usdotNumber || '').replace(/\D/g, '');
+    const mcDigits = (formData.mcNumber || '').replace(/\D/g, '');
+    const einDigits = (formData.ein || '').replace(/\D/g, '');
+
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!passwordValue || passwordValue.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long.';
+    }
+
+    if (!companyValue) {
+      newErrors.company = 'Company name is required.';
+    }
+
+    if (phoneDigits.length < 10) {
+      newErrors.phone = 'Enter a valid 10 digit phone number.';
+    }
+
+    if (needsAuthority) {
+      if (!usdotDigits || usdotDigits.length < 6) {
+        newErrors.usdotNumber = 'USDOT number must have at least 6 digits.';
+      }
+
+      if (!einDigits || einDigits.length !== 9) {
+        newErrors.ein = 'EIN must contain exactly 9 digits.';
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      addNotification({ type: 'error', message: 'Please fix the highlighted fields and try again.' });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await authService.register(formData);
+      const payload: RegisterData = {
+        email: trimmedEmail,
+        password: passwordValue,
+        company: companyValue,
+        phone: phoneDigits,
+        accountType: formData.accountType,
+        usdotNumber: needsAuthority ? usdotDigits : undefined,
+        mcNumber: mcDigits ? mcDigits : undefined,
+        ein: needsAuthority ? einDigits : undefined,
+      };
+
+      const response = await authService.register(payload);
       
       // Show verification code if email wasn't sent (for development/testing)
       if (!response.emailSent && response.verification?.code) {
@@ -167,11 +230,12 @@ const Register = () => {
                   name="email"
                   type="email"
                   required
-                  className="input"
+                  className={`input ${errors.email ? 'border-red-500' : ''}`}
                   value={formData.email}
                   onChange={handleChange}
                   autoComplete="email"
                 />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -183,7 +247,7 @@ const Register = () => {
                     type={showPassword ? 'text' : 'password'}
                     required
                     minLength={6}
-                    className="input pr-10"
+                    className={`input pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     value={formData.password}
                     onChange={handleChange}
                     autoComplete="new-password"
@@ -197,6 +261,7 @@ const Register = () => {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
             </div>
 
@@ -209,10 +274,11 @@ const Register = () => {
                   name="company"
                   type="text"
                   required
-                  className="input"
+                  className={`input ${errors.company ? 'border-red-500' : ''}`}
                   value={formData.company}
                   onChange={handleChange}
                 />
+                {errors.company && <p className="text-red-500 text-xs mt-1">{errors.company}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -223,11 +289,12 @@ const Register = () => {
                   type="tel"
                   required
                   placeholder="(555) 123-4567"
-                  className="input"
+                  className={`input ${errors.phone ? 'border-red-500' : ''}`}
                   value={formData.phone}
                   onChange={handleChange}
                 />
                 <p className="text-xs text-gray-500 mt-1">US/Canada format only</p>
+                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
               </div>
             </div>
 
@@ -241,10 +308,12 @@ const Register = () => {
                   <input
                     name="usdotNumber"
                     type="text"
-                    className="input"
+                    className={`input ${errors.usdotNumber ? 'border-red-500' : ''}`}
                     value={formData.usdotNumber}
                     onChange={handleChange}
+                    required={needsAuthority}
                   />
+                  {errors.usdotNumber && <p className="text-red-500 text-xs mt-1">{errors.usdotNumber}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -267,11 +336,13 @@ const Register = () => {
                     type="text"
                     placeholder="12-3456789"
                     maxLength={10}
-                    className="input"
+                    className={`input ${errors.ein ? 'border-red-500' : ''}`}
                     value={formData.ein}
                     onChange={handleChange}
+                    required={needsAuthority}
                   />
                   <p className="text-xs text-gray-500 mt-1">Format: XX-XXXXXXX</p>
+                  {errors.ein && <p className="text-red-500 text-xs mt-1">{errors.ein}</p>}
                 </div>
               </div>
             )}
@@ -281,7 +352,14 @@ const Register = () => {
               disabled={isLoading}
               className="w-full btn btn-accent py-3 text-lg text-white"
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
+                  Creating Account...
+                </span>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
         </div>

@@ -3,22 +3,25 @@ import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
-import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, Map, List } from 'lucide-react';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, Map, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
 import LoadMap from '../components/Map/LoadMap';
 
 const LoadBoard = () => {
-  const { loads, isLoading, fetchLoads, bookLoad } = useLoadStore();
+  const { loads, pagination, isLoading, fetchLoads, bookLoad } = useLoadStore();
   const { user } = useAuthStore();
   const { addNotification } = useUIStore();
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(20);
+  const [isBooking, setIsBooking] = useState<string | null>(null);
 
   // Enable real-time updates for load board
   useRealTimeUpdates();
 
   useEffect(() => {
-    fetchLoads();
-  }, [fetchLoads]);
+    fetchLoads(currentPage, limit);
+  }, [fetchLoads, currentPage, limit]);
 
   // Access control: Only carriers and brokers can view the load board
   if (!canViewLoadBoard(user?.accountType)) {
@@ -41,11 +44,17 @@ const LoadBoard = () => {
   }
 
   const handleBookLoad = async (loadId: string) => {
+    setIsBooking(loadId);
     try {
       await bookLoad(loadId);
       addNotification({ type: 'success', message: 'Load booked successfully!' });
-    } catch (error) {
-      addNotification({ type: 'error', message: 'Failed to book load. Please try again.' });
+      // Refresh current page after booking
+      await fetchLoads(currentPage, limit);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to book load. Please try again.';
+      addNotification({ type: 'error', message: errorMessage });
+    } finally {
+      setIsBooking(null);
     }
   };
 
@@ -221,13 +230,27 @@ const LoadBoard = () => {
                     {canBookLoads && load.status === 'available' && (
                       <button
                         onClick={() => handleBookLoad(load._id)}
+                        disabled={isBooking === load._id || isLoading}
                         className="btn btn-accent w-full group"
                       >
-                        Book Load
-                        <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                        {isBooking === load._id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                            Booking...
+                          </span>
+                        ) : (
+                          <>
+                            Book Load
+                            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                          </>
+                        )}
                       </button>
                     )}
-                    
+                    {canBookLoads && load.status !== 'available' && (
+                      <div className="text-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+                        {load.status === 'booked' ? 'Already Booked' : load.status}
+                      </div>
+                    )}
                     {!canBookLoads && (
                       <div className="text-center text-sm text-gray-600 bg-light-ivory px-4 py-2 rounded-lg">
                         Carrier accounts only
@@ -248,6 +271,65 @@ const LoadBoard = () => {
             <p className="text-lg text-gray-600 mb-6">
               Check back soon for new freight opportunities
             </p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.pages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1 || isLoading}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              Previous
+            </button>
+            
+            <div className="flex items-center gap-2">
+              {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                let pageNum;
+                if (pagination.pages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= pagination.pages - 2) {
+                  pageNum = pagination.pages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    disabled={isLoading}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-primary-blue text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(pagination.pages, prev + 1))}
+              disabled={currentPage === pagination.pages || isLoading}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
+        {pagination && (
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} loads
           </div>
         )}
       </div>

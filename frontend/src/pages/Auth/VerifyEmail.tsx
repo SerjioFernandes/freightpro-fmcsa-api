@@ -13,6 +13,8 @@ const VerifyEmail = () => {
   const [email, setEmail] = useState(emailFromUrl);
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const { addNotification } = useUIStore();
   const { setUser } = useAuthStore();
@@ -20,10 +22,29 @@ const VerifyEmail = () => {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedCode = code.trim();
+    const newErrors: Record<string, string> = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      newErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!trimmedCode || trimmedCode.length !== 6) {
+      newErrors.code = 'Verification code must be 6 digits.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      addNotification({ type: 'error', message: 'Please correct the highlighted fields.' });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await authService.verifyEmail(email, code);
+      const response = await authService.verifyEmail(trimmedEmail, trimmedCode);
       addNotification({ type: 'success', message: 'Email verified successfully! Please log in.' });
       
       // If response includes user data, update auth store
@@ -47,8 +68,19 @@ const VerifyEmail = () => {
   };
 
   const handleResendCode = async () => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      setErrors(prev => ({ ...prev, email: 'Enter a valid email address before requesting a new code.' }));
+      addNotification({ type: 'error', message: 'Enter a valid email address before requesting a new code.' });
+      return;
+    }
+
+    setIsResending(true);
+
     try {
-      await authService.resendCode(email);
+      await authService.resendCode(trimmedEmail);
       addNotification({ type: 'success', message: 'Verification code resent!' });
     } catch (error: unknown) {
       const errorMessage = error && typeof error === 'object' && 'response' in error
@@ -58,6 +90,8 @@ const VerifyEmail = () => {
         type: 'error', 
         message: errorMessage
       });
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -79,10 +113,18 @@ const VerifyEmail = () => {
               <input
                 type="email"
                 required
-                className="input"
+                className={`input ${errors.email ? 'border-red-500' : ''}`}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors(prev => {
+                    if (!prev.email) return prev;
+                    const { email: _removed, ...rest } = prev;
+                    return rest;
+                  });
+                }}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             <div>
@@ -93,11 +135,19 @@ const VerifyEmail = () => {
                 type="text"
                 required
                 maxLength={6}
-                className="input text-center text-2xl tracking-widest"
+                className={`input text-center text-2xl tracking-widest ${errors.code ? 'border-red-500' : ''}`}
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/\D/g, ''));
+                  setErrors(prev => {
+                    if (!prev.code) return prev;
+                    const { code: _removed, ...rest } = prev;
+                    return rest;
+                  });
+                }}
                 placeholder="000000"
               />
+              {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code}</p>}
             </div>
 
             <button
@@ -112,9 +162,10 @@ const VerifyEmail = () => {
           <div className="mt-6 text-center">
             <button
               onClick={handleResendCode}
-              className="text-primary-600 font-semibold hover:text-primary-700"
+              className={`text-primary-600 font-semibold hover:text-primary-700 disabled:opacity-60 disabled:cursor-not-allowed`}
+              disabled={isResending}
             >
-              Resend Code
+              {isResending ? 'Sending...' : 'Resend Code'}
             </button>
           </div>
         </div>

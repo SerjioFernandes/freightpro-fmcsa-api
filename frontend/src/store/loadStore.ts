@@ -41,16 +41,18 @@ export const useLoadStore = create<LoadState>((set) => ({
   },
 
   bookLoad: async (loadId) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: false, error: null }); // Don't set loading to true - let component handle UI state
     try {
       await loadService.bookLoad(loadId);
-      // Refresh loads after booking
-      const state = useLoadStore.getState();
-      await state.fetchLoads();
+      // Update the specific load status in the store
+      set((state) => ({
+        loads: state.loads.map(load => 
+          load._id === loadId ? { ...load, status: 'booked' as const } : load
+        )
+      }));
     } catch (error: any) {
       set({
-        error: error.response?.data?.message || 'Failed to book load',
-        isLoading: false,
+        error: error.response?.data?.message || error.response?.data?.error || 'Failed to book load',
       });
       throw error;
     }
