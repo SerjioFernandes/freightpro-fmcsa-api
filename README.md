@@ -1,4 +1,4 @@
-# 🚛 FreightPro / CargoLume - Production Load Board Platform
+# 🚛 CargoLume - Production Load Board Platform
 
 **Professional freight management platform for carriers, brokers, and shippers.**
 
