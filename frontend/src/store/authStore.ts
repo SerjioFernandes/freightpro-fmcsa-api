@@ -37,16 +37,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setUser: (user) => {
-    set((state) => ({
-      user,
-      isAuthenticated: !!user,
-      adminActivation: state.adminActivation,
-    }));
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
     } else {
       localStorage.removeItem('user');
     }
+    set({ user, isAuthenticated: !!user });
   },
   
   setToken: (token) => {
@@ -55,11 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } else {
       localStorage.removeItem('token');
     }
-    set((state) => ({
-      token,
-      isAuthenticated: !!token,
-      adminActivation: state.adminActivation,
-    }));
+    set({ token, isAuthenticated: !!token });
   },
 
   login: async (email, password) => {
@@ -71,7 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
 
-        set((state) => ({
+        set({
           token: response.token,
           user: response.user,
           isAuthenticated: true,
@@ -82,23 +74,17 @@ export const useAuthStore = create<AuthState>((set) => ({
                 title: 'Admin Mode Activated',
                 subtitle: `Welcome back, ${response.user.company || 'Admin'}`,
               }
-            : state.adminActivation,
-        }));
+            : { isActive: false, title: '', subtitle: '' },
+        });
 
         if (isAdminUser) {
           setTimeout(() => {
-            set((current) => {
-              if (!current.adminActivation.isActive) {
-                return current;
-              }
-              return {
-                ...current,
-                adminActivation: {
-                  isActive: false,
-                  title: '',
-                  subtitle: '',
-                },
-              };
+            set({
+              adminActivation: {
+                isActive: false,
+                title: '',
+                subtitle: '',
+              },
             });
           }, 1800);
         }
@@ -132,20 +118,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        set((state) => ({
+        set({
           token,
           user,
           isAuthenticated: true,
           isLoading: false,
-          adminActivation: state.adminActivation,
-        }));
+        });
       } catch {
         set({
           token: null,
           user: null,
           isAuthenticated: false,
           isLoading: false,
-          adminActivation: { isActive: false, title: '', subtitle: '' },
         });
       }
     } else {
@@ -154,7 +138,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        adminActivation: { isActive: false, title: '', subtitle: '' },
       });
     }
   },
@@ -162,9 +145,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ error: null }),
 
   dismissAdminActivation: () =>
-    set((state) => ({
-      ...state,
+    set({
       adminActivation: { isActive: false, title: '', subtitle: '' },
-    })),
+    }),
 }));
 

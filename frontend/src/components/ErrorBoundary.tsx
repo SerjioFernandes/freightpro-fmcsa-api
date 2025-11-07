@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import type { ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../utils/constants';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -43,11 +41,9 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 const ErrorFallback: React.FC<{ error: Error | null; resetError: () => void }> = ({ error, resetError }) => {
-  const navigate = useNavigate();
-
   const handleGoHome = () => {
     resetError();
-    navigate(ROUTES.HOME);
+    window.location.href = '/';
   };
 
   return (
