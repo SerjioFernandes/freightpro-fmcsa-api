@@ -103,19 +103,19 @@ const Documents = () => {
         onUploaded={loadDocuments}
       />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="container mx-auto px-3 sm:px-4 py-6 md:py-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
                   Documents
                 </h1>
                 <p className="text-sm md:text-base text-gray-600">Manage your freight documents</p>
               </div>
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <Plus className="h-5 w-5" />
                 <span className="hidden md:inline">Upload Document</span>
@@ -124,20 +124,20 @@ const Documents = () => {
             </div>
 
             {/* Filters and View Toggle */}
-            <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
+            <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 <Filter className="h-5 w-5 text-gray-600" />
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 hover:border-blue-400 transition-all"
+                  className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 hover:border-blue-400 transition-all"
                 >
                   {DOCUMENT_TYPES.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 md:p-2.5 rounded-lg transition-all duration-300 ${
@@ -204,7 +204,7 @@ const Documents = () => {
                     <span className="font-medium">{new Date(doc.uploadedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={() => handleView(doc)}
                     className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white py-2.5 rounded-lg font-semibold text-xs shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
@@ -223,7 +223,7 @@ const Documents = () => {
                   </button>
                   <button
                     onClick={() => handleDelete(doc._id)}
-                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center sm:w-auto w-full"
                     title="Delete Document"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -265,7 +265,7 @@ const Documents = () => {
                         {new Date(doc.uploadedAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 md:px-6 py-3 whitespace-nowrap">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => handleView(doc)}
                             className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"

@@ -190,15 +190,15 @@ const Register = () => {
   const needsAuthority = formData.accountType === 'carrier' || formData.accountType === 'broker';
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-gray-50">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-10 px-3 sm:px-4 bg-gray-50">
       <div className="max-w-2xl w-full">
-        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in">
-          <div className="text-center mb-8">
-            <div className="gradient-blue w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
+        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in p-6 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="gradient-blue w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
               <UserPlus className="h-10 w-10 text-orange-accent" />
             </div>
-            <h2 className="text-4xl font-heading font-bold text-gray-900">Create Account</h2>
-            <p className="text-gray-700 mt-2 text-lg">Join <span className="text-orange-accent font-semibold">CargoLume</span> today</p>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-700 mt-2 text-base sm:text-lg">Join <span className="text-orange-accent font-semibold">CargoLume</span> today</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -221,7 +221,7 @@ const Register = () => {
             </div>
 
             {/* Basic Info */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email Address *
@@ -265,7 +265,7 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Company Name *

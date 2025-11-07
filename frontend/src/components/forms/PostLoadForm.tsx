@@ -235,7 +235,7 @@ const PostLoadForm = () => {
           <MapPin className="h-5 w-5 text-primary-blue" />
           <h3 className="text-lg font-semibold text-gray-900">Pickup Location *</h3>
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
             <input
@@ -287,7 +287,7 @@ const PostLoadForm = () => {
           <MapPin className="h-5 w-5 text-orange-accent" />
           <h3 className="text-lg font-semibold text-gray-900">Delivery Location *</h3>
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
             <input
@@ -339,7 +339,7 @@ const PostLoadForm = () => {
           <Calendar className="h-5 w-5 text-primary-blue" />
           <h3 className="text-lg font-semibold text-gray-900">Schedule *</h3>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date *</label>
             <input
@@ -375,7 +375,7 @@ const PostLoadForm = () => {
           <Truck className="h-5 w-5 text-primary-blue" />
           <h3 className="text-lg font-semibold text-gray-900">Load Details *</h3>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Equipment Type *</label>
             <select
@@ -419,7 +419,7 @@ const PostLoadForm = () => {
           <DollarSign className="h-5 w-5 text-green-600" />
           <h3 className="text-lg font-semibold text-gray-900">Rate *</h3>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Rate Type *</label>
             <select

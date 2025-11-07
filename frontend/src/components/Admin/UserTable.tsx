@@ -113,17 +113,17 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading = false, onViewR
                         <div className="text-xs text-slate-500">Last login: {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}</div>
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => onViewRaw(user)}
-                            className="px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition-all"
+                            className="min-w-[88px] px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition-all"
                           >
                             View
                           </button>
                           {onEdit && (
                             <button
                               onClick={() => onEdit(user)}
-                              className="px-3 py-1.5 rounded-md bg-blue-600/20 text-blue-300 text-xs font-semibold hover:bg-blue-600/40 border border-blue-500/40 transition-all"
+                              className="min-w-[88px] px-3 py-1.5 rounded-md bg-blue-600/20 text-blue-300 text-xs font-semibold hover:bg-blue-600/40 border border-blue-500/40 transition-all"
                             >
                               Edit
                             </button>
@@ -131,7 +131,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading = false, onViewR
                           {onDelete && (
                             <button
                               onClick={() => onDelete(user)}
-                              className="px-3 py-1.5 rounded-md bg-red-600/20 text-red-300 text-xs font-semibold hover:bg-red-600/40 border border-red-500/40 transition-all"
+                              className="min-w-[88px] px-3 py-1.5 rounded-md bg-red-600/20 text-red-300 text-xs font-semibold hover:bg-red-600/40 border border-red-500/40 transition-all"
                             >
                               Delete
                             </button>

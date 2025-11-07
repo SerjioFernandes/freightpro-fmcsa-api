@@ -134,12 +134,12 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-16 md:py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6">
+      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-14 md:py-20">
+        <div className="container mx-auto px-3 sm:px-4 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6">
             Choose Your Plan
           </h1>
-          <p className="text-base md:text-xl text-gray-100 max-w-3xl mx-auto mb-6 md:mb-8">
+          <p className="text-base sm:text-lg md:text-xl text-gray-100 max-w-3xl mx-auto mb-6 md:mb-8">
             Scale your freight business with CargoLume's premium platform.
             <br />
             Start free, upgrade when you're ready.
@@ -148,8 +148,8 @@ const Pricing = () => {
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-12 md:py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-10 sm:py-12 md:py-20">
+        <div className="container mx-auto px-3 sm:px-4">
           {/* Billing Cycle Toggle */}
           <div className="flex justify-center mb-8 md:mb-12">
             <div className="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-gray-200">
@@ -179,7 +179,7 @@ const Pricing = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -198,11 +198,11 @@ const Pricing = () => {
                 )}
 
                 {/* Plan Header */}
-                <div className={`text-center p-6 md:p-8 ${plan.popular ? 'bg-gradient-to-br from-blue-50 to-blue-100' : 'bg-gray-50'} rounded-t-xl`}>
+                <div className={`text-center p-6 sm:p-7 md:p-8 ${plan.popular ? 'bg-gradient-to-br from-blue-50 to-blue-100' : 'bg-gray-50'} rounded-t-xl`}>
                   <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-6">{plan.description}</p>
+                  <p className="text-sm text-gray-600 mb-5 md:mb-6">{plan.description}</p>
                   <div className="mb-2">
                     <span className="text-4xl md:text-5xl font-bold text-blue-700">
                       {getDisplayPrice(plan)}
@@ -215,7 +215,7 @@ const Pricing = () => {
                 </div>
 
                 {/* Features List */}
-                <ul className="space-y-3 p-6 md:p-8 flex-1">
+                <ul className="space-y-3 p-6 sm:p-7 md:p-8 flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature.name} className="flex items-start gap-3">
                       {feature.included ? (
@@ -235,7 +235,7 @@ const Pricing = () => {
                 </ul>
 
                 {/* CTA Button */}
-                <div className="p-6 md:p-8 pt-0">
+                <div className="p-6 sm:p-7 md:p-8 pt-0">
                   <button 
                     onClick={() => handlePlanClick(plan.link)} 
                     className={`w-full py-3 md:py-3.5 rounded-lg font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 ${
@@ -254,9 +254,9 @@ const Pricing = () => {
       </section>
 
       {/* Feature Comparison Table */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
+      <section className="py-10 sm:py-12 md:py-20 bg-white">
+        <div className="container mx-auto px-3 sm:px-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
             Compare Plans
           </h2>
           <div className="max-w-6xl mx-auto overflow-x-auto">
@@ -294,9 +294,9 @@ const Pricing = () => {
       </section>
 
       {/* Trust Badges */}
-      <section className="py-12 md:py-16 bg-gradient-to-r from-gray-900 to-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8 text-center">
+      <section className="py-10 sm:py-12 md:py-16 bg-gradient-to-r from-gray-900 to-gray-800">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center">
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
               <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Shield className="h-8 w-8 text-blue-700" />
@@ -323,9 +323,9 @@ const Pricing = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
+      <section className="py-10 sm:py-12 md:py-20 bg-gray-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-8 md:mb-12">
             Frequently Asked Questions
           </h2>
           <div className="max-w-3xl mx-auto space-y-4">
@@ -354,18 +354,18 @@ const Pricing = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-16 md:py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6">
+      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-14 md:py-20">
+        <div className="container mx-auto px-3 sm:px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 md:mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-base md:text-xl text-gray-100 max-w-2xl mx-auto mb-6 md:mb-8">
+          <p className="text-base sm:text-lg md:text-xl text-gray-100 max-w-2xl mx-auto mb-6 md:mb-8">
             Join thousands of carriers, brokers, and shippers growing their business with CargoLume.
           </p>
           <div className="flex flex-col md:flex-row justify-center gap-4">
             <button 
               onClick={() => handlePlanClick(ROUTES.REGISTER)}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 w-full md:w-auto"
             >
               Start Free Trial
               <ArrowRight className="h-5 w-5" />

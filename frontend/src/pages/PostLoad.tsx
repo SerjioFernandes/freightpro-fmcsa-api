@@ -28,15 +28,15 @@ const PostLoad = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in">
-            <div className="text-center mb-8">
-              <div className="gradient-blue w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
+          <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in p-6 sm:p-8">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="gradient-blue w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
                 <Plus className="h-10 w-10 text-orange-accent" />
               </div>
-              <h2 className="text-4xl font-heading font-bold text-gray-900">Post New Load</h2>
-              <p className="text-gray-700 mt-2 text-lg">Fill in the details to post your load</p>
+              <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900">Post New Load</h2>
+              <p className="text-gray-700 mt-2 text-base sm:text-lg">Fill in the details to post your load</p>
             </div>
 
             <PostLoadForm />

@@ -17,8 +17,8 @@ const MobileBottomNav = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
-      <div className="flex items-center justify-around h-16">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 z-40 safe-area-bottom">
+      <div className="flex items-center justify-between px-2.5 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -27,14 +27,14 @@ const MobileBottomNav = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 min-w-[52px] transition-all ${
                 active
-                  ? 'text-blue-600'
+                  ? 'text-blue-600 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Icon className={`h-6 w-6 mb-1 ${active ? 'stroke-2' : 'stroke-1.5'}`} />
-              <span className={`text-xs ${active ? 'font-semibold' : 'font-normal'}`}>
+              <Icon className={`h-5 w-5 mb-1 transition-transform ${active ? 'scale-110' : 'scale-100'}`} />
+              <span className="text-[11px] leading-tight">
                 {item.label}
               </span>
             </button>

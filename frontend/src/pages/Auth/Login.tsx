@@ -57,15 +57,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 bg-gray-50">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-10 px-3 sm:px-4 bg-gray-50">
       <div className="max-w-md w-full">
-        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in">
-          <div className="text-center mb-8">
-            <div className="gradient-blue w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
+        <div className="card border-2 border-primary-blue/30 shadow-xl animate-scale-in p-6 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="gradient-blue w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-blue">
               <LogIn className="h-10 w-10 text-orange-accent" />
             </div>
-            <h2 className="text-4xl font-heading font-bold text-gray-900">Sign In</h2>
-            <p className="text-gray-700 mt-2 text-lg">Welcome back to <span className="text-orange-accent font-semibold">CargoLume</span></p>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900">Sign In</h2>
+            <p className="text-gray-700 mt-2 text-base sm:text-lg">Welcome back to <span className="text-orange-accent font-semibold">CargoLume</span></p>
           </div>
  
           <form onSubmit={handleSubmit} className="space-y-6">
