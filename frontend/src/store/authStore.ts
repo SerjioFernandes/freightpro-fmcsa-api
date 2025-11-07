@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 subtitle: '',
               },
             });
-          }, 1800);
+          }, 6500);
         }
 
         return response.user;
