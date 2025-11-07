@@ -4,10 +4,8 @@ import { useAuthStore } from '../../store/authStore';
 
 const AdminActivationOverlay = () => {
   const [stage, setStage] = useState<'activating' | 'welcome'>('activating');
-  const { adminActivation, dismissAdminActivation } = useAuthStore((state) => ({
-    adminActivation: state.adminActivation,
-    dismissAdminActivation: state.dismissAdminActivation,
-  }));
+  const adminActivation = useAuthStore((state) => state.adminActivation);
+  const dismissAdminActivation = useAuthStore((state) => state.dismissAdminActivation);
 
   useEffect(() => {
     if (!adminActivation.isActive) return;
