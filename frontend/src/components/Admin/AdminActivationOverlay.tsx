@@ -10,14 +10,16 @@ const AdminActivationOverlay = () => {
   useEffect(() => {
     if (!adminActivation.isActive) return;
 
+    // Show "Activating Admin Mode" for 2.5 seconds
     const activatingTimer = setTimeout(() => {
       setStage('welcome');
-    }, 3000);
+    }, 2500);
 
+    // Show "Welcome back, Admin" for 3.5 seconds, then dismiss
     const dismissTimer = setTimeout(() => {
       dismissAdminActivation();
       setStage('activating');
-    }, 8000);
+    }, 6000);
 
     return () => {
       clearTimeout(activatingTimer);
