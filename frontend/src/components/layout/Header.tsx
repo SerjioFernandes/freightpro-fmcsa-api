@@ -1,27 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ROUTES } from '../../utils/constants';
-import {
-  Truck,
-  User,
-  LogOut,
-  Menu,
-  X,
-  MessageSquare,
-  Settings,
-  FileText,
-  LayoutDashboard,
-  Shield,
-  ChevronDown,
-  Bookmark,
-  Package,
-  Plus,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import {
-  canViewLoadBoard,
-  canPostLoad,
-  canViewShipments
+import { Truck, User, LogOut, Menu, X, Plus, Package, MessageSquare, Settings, FileText, Bookmark, LayoutDashboard, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { 
+  canViewLoadBoard, 
+  canPostLoad, 
+  canViewShipments 
 } from '../../utils/permissions';
 import NotificationCenter from '../common/NotificationCenter';
 
@@ -29,32 +14,13 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [opsMenuOpen, setOpsMenuOpen] = useState(false);
-  const [intelMenuOpen, setIntelMenuOpen] = useState(false);
   const isAdmin = user?.role === 'admin';
-
-  const opsRef = useRef<HTMLDivElement | null>(null);
-  const intelRef = useRef<HTMLDivElement | null>(null);
 
   const handleLogout = () => {
     logout();
     navigate(ROUTES.HOME);
     setMobileMenuOpen(false);
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (opsRef.current && !opsRef.current.contains(event.target as Node)) {
-        setOpsMenuOpen(false);
-      }
-      if (intelRef.current && !intelRef.current.contains(event.target as Node)) {
-        setIntelMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Determine which nav items to show based on account type
   const showLoadBoard = isAuthenticated && canViewLoadBoard(user?.accountType);
@@ -79,110 +45,86 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center space-x-1 lg:flex">
+          <nav className="hidden lg:flex items-center space-x-1">
             <Link
               to={ROUTES.HOME}
               className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
             >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
               Home
             </Link>
-
-            {isAuthenticated && (
+            {showLoadBoard && (
               <Link
-                to={ROUTES.DASHBOARD}
+                to={ROUTES.LOAD_BOARD}
                 className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
               >
-                <LayoutDashboard className="w-4 h-4 mr-1" />
-                Dashboard
+                <Truck className="w-4 h-4 mr-1" />
+                Load Board
               </Link>
             )}
-
-            {isAdmin && (
+            {showPostLoad && (
               <Link
-                to={ROUTES.ADMIN_DASHBOARD}
-                className="text-white text-sm px-4 py-2 hover:bg-red-700/80 rounded transition-colors flex items-center bg-red-600/90 border-2 border-red-500 shadow-lg shadow-red-900/50 font-bold"
+                to={ROUTES.POST_LOAD}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
               >
-                <Shield className="w-4 h-4 mr-1" />
-                Admin Console
+                <Plus className="w-4 h-4 mr-1" />
+                Post Load
               </Link>
             )}
-
-            {isAuthenticated && (
-              <div
-                ref={opsRef}
-                className="relative"
-                onMouseEnter={() => setOpsMenuOpen(true)}
-                onMouseLeave={() => setOpsMenuOpen(false)}
+            {showShipments && (
+              <Link
+                to={ROUTES.SHIPMENTS}
+                className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
               >
-                <button
-                  type="button"
-                  className={`text-white text-sm px-3 py-2 rounded transition-colors flex items-center ${
-                    opsMenuOpen ? 'bg-blue-700' : 'hover:bg-blue-700'
-                  }`}
-                  onClick={() => setOpsMenuOpen((prev) => !prev)}
-                >
-                  Operations
-                  <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${opsMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {opsMenuOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-52 rounded-lg border border-blue-600 bg-blue-900/95 backdrop-blur-sm p-2 shadow-2xl">
-                    {showLoadBoard && (
-                      <Link
-                        to={ROUTES.LOAD_BOARD}
-                        className="flex items-center gap-2 rounded px-3 py-2 text-sm text-white hover:bg-blue-700"
-                        onClick={() => setOpsMenuOpen(false)}
-                      >
-                        <Truck className="h-4 w-4" />
-                        Load Board
-                      </Link>
-                    )}
-                    {showPostLoad && (
-                      <Link
-                        to={ROUTES.POST_LOAD}
-                        className="flex items-center gap-2 rounded px-3 py-2 text-sm text-white hover:bg-blue-700"
-                        onClick={() => setOpsMenuOpen(false)}
-                      >
-                        <Plus className="h-4 w-4" />
-                        Post Load
-                      </Link>
-                    )}
-                    {showShipments && (
-                      <Link
-                        to={ROUTES.SHIPMENTS}
-                        className="flex items-center gap-2 rounded px-3 py-2 text-sm text-white hover:bg-blue-700"
-                        onClick={() => setOpsMenuOpen(false)}
-                      >
-                        <Package className="h-4 w-4" />
-                        Shipments
-                      </Link>
-                    )}
-                    <Link
-                      to={ROUTES.DOCUMENTS}
-                      className="flex items-center gap-2 rounded px-3 py-2 text-sm text-white hover:bg-blue-700"
-                      onClick={() => setOpsMenuOpen(false)}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Documents
-                    </Link>
-                    {showLoadBoard && (
-                      <Link
-                        to={ROUTES.SAVED_SEARCHES}
-                        className="flex items-center gap-2 rounded px-3 py-2 text-sm text-white hover:bg-blue-700"
-                        onClick={() => setOpsMenuOpen(false)}
-                      >
-                        <Bookmark className="h-4 w-4" />
-                        Saved Searches
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
+                <Package className="w-4 h-4 mr-1" />
+                Shipments
+              </Link>
             )}
-
+            {isAuthenticated && (
+              <>
+                <Link
+                  to={ROUTES.DASHBOARD}
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-1" />
+                  Dashboard
+                </Link>
+                {isAdmin && (
+                  <Link
+                    to={ROUTES.ADMIN_DASHBOARD}
+                    className="text-white text-sm px-4 py-2 hover:bg-red-700/80 rounded transition-colors flex items-center bg-red-600/90 border-2 border-red-500 shadow-lg shadow-red-900/50 font-bold"
+                  >
+                    <Shield className="w-4 h-4 mr-1" />
+                    Admin Console
+                  </Link>
+                )}
+                <Link
+                  to={ROUTES.DOCUMENTS}
+                  className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  Documents
+                </Link>
+                {showLoadBoard && (
+                  <Link
+                    to={ROUTES.SAVED_SEARCHES}
+                    className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
+                  >
+                    <Bookmark className="w-4 h-4 mr-1" />
+                    Saved Searches
+                  </Link>
+                )}
+              </>
+            )}
             <Link
               to={ROUTES.PRICING}
               className="text-white text-sm px-3 py-2 hover:bg-blue-700 rounded transition-colors flex items-center"
             >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               Pricing
             </Link>
           </nav>
