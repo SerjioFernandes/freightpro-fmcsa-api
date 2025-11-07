@@ -44,8 +44,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If specific account types are required
   if (allowedAccountTypes && allowedAccountTypes.length > 0) {
-    // Check if user has one of the allowed account types
-    if (!user || !hasAccountType(allowedAccountTypes, user.accountType)) {
+    // Admin bypasses all account type restrictions
+    if (user?.role === 'admin') {
+      if (import.meta.env.DEV) {
+        console.log('[ProtectedRoute] Admin bypassing account type restriction');
+      }
+      // Admin has full access - continue
+    } else if (!user || !hasAccountType(allowedAccountTypes, user.accountType)) {
+      // Check if user has one of the allowed account types
       addNotification({
         type: 'error',
         message: 'You do not have permission to access this page.',
