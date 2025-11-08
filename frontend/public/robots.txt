@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://cargolume.com/sitemap.xml
+Sitemap: https://www.cargolume.com/sitemap.xml
 
 # Disallow admin areas
 Disallow: /admin/

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" rx="48" />
+  <g fill="#0f172a" opacity="0.25">
+    <circle cx="200" cy="160" r="140" />
+    <circle cx="1060" cy="480" r="180" />
+  </g>
+  <text x="120" y="260" font-family="'Poppins', 'Segoe UI', sans-serif" font-size="82" font-weight="700" fill="#f8fafc">
+    CargoLume
+  </text>
+  <text x="120" y="348" font-family="'Poppins', 'Segoe UI', sans-serif" font-size="42" fill="#e2e8f0">
+    Professional Freight & Load Board Platform
+  </text>
+  <rect x="120" y="396" width="360" height="10" rx="5" fill="url(#accent)" />
+  <text x="120" y="458" font-family="'Poppins', 'Segoe UI', sans-serif" font-size="32" fill="#f8fafc">
+    Connect carriers, brokers, and shippers in real-time.
+  </text>
+  <text x="120" y="510" font-family="'Poppins', 'Segoe UI', sans-serif" font-size="26" fill="#bae6fd">
+    Messaging • Smart load boards • Admin analytics
+  </text>
+</svg>
