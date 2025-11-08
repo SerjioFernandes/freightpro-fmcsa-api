@@ -50,7 +50,12 @@ export class DashboardController {
         recentLoads: bookedLoads.slice(0, 5)
       });
     } catch (error: any) {
-      logger.error('Get carrier stats failed', { error: error.message });
+      logger.error('Get carrier stats failed', {
+        error: error?.message,
+        stack: error?.stack,
+        cause: error?.cause,
+        errors: error?.errors
+      });
       res.status(500).json({ error: 'Failed to fetch carrier stats' });
     }
   }
@@ -101,7 +106,12 @@ export class DashboardController {
         recentShipmentRequests: shipmentRequests.slice(0, 5)
       });
     } catch (error: any) {
-      logger.error('Get broker stats failed', { error: error.message });
+      logger.error('Get broker stats failed', {
+        error: error?.message,
+        stack: error?.stack,
+        cause: error?.cause,
+        errors: error?.errors
+      });
       res.status(500).json({ error: 'Failed to fetch broker stats' });
     }
   }
@@ -154,7 +164,12 @@ export class DashboardController {
         recentRequests: shipmentRequests.slice(0, 5)
       });
     } catch (error: any) {
-      logger.error('Get shipper stats failed', { error: error.message });
+      logger.error('Get shipper stats failed', {
+        error: error?.message,
+        stack: error?.stack,
+        cause: error?.cause,
+        errors: error?.errors
+      });
       res.status(500).json({ error: 'Failed to fetch shipper stats' });
     }
   }
@@ -177,7 +192,12 @@ export class DashboardController {
           res.status(400).json({ error: 'Invalid account type' });
       }
     } catch (error: any) {
-      logger.error('Get stats failed', { error: error.message });
+      logger.error('Get stats failed', {
+        error: error?.message,
+        stack: error?.stack,
+        cause: error?.cause,
+        errors: error?.errors
+      });
       res.status(500).json({ error: 'Failed to fetch stats' });
     }
   }
