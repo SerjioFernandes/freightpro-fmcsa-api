@@ -1,0 +1,3 @@
+# Cursor will not read files matching these patterns
+# Leave empty to allow access to all files in the project
+

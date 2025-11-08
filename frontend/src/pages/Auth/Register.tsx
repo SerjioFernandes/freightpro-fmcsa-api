@@ -142,7 +142,7 @@ const Register = () => {
         accountType: formData.accountType,
         usdotNumber: needsAuthority ? usdotDigits : undefined,
         mcNumber: mcDigits ? mcDigits : undefined,
-        ein: needsAuthority ? einDigits : undefined,
+        ein: needsAuthority ? formData.ein : undefined, // Send formatted EIN with hyphen
       };
 
       const response = await authService.register(payload);
