@@ -112,12 +112,16 @@ const Register = () => {
     }
 
     if (needsAuthority) {
-      if (!usdotDigits || usdotDigits.length < 6) {
-        newErrors.usdotNumber = 'USDOT number must have at least 6 digits.';
+      if (!usdotDigits || usdotDigits.length < 6 || usdotDigits.length > 8) {
+        newErrors.usdotNumber = 'USDOT number must be 6-8 digits.';
+      }
+
+      if (mcDigits && (mcDigits.length < 6 || mcDigits.length > 7)) {
+        newErrors.mcNumber = 'MC number must be 6-7 digits.';
       }
 
       if (!einDigits || einDigits.length !== 9) {
-        newErrors.ein = 'EIN must contain exactly 9 digits.';
+        newErrors.ein = 'EIN must contain exactly 9 digits (XX-XXXXXXX).';
       }
     }
 
