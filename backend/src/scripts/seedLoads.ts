@@ -126,7 +126,7 @@ async function seedLoads() {
     // Generate realistic loads
     const loads = [];
     
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 100; i++) {
       const origin = getRandomElement(cities);
       const destination = getRandomElement(cities.filter(c => c.city !== origin.city));
       const equipment = getRandomElement(equipmentTypes);
@@ -217,9 +217,10 @@ async function seedLoads() {
   }
 }
 
-// DON'T run automatically - only run when explicitly called
-// This prevents seeding from running when the module is imported
-// To seed manually, run: node -r ts-node/register src/scripts/seedLoads.ts
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seedLoads();
+}
 
 export { seedLoads };
 

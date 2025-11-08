@@ -6,6 +6,11 @@ import type {
 } from '../types/friend.types';
 
 export const friendService = {
+  async sendRequestByUserId(uniqueUserId: string): Promise<FriendRequestActionResponse> {
+    const response = await api.post<FriendRequestActionResponse>('/friends/request-by-id', { uniqueUserId });
+    return response.data;
+  },
+
   async sendRequest(recipientId: string): Promise<FriendRequestActionResponse> {
     const response = await api.post<FriendRequestActionResponse>('/friends/request', { recipientId });
     return response.data;

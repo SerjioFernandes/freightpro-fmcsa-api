@@ -29,20 +29,24 @@ class AdminController {
     try {
       await this.logAction(req, 'SEED_LOADS_TRIGGERED', 'Admin triggered load seeding', { targetCollection: 'loads' });
 
-      seedLoads().catch(async (error: unknown) => {
-        logger.error('Seed loads failed', { error });
-        await this.logAction(req, 'SEED_LOADS_FAILED', 'Load seeding failed', { error, targetCollection: 'loads' });
-      });
+      logger.info('Starting load seeding...');
+      
+      // Run synchronously and wait for completion
+      await seedLoads();
+      
+      logger.info('Load seeding completed successfully');
+      await this.logAction(req, 'SEED_LOADS_COMPLETED', 'Load seeding completed successfully', { targetCollection: 'loads' });
 
       res.json({
         success: true,
-        message: 'Load seeding started in background. This may take a few minutes.'
+        message: '100 loads seeded successfully!'
       });
     } catch (error: any) {
-      logger.error('Failed to start seed loads', { error: error.message });
+      logger.error('Failed to seed loads', { error: error.message, stack: error.stack });
+      await this.logAction(req, 'SEED_LOADS_FAILED', 'Load seeding failed', { error: error.message, targetCollection: 'loads' });
       res.status(500).json({ 
         success: false,
-        error: 'Failed to start seed loads' 
+        error: error.message || 'Failed to seed loads' 
       });
     }
   }

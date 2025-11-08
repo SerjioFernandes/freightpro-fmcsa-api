@@ -22,7 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requireAdmin = false,
 }) => {
-  const { isAuthenticated, user, isLoading } = useAuthStore();
+  const { isAuthenticated, user, isLoading, justLoggedOut, clearLogoutFlag } = useAuthStore();
   const { addNotification } = useUIStore();
 
   // Wait for auth to load before making routing decisions
@@ -32,6 +32,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
+    if (justLoggedOut) {
+      clearLogoutFlag();
+      return <Navigate to={ROUTES.LOGIN} replace />;
+    }
     // Only show notification if not already on login page (to prevent duplicate messages)
     if (!window.location.pathname.includes('/login')) {
       addNotification({

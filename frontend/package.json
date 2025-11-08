@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "overrides": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
   "dependencies": {
     "@changey/react-leaflet-markercluster": "^4.0.0-rc1",
     "@headlessui/react": "^2.2.9",
@@ -20,9 +24,9 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^0.548.0",
-    "react": "^19.1.1",
+    "react": "19.2.0",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.1.1",
+    "react-dom": "19.2.0",
     "react-hook-form": "^7.65.0",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.4",

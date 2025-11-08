@@ -53,6 +53,11 @@ export const adminService = {
     const response = await api.get<AdminAuditLogResponse>('/admin/audit-logs', { params });
     return response.data;
   },
+
+  async seedLoads(): Promise<{ success: boolean; message?: string }> {
+    const response = await api.get<{ success: boolean; message?: string }>('/admin/seed-loads');
+    return response.data;
+  },
 };
 
 

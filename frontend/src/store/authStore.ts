@@ -8,6 +8,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  justLoggedOut: boolean;
   adminActivation: {
     isActive: boolean;
     title: string;
@@ -22,6 +23,7 @@ interface AuthState {
   checkAuth: () => void;
   clearError: () => void;
   dismissAdminActivation: () => void;
+  clearLogoutFlag: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,6 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: true, // Start as loading to prevent premature routing decisions
   error: null,
+  justLoggedOut: false,
   adminActivation: {
     isActive: false,
     title: '',
@@ -51,7 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } else {
       localStorage.removeItem('token');
     }
-    set({ token, isAuthenticated: !!token });
+    set({ token, isAuthenticated: !!token, justLoggedOut: false });
   },
 
   login: async (email, password) => {
@@ -68,6 +71,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           user: response.user,
           isAuthenticated: true,
           isLoading: false,
+          justLoggedOut: false,
           adminActivation: isAdminUser
             ? {
                 isActive: true,
@@ -107,6 +111,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
+      justLoggedOut: true,
     });
   },
 
@@ -123,6 +128,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           user,
           isAuthenticated: true,
           isLoading: false,
+          justLoggedOut: false,
         });
       } catch {
         set({
@@ -130,6 +136,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           user: null,
           isAuthenticated: false,
           isLoading: false,
+          justLoggedOut: false,
         });
       }
     } else {
@@ -138,6 +145,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        justLoggedOut: false,
       });
     }
   },
@@ -148,5 +156,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       adminActivation: { isActive: false, title: '', subtitle: '' },
     }),
+  clearLogoutFlag: () => set({ justLoggedOut: false }),
 }));
 

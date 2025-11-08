@@ -23,12 +23,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
     await logout();
     addNotification({ type: 'info', message: 'Admin logged out successfully.' });
     navigate(ROUTES.HOME);
+    setShowLogoutModal(false);
   };
 
   return (
@@ -231,6 +237,40 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
           <ShieldAlert className="h-5 w-5" />
           Enter Admin Console
         </Link>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-red-600/50 animate-scale-in">
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <LogOut className="h-6 w-6" />
+                Confirm Logout
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-200 text-lg mb-6">
+                Are you sure you want to logout from admin mode?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 px-6 py-3 rounded-xl border-2 border-slate-700 bg-slate-800 text-slate-200 font-semibold hover:bg-slate-700 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center gap-2"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

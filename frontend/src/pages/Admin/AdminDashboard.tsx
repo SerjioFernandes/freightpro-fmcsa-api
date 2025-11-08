@@ -37,7 +37,34 @@ const AdminDashboard = () => {
   const [auditFeed, setAuditFeed] = useState<AdminAuditLog[]>([]);
   const [recentSignups, setRecentSignups] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
   const { addNotification } = useUIStore();
+
+  const handleSeedLoads = async () => {
+    if (!window.confirm('This will generate 100 test loads. Continue?')) return;
+    
+    setIsSeeding(true);
+    addNotification({ type: 'info', message: 'Seeding loads... This may take a moment.' });
+    
+    try {
+      const response = await adminService.seedLoads();
+      if (response.success) {
+        addNotification({ type: 'success', message: '✅ 100 loads seeded successfully! Check the Load Board.' });
+        // Wait a bit then refresh stats
+        setTimeout(async () => {
+          const statsResponse = await adminService.getSystemStats();
+          if (statsResponse.success) {
+            setStats(statsResponse.data);
+          }
+        }, 2000);
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to seed loads';
+      addNotification({ type: 'error', message: `❌ Seeding failed: ${errorMsg}` });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -164,6 +191,27 @@ const AdminDashboard = () => {
         </div>
       ) : stats ? (
         <div className="space-y-10">
+          {/* Quick Actions Bar */}
+          <div className="flex items-center justify-end">
+            <button
+              onClick={handleSeedLoads}
+              disabled={isSeeding}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:from-emerald-700 hover:to-emerald-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSeeding ? (
+                <>
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Seeding...
+                </>
+              ) : (
+                <>
+                  <Truck className="h-4 w-4" />
+                  Seed 100 Test Loads
+                </>
+              )}
+            </button>
+          </div>
+
           <section>
             <h2 className="text-xs uppercase tracking-[0.6em] text-slate-500 mb-3">Mission Summary</h2>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">

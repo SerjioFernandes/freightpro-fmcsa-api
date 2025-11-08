@@ -60,7 +60,7 @@ const Shipments = () => {
             <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h2>
             <p className="text-gray-600 mb-6">
-              Only shippers and brokers can access shipments.
+              Only shippers and brokers can access Shippboard.
             </p>
             <p className="text-sm text-gray-500">
               Carriers can browse and book loads on the Load Board instead.
@@ -79,12 +79,12 @@ const Shipments = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                Shipments
+                Shippboard
               </h1>
               <p className="text-sm md:text-base text-gray-600">
                 {isShipper 
                   ? 'Manage your shipment requests and broker proposals'
-                  : 'Browse available shipments and request access'
+                  : 'Browse available Shippboard listings and request access'
                 }
               </p>
             </div>

@@ -4,7 +4,7 @@ import { friendService } from '../services/friend.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X, Search, ArrowRight } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { FriendConnection, FriendRequest } from '../types/friend.types';
 
@@ -25,7 +25,7 @@ const Messages = () => {
   const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
-  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  // Removed availableUsers state - using User ID system now
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [connections, setConnections] = useState<FriendConnection[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
@@ -248,20 +248,12 @@ const Messages = () => {
   };
 
   const handleNewMessage = async () => {
-    try {
-      const response = await messageService.getAvailableUsers();
-      if (response.success) {
-        setAvailableUsers(response.data || []);
-        setShowNewMessageModal(true);
-      }
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to load users' });
-    }
+    setShowNewMessageModal(true);
   };
 
-  const handleSendFriendRequest = async (recipientId: string) => {
+  const handleSendFriendRequestById = async (uniqueUserId: string) => {
     try {
-      const response = await friendService.sendRequest(recipientId);
+      const response = await friendService.sendRequestByUserId(uniqueUserId);
       if (response.success) {
         addNotification({ type: 'success', message: response.message || 'Connection request sent!' });
       }
@@ -274,6 +266,8 @@ const Messages = () => {
       setUserSearchQuery('');
     }
   };
+
+  // Removed handleSendFriendRequest - using handleSendFriendRequestById now
 
   const handleRespondToRequest = async (requestId: string, action: 'accept' | 'decline') => {
     try {
@@ -301,22 +295,7 @@ const Messages = () => {
     }
   };
 
-  const handleSelectUser = (selectedUser: any) => {
-    handleSendFriendRequest(selectedUser._id);
-  };
-
-  const blockedUserIds = new Set<string>();
-  incomingRequests.forEach(request => blockedUserIds.add(request.requester._id));
-  outgoingRequests.forEach(request => blockedUserIds.add(request.recipient._id));
-  connections.forEach(connection => blockedUserIds.add(connection.friendId));
-
-  const filteredUsers = availableUsers
-    .filter(u => !blockedUserIds.has(u._id))
-    .filter(u =>
-      u.company.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      u.accountType.toLowerCase().includes(userSearchQuery.toLowerCase())
-    );
+  // Removed unused filteredUsers logic since we're using User ID system now
 
   const canMessageSelected = selectedUser
     ? connections.some(connection => connection.friendId === selectedUser.userId)
@@ -648,72 +627,65 @@ const Messages = () => {
 
         {/* New Message Modal */}
         {showNewMessageModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-4 sm:p-6">
-            <div className="bg-white w-full max-w-md sm:max-w-lg max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800">
-                <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  New Connection Request
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowNewMessageModal(false);
-                    setUserSearchQuery('');
-                  }}
-                  className="text-white hover:text-gray-200 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add Connection
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowNewMessageModal(false);
+                      setUserSearchQuery('');
+                    }}
+                    className="text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-all"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <p className="text-blue-100 text-sm mt-1">
+                  Enter a User ID to connect
+                </p>
               </div>
               
-              <div className="p-5 flex-1 overflow-y-auto">
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Search Verified Users
+              <div className="p-6 space-y-5">
+                {/* Input Section */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+                    User ID
                   </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={userSearchQuery}
-                      onChange={(e) => setUserSearchQuery(e.target.value)}
-                      placeholder="Search by company, email, or type..."
-                      className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value.toUpperCase())}
+                    placeholder="CL-ABC123"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-xl tracking-widest uppercase bg-white transition-all text-center font-bold text-gray-900"
+                    maxLength={12}
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 Find this in their Profile page
+                  </p>
                 </div>
 
-                <p className="text-xs text-gray-500 mb-4">
-                  Send a connection request. Once accepted, the conversation will unlock and appear in your trusted connections list.
-                </p>
-
-                <div className="space-y-2">
-                  {filteredUsers.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No users found</p>
-                  ) : (
-                    filteredUsers.map((u) => (
-                      <button
-                        key={u._id}
-                        onClick={() => handleSelectUser(u)}
-                        className="w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 bg-white"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">{u.company}</p>
-                            <p className="text-sm text-gray-600">{u.email}</p>
-                            <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded capitalize">
-                              {u.accountType}
-                            </span>
-                          </div>
-                          <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600">
-                            Send Request
-                            <ArrowRight className="h-4 w-4" />
-                          </span>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
+                {/* Submit Button */}
+                <button
+                  onClick={() => {
+                    if (!userSearchQuery.trim()) {
+                      addNotification({ type: 'error', message: 'Please enter a User ID' });
+                      return;
+                    }
+                    handleSendFriendRequestById(userSearchQuery.trim());
+                  }}
+                  disabled={!userSearchQuery.trim()}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Plus className="h-5 w-5" />
+                  Send Request
+                </button>
               </div>
             </div>
           </div>

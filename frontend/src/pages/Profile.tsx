@@ -1,12 +1,24 @@
 import { useAuthStore } from '../store/authStore';
 import { Link } from 'react-router-dom';
-import { User, Mail, Phone, Building, Shield, Calendar, Award, CheckCircle, Clock, Edit } from 'lucide-react';
+import { User, Mail, Phone, Building, Shield, Calendar, Award, CheckCircle, Clock, Edit, LifeBuoy, Activity, Lock, Copy, Check } from 'lucide-react';
 import { ROUTES } from '../utils/constants';
+import { useUIStore } from '../store/uiStore';
+import { useState } from 'react';
 
 const Profile = () => {
   const { user } = useAuthStore();
+  const { addNotification } = useUIStore();
+  const [copiedUserId, setCopiedUserId] = useState(false);
 
   if (!user) return null;
+
+  const handleCopyUserId = () => {
+    const userId = user.uniqueUserId || `CL-${user.id.slice(0, 6).toUpperCase()}`;
+    navigator.clipboard.writeText(userId);
+    setCopiedUserId(true);
+    addNotification({ type: 'success', message: 'User ID copied to clipboard!' });
+    setTimeout(() => setCopiedUserId(false), 2000);
+  };
 
   const formatDate = (date?: Date) => {
     if (!date) return 'N/A';
@@ -57,9 +69,33 @@ const Profile = () => {
     }
   };
 
+  const accountSnapshot = [
+    {
+      title: 'Account Status',
+      value: user.isEmailVerified ? 'Active' : 'Pending Verification',
+      description: user.isEmailVerified ? 'All systems are ready.' : 'Finish verifying your email to unlock everything.',
+      accent: 'bg-blue-50 text-blue-700',
+      icon: CheckCircle,
+    },
+    {
+      title: 'User Role',
+      value: user.role,
+      description: 'Determines what administrative features you can access.',
+      accent: 'bg-purple-50 text-purple-700',
+      icon: Shield,
+    },
+    {
+      title: 'Business Type',
+      value: user.accountType,
+      description: 'Controls which dashboards and workflows you see.',
+      accent: 'bg-orange-50 text-orange-700',
+      icon: Building,
+    },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
@@ -123,6 +159,31 @@ const Profile = () => {
                     Contact Information
                   </h3>
                   <div className="space-y-4">
+                    {/* User ID Card */}
+                    <div className="flex items-start space-x-3 p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg shadow-sm">
+                      <div className="mt-0.5">
+                        <Shield className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-blue-600 font-semibold mb-1">Your Unique User ID</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-blue-900 font-mono tracking-wider text-lg">
+                            {user.uniqueUserId || `CL-${user.id.slice(0, 6).toUpperCase()}`}
+                          </p>
+                          <button
+                            onClick={handleCopyUserId}
+                            className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all"
+                            title="Copy User ID"
+                          >
+                            {copiedUserId ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-blue-700 mt-2">
+                          Share this ID with others so they can add you as a connection
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="mt-0.5">
                         <Mail className="h-5 w-5 text-gray-400" />
@@ -257,37 +318,74 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid md:grid-cols-4 gap-6">
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="text-3xl font-bold text-blue-600 mb-2">
-              {user.isEmailVerified ? '✓' : '⏳'}
+        {/* Experience Footer */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="card p-6 lg:p-8 shadow-xl border border-blue-100/60 bg-white/90 backdrop-blur">
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.25em] text-blue-400 uppercase">Account Snapshot</p>
+                <h3 className="text-2xl font-bold text-gray-900 mt-2">Your control center looks great</h3>
+                <p className="text-sm text-gray-600 mt-1">Here’s a quick status report across your profile, roles, and capabilities.</p>
+              </div>
+              <Link
+                to={ROUTES.SETTINGS}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold shadow-md hover:bg-blue-700 transition-colors"
+              >
+                <Edit className="h-4 w-4" />
+                Update details
+              </Link>
             </div>
-            <p className="text-sm text-gray-600">Account Status</p>
-            <p className="font-semibold text-gray-900 capitalize">
-              {user.isEmailVerified ? 'Active' : 'Pending'}
-            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {accountSnapshot.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="p-4 rounded-xl border border-gray-200/70 bg-white hover:shadow-lg transition-all">
+                    <div className={`w-10 h-10 rounded-lg ${item.accent} flex items-center justify-center mb-3`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">{item.title}</p>
+                    <p className="text-lg font-semibold text-gray-900 capitalize">{item.value}</p>
+                    <p className="text-xs text-gray-500 mt-2 leading-relaxed">{item.description}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="text-3xl font-bold text-purple-600 mb-2 capitalize">
-              {user.subscriptionPlan || 'Ultima'}
+
+          <div className="flex flex-col gap-6">
+            <div className="card p-6 shadow-lg border border-blue-100/70 bg-white/95 backdrop-blur">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <LifeBuoy className="h-5 w-5 text-blue-500" />
+                Need a hand?
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Our support team is on standby to help complete your profile, connect accounts, or resolve onboarding questions.
+              </p>
+              <Link
+                to={ROUTES.MESSAGES}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <LifeBuoy className="h-4 w-4" />
+                Contact Support
+              </Link>
             </div>
-            <p className="text-sm text-gray-600">Subscription</p>
-            <p className="font-semibold text-gray-900">Current Plan</p>
-          </div>
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="text-3xl font-bold text-green-600 mb-2 capitalize">
-              {user.role}
+
+            <div className="card p-6 shadow-lg border border-gray-200 bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <Lock className="h-5 w-5 text-emerald-300" />
+                Security Monitor
+              </h3>
+              <p className="text-sm text-slate-200/80">
+                We continuously watch for unusual activity. Review active sessions or reset passwords anytime from settings.
+              </p>
+              <Link
+                to={ROUTES.ACTIVE_SESSIONS}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-emerald-300 bg-white/10 rounded-lg hover:bg-white/15 transition-all"
+              >
+                <Activity className="h-4 w-4" />
+                View Active Sessions
+              </Link>
             </div>
-            <p className="text-sm text-gray-600">Account Role</p>
-            <p className="font-semibold text-gray-900">User Access</p>
-          </div>
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="text-3xl font-bold text-orange-600 mb-2 capitalize">
-              {user.accountType}
-            </div>
-            <p className="text-sm text-gray-600">User Type</p>
-            <p className="font-semibold text-gray-900">Business Role</p>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useLoadStore } from '../../store/loadStore';
 import { ROUTES, US_STATES, EQUIPMENT_TYPES } from '../../utils/constants';
 import type { LoadFormData } from '../../types/load.types';
-import { Truck, MapPin, Calendar, Weight, DollarSign } from 'lucide-react';
+import { Truck, MapPin, Calendar, Weight, DollarSign, Plus } from 'lucide-react';
 
 const PostLoadForm = () => {
   const { addNotification } = useUIStore();
@@ -195,45 +195,54 @@ const PostLoadForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {/* Title and Description */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
-          Load Title *
-        </label>
-        <input
-          type="text"
-          name="title"
-          required
-          className={`input ${errors.title ? 'border-red-500' : ''}`}
-          value={formData.title}
-          onChange={handleChange}
-          placeholder="e.g., Dry Van Load from LA to NYC"
-        />
-        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-      </div>
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 pb-3 border-b-2 border-gray-100">
+          <Truck className="h-5 w-5 text-blue-600" />
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Basic Information</h3>
+        </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
-          Description *
-        </label>
-        <textarea
-          name="description"
-          required
-          rows={4}
-          className={`input ${errors.description ? 'border-red-500' : ''}`}
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Describe the load details, special requirements, etc."
-        />
-        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+            Load Title *
+          </label>
+          <input
+            type="text"
+            name="title"
+            required
+            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.title ? 'border-red-500 bg-red-50' : 'border-gray-200'} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-900`}
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="e.g., Dry Van Load from LA to NYC"
+          />
+          {errors.title && <p className="text-red-600 text-sm mt-2 flex items-center gap-1"><span>⚠</span> {errors.title}</p>}
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+            Description *
+          </label>
+          <textarea
+            name="description"
+            required
+            rows={5}
+            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.description ? 'border-red-500 bg-red-50' : 'border-gray-200'} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-900 resize-none`}
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Describe load details, special handling requirements, any relevant shipping instructions..."
+          />
+          {errors.description && <p className="text-red-600 text-sm mt-2 flex items-center gap-1"><span>⚠</span> {errors.description}</p>}
+        </div>
       </div>
 
       {/* Origin */}
-      <div className="border-t-2 border-primary-blue/20 pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="h-5 w-5 text-primary-blue" />
-          <h3 className="text-lg font-semibold text-gray-900">Pickup Location *</h3>
+      <div className="rounded-2xl bg-blue-50 border-2 border-blue-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="bg-blue-600 p-2 rounded-lg">
+            <MapPin className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Pickup Location *</h3>
         </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
@@ -282,10 +291,12 @@ const PostLoadForm = () => {
       </div>
 
       {/* Destination */}
-      <div className="border-t-2 border-primary-blue/20 pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="h-5 w-5 text-orange-accent" />
-          <h3 className="text-lg font-semibold text-gray-900">Delivery Location *</h3>
+      <div className="rounded-2xl bg-orange-50 border-2 border-orange-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="bg-orange-600 p-2 rounded-lg">
+            <MapPin className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Delivery Location *</h3>
         </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
@@ -334,10 +345,12 @@ const PostLoadForm = () => {
       </div>
 
       {/* Dates */}
-      <div className="border-t-2 border-primary-blue/20 pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="h-5 w-5 text-primary-blue" />
-          <h3 className="text-lg font-semibold text-gray-900">Schedule *</h3>
+      <div className="rounded-2xl bg-purple-50 border-2 border-purple-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="bg-purple-600 p-2 rounded-lg">
+            <Calendar className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Schedule *</h3>
         </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -370,10 +383,12 @@ const PostLoadForm = () => {
       </div>
 
       {/* Equipment and Weight */}
-      <div className="border-t-2 border-primary-blue/20 pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Truck className="h-5 w-5 text-primary-blue" />
-          <h3 className="text-lg font-semibold text-gray-900">Load Details *</h3>
+      <div className="rounded-2xl bg-green-50 border-2 border-green-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="bg-green-600 p-2 rounded-lg">
+            <Weight className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Load Details *</h3>
         </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -414,10 +429,12 @@ const PostLoadForm = () => {
       </div>
 
       {/* Rate */}
-      <div className="border-t-2 border-primary-blue/20 pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Rate *</h3>
+      <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="bg-emerald-600 p-2 rounded-lg">
+            <DollarSign className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Pricing *</h3>
         </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -456,33 +473,34 @@ const PostLoadForm = () => {
       </div>
 
       {/* Optional: Shipment ID */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="rounded-2xl bg-gray-50 border-2 border-gray-100 p-6">
+        <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
           Shipment ID (Optional)
         </label>
         <input
           type="text"
           name="shipmentId"
-          className="input"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-900"
           value={formData.shipmentId}
           onChange={handleChange}
-          placeholder="Link to existing shipment"
+          placeholder="Link to existing shipment reference"
         />
+        <p className="text-xs text-gray-500 mt-2">If this load is linked to a specific shipment request, enter the ID here</p>
       </div>
 
       {/* Submit Button */}
-      <div className="flex gap-4 pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t-2 border-gray-100">
         <button
           type="button"
           onClick={() => navigate(ROUTES.LOAD_BOARD)}
-          className="flex-1 btn btn-secondary py-3"
+          className="flex-1 px-6 py-3.5 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 transition-all"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 btn btn-accent py-3 text-white"
+          className="flex-1 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-xl hover:shadow-2xl hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
@@ -490,7 +508,10 @@ const PostLoadForm = () => {
               Posting Load...
             </span>
           ) : (
-            'Post Load'
+            <span className="flex items-center justify-center gap-2">
+              <Plus className="h-5 w-5" />
+              Publish Load to Marketplace
+            </span>
           )}
         </button>
       </div>

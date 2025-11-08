@@ -97,7 +97,7 @@ const SupportChatWidget = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full p-4 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-110 z-[9999] flex items-center justify-center"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+88px)] right-4 md:bottom-6 md:right-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full p-4 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-110 z-[9999] flex items-center justify-center"
         title="Open Support Chat"
         aria-label="Open Support Chat"
       >
@@ -108,7 +108,7 @@ const SupportChatWidget = () => {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] flex flex-col transition-all ${
+      className={`fixed bottom-[calc(env(safe-area-inset-bottom,0px)+88px)] right-4 md:bottom-6 md:right-6 bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] flex flex-col transition-all ${
         isMinimized ? 'w-[90vw] max-w-[320px] h-16' : 'w-[90vw] max-w-[400px] h-[500px] md:h-[560px]'
       }`}
     >

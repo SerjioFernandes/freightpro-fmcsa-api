@@ -4,6 +4,7 @@ export type SubscriptionPlan = 'free' | 'ultima' | 'premium';
 
 export interface User {
   id: string;
+  uniqueUserId?: string; // Auto-generated unique ID for friend requests
   email: string;
   company: string;
   phone: string;
