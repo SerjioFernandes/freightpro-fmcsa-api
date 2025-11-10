@@ -18,10 +18,13 @@ PORT=4000
 FRONTEND_URL=https://www.yourdomain.com
 
 EMAIL_USER=info@yourdomain.com
-EMAIL_PASS=your-smtp-password
-EMAIL_HOST=smtp.yourdomain.com
-EMAIL_PORT=465
-EMAIL_SECURE=true
+RESEND_API_KEY=your-resend-api-key
+
+# (Optional) Legacy SMTP fallback values
+# EMAIL_PASS=your-smtp-password
+# EMAIL_HOST=smtp.yourdomain.com
+# EMAIL_PORT=465
+# EMAIL_SECURE=true
 
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=

@@ -22,6 +22,7 @@ export const config: EnvironmentConfig = {
   EMAIL_SECURE: typeof process.env.EMAIL_SECURE === 'string'
     ? process.env.EMAIL_SECURE.toLowerCase() === 'true'
     : undefined,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_VERIFICATION_TTL_MS: Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000,
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,

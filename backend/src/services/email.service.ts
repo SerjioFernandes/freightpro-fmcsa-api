@@ -1,201 +1,140 @@
-import nodemailer, { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import { config } from '../config/environment.js';
 import { logger } from '../utils/logger.js';
 
 class EmailService {
-  private transporter: Transporter | null = null;
+  private client: Resend | null = null;
+  private sender: string | null = null;
 
   constructor() {
     this.initialize();
   }
 
   private initialize(): void {
-    const user = config.EMAIL_USER?.trim();
-    const pass = config.EMAIL_PASS;
-    const host = config.EMAIL_HOST?.trim();
-    const port = typeof config.EMAIL_PORT === 'number' ? config.EMAIL_PORT : undefined;
-    const secure = typeof config.EMAIL_SECURE === 'boolean' ? config.EMAIL_SECURE : (port === 465);
+    const apiKey = config.RESEND_API_KEY?.trim();
+    const senderEmail = config.EMAIL_USER?.trim();
 
     logger.info('Email configuration check', {
-      userSet: !!user,
-      passSet: !!pass,
-      host: host || null,
-      port: port ?? null,
-      secure
+      apiKeySet: !!apiKey,
+      senderSet: !!senderEmail
     });
 
-    if (!user || !pass) {
-      logger.warn('EMAIL_USER or EMAIL_PASS environment variables are missing. Email notifications are disabled.');
+    if (!apiKey) {
+      logger.warn('RESEND_API_KEY environment variable is missing. Email notifications are disabled.');
       return;
     }
 
-    if (!host) {
-      logger.warn('EMAIL_HOST environment variable is missing. Email notifications are disabled.');
+    if (!senderEmail) {
+      logger.warn('EMAIL_USER environment variable is missing. Email notifications are disabled.');
       return;
     }
 
-    const resolvedPort = port ?? (secure ? 465 : 587);
+    this.client = new Resend(apiKey);
+    this.sender = senderEmail.includes('<') ? senderEmail : `CargoLume <${senderEmail}>`;
 
-    this.transporter = nodemailer.createTransport({
-      host,
-      port: resolvedPort,
-      secure,
-      auth: { user, pass },
-      tls: {
-        rejectUnauthorized: true,
-        minVersion: 'TLSv1.2'
-      },
-      connectionTimeout: 15000,
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
-      logger: config.NODE_ENV === 'development',
-      debug: config.NODE_ENV === 'development'
+    logger.info('Resend client initialized successfully', {
+      sender: this.sender
     });
-
-    this.transporter
-      .verify()
-      .then(() => logger.info('SMTP connection verified successfully', { host, port: resolvedPort, secure }))
-      .catch((error: any) => logger.error('SMTP connection failed', {
-        host,
-        port: resolvedPort,
-        secure,
-        code: error?.code,
-        command: error?.command,
-        message: error?.message
-      }));
-
-    logger.info('Email transporter created successfully', { host, port: resolvedPort, secure });
   }
 
   async sendVerificationEmail(email: string, code: string): Promise<boolean> {
-    if (!this.transporter) {
-      logger.warn('Email transporter not available - email not sent');
-      return false;
-    }
-
-    try {
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
-          <div style="background:#1a2238; color:#fff; padding:16px 24px">
-            <h1 style="margin:0; font-size:20px;">CargoLume</h1>
-            <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
+        <div style="background:#1a2238; color:#fff; padding:16px 24px">
+          <h1 style="margin:0; font-size:20px;">CargoLume</h1>
+          <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+        </div>
+        <div style="padding:24px">
+          <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
+          <p style="margin:0 0 16px; color:#374151;">Thanks for registering. Use this code to finish setting up your account:</p>
+          <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
+            <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${code}</div>
           </div>
-          <div style="padding:24px">
-            <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
-            <p style="margin:0 0 16px; color:#374151;">Thanks for registering. Use this code to finish setting up your account:</p>
-            <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
-              <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${code}</div>
-            </div>
-            <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
-            <a href="${config.FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
-          </div>
-          <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
-            <p style="margin:0 0 4px;">If you didn't create this account, you can safely ignore this email.</p>
-            <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
-          </div>
-        </div>`;
+          <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
+          <a href="${config.FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
+        </div>
+        <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
+          <p style="margin:0 0 4px;">If you didn't create this account, you can safely ignore this email.</p>
+          <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
+        </div>
+      </div>`;
 
-      await this.transporter.sendMail({
-        from: `"CargoLume" <${config.EMAIL_USER}>`,
-        to: email,
-        subject: 'Verify your email for CargoLume',
-        html
-      });
-
-      logger.info('Verification email sent successfully', { email });
-      return true;
-    } catch (error: any) {
-      logger.error('Email sending failed', { email, error: error.message });
-      return false;
-    }
+    return this.sendEmail({
+      to: email,
+      subject: 'Verify your email for CargoLume',
+      html
+    });
   }
 
   async sendResendCodeEmail(email: string, code: string): Promise<boolean> {
-    if (!this.transporter) {
-      logger.warn('Email transporter not available - email not sent');
-      return false;
-    }
-
-    try {
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
-          <div style="background:#1a2238; color:#fff; padding:16px 24px">
-            <h1 style="margin:0; font-size:20px;">CargoLume</h1>
-            <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden">
+        <div style="background:#1a2238; color:#fff; padding:16px 24px">
+          <h1 style="margin:0; font-size:20px;">CargoLume</h1>
+          <p style="margin:4px 0 0; font-size:12px; opacity:.9">Professional Load Board</p>
+        </div>
+        <div style="padding:24px">
+          <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
+          <p style="margin:0 0 16px; color:#374151;">Here's your new verification code:</p>
+          <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
+            <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${code}</div>
           </div>
-          <div style="padding:24px">
-            <h2 style="margin:0 0 8px; color:#111827; font-size:18px;">Verify your email</h2>
-            <p style="margin:0 0 16px; color:#374151;">Here's your new verification code:</p>
-            <div style="background:#f3f4f6; padding:20px; text-align:center; border-radius:8px; margin-bottom:16px">
-              <div style="font-size:32px; letter-spacing:8px; font-weight:700; color:#2563eb;">${code}</div>
-            </div>
-            <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
-            <a href="${config.FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
-          </div>
-          <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
-            <p style="margin:0 0 4px;">If you didn't request this code, you can safely ignore this email.</p>
-            <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
-          </div>
-        </div>`;
+          <p style="margin:0 0 16px; color:#4b5563">This code expires in 24 hours.</p>
+          <a href="${config.FRONTEND_URL}" style="display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Open CargoLume</a>
+        </div>
+        <div style="padding:16px 24px; background:#f9fafb; color:#6b7280; font-size:12px;">
+          <p style="margin:0 0 4px;">If you didn't request this code, you can safely ignore this email.</p>
+          <p style="margin:0;">© ${new Date().getFullYear()} CargoLume. All rights reserved.</p>
+        </div>
+      </div>`;
 
-      await this.transporter.sendMail({
-        from: `"CargoLume" <${config.EMAIL_USER}>`,
-        to: email,
-        subject: 'New verification code for CargoLume',
-        html
-      });
-
-      logger.info('Resend code email sent successfully', { email });
-      return true;
-    } catch (error: any) {
-      logger.error('Email sending failed', { email, error: error.message });
-      return false;
-    }
+    return this.sendEmail({
+      to: email,
+      subject: 'New verification code for CargoLume',
+      html
+    });
   }
 
-  async testConnection(): Promise<boolean> {
-    if (!this.transporter) return false;
-    try {
-      await this.transporter.verify();
-      logger.info('SMTP connection verified successfully');
-      return true;
-    } catch (error: any) {
-      logger.error('SMTP connection failed', { 
-        code: error.code, 
-        command: error.command,
-        message: error.message 
-      });
-      return false;
-    }
-  }
-
-  /**
-   * Generic email send method
-   */
-  async sendEmail(data: { to: string; subject: string; html: string }): Promise<boolean> {
-    if (!this.transporter) {
-      logger.warn('Email transporter not available - email not sent');
+  async sendEmail(message: { to: string; subject: string; html: string }): Promise<boolean> {
+    if (!this.client || !this.sender) {
+      logger.warn('Resend client not available - email not sent');
       return false;
     }
 
     try {
-      await this.transporter.sendMail({
-        from: `"CargoLume" <${config.EMAIL_USER}>`,
-        to: data.to,
-        subject: data.subject,
-        html: data.html
+      const { data: responseData, error } = await this.client.emails.send({
+        from: this.sender,
+        to: message.to,
+        subject: message.subject,
+        html: message.html
       });
 
-      logger.info('Email sent successfully', { to: data.to, subject: data.subject });
+      if (error) {
+        throw new Error(error.message ?? 'Unknown Resend error');
+      }
+
+      logger.info('Email sent successfully via Resend', {
+        to: message.to,
+        subject: message.subject,
+        id: responseData?.id ?? null
+      });
       return true;
     } catch (error: any) {
-      logger.error('Email sending failed', { to: data.to, error: error.message });
+      logger.error('Resend email sending failed', {
+        to: message.to,
+        subject: message.subject,
+        error: error?.message || error
+      });
       return false;
     }
   }
 
   isConfigured(): boolean {
-    return this.transporter !== null;
+    return this.client !== null && !!this.sender;
+  }
+
+  async testConnection(): Promise<boolean> {
+    return this.isConfigured();
   }
 }
 

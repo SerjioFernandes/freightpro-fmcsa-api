@@ -297,6 +297,7 @@ export interface EnvironmentConfig {
   EMAIL_HOST?: string;
   EMAIL_PORT?: number;
   EMAIL_SECURE?: boolean;
+  RESEND_API_KEY?: string;
   EMAIL_VERIFICATION_TTL_MS: number;
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;
