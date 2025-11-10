@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth.middleware.js';
 import {
   sendFriendRequest,
+  sendFriendRequestByUniqueId,
   respondToFriendRequest,
   listFriends,
   listFriendRequests,
@@ -13,6 +14,7 @@ const router = Router();
 router.use(authenticateToken);
 
 router.post('/request', sendFriendRequest);
+router.post('/request-by-id', sendFriendRequestByUniqueId);
 router.post('/request/:requestId/respond', respondToFriendRequest);
 router.delete('/request/:requestId', cancelFriendRequest);
 router.get('/requests', listFriendRequests);

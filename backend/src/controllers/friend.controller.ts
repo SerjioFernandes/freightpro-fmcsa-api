@@ -67,6 +67,29 @@ export const sendFriendRequest = async (req: AuthRequest, res: Response): Promis
   }
 };
 
+export const sendFriendRequestByUniqueId = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { uniqueUserId } = req.body as { uniqueUserId?: string };
+    if (!uniqueUserId) {
+      res.status(400).json({ success: false, error: 'User ID is required' });
+      return;
+    }
+
+    const normalizedId = uniqueUserId.trim().toUpperCase();
+    const recipient = await User.findOne({ uniqueUserId: normalizedId });
+    if (!recipient) {
+      res.status(404).json({ success: false, error: 'User ID not found' });
+      return;
+    }
+
+    req.body.recipientId = recipient._id.toString();
+    await sendFriendRequest(req, res);
+  } catch (error: any) {
+    logger.error('Send friend request by ID failed', { error: error.message });
+    res.status(500).json({ success: false, error: 'Failed to send friend request' });
+  }
+};
+
 export const respondToFriendRequest = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;

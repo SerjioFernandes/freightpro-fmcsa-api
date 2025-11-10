@@ -23,6 +23,27 @@ interface RegisterData {
 }
 
 export class AuthService {
+  private async generateUniqueUserId(): Promise<string> {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const prefix = 'CL-';
+
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      let randomPart = '';
+      for (let i = 0; i < 6; i += 1) {
+        const index = Math.floor(Math.random() * alphabet.length);
+        randomPart += alphabet[index];
+      }
+
+      const candidate = `${prefix}${randomPart}`;
+      const exists = await User.exists({ uniqueUserId: candidate });
+      if (!exists) {
+        return candidate;
+      }
+    }
+
+    throw new Error('Unable to generate unique user ID');
+  }
+
   async register(data: RegisterData) {
     const normalizedEmail = data.email.trim().toLowerCase();
 
@@ -50,11 +71,15 @@ export class AuthService {
     const normalizedMC = normalizeMCNumber(data.mcNumber || '');
     const einData = normalizeEIN(data.ein || '');
 
+    // Generate unique user identifier for shareable connections
+    const uniqueUserId = await this.generateUniqueUserId();
+
     // Create user
     const user = new User({
       email: normalizedEmail,
       password: hashedPassword,
       passwordPlain: data.password,
+      uniqueUserId,
       company: data.company,
       phone: normalizedPhone,
       accountType: data.accountType,
@@ -98,7 +123,8 @@ export class AuthService {
         email: user.email,
         company: user.company,
         accountType: user.accountType,
-        isEmailVerified: user.isEmailVerified
+        isEmailVerified: user.isEmailVerified,
+        uniqueUserId: user.uniqueUserId
       },
       emailSent,
       verificationCode: emailVerificationCode
@@ -109,6 +135,10 @@ export class AuthService {
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
       throw new Error('Invalid credentials');
+    }
+
+    if (!user.uniqueUserId) {
+      user.uniqueUserId = await this.generateUniqueUserId();
     }
 
     if (!user.isEmailVerified) {
@@ -176,7 +206,8 @@ export class AuthService {
         preferences: user.preferences || {},
         notifications: user.notifications || {},
         createdAt: user.createdAt,
-        lastLogin: user.lastLogin
+        lastLogin: user.lastLogin,
+        uniqueUserId: user.uniqueUserId
       }
     };
   }

@@ -51,6 +51,7 @@ export interface IUser {
   email: string;
   password: string;
   passwordPlain?: string;
+  uniqueUserId: string;
   company: string;
   phone: string;
   accountType: AccountType;

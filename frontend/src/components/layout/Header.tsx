@@ -127,7 +127,7 @@ const Header = () => {
           </nav>
 
           {/* Right Side: Auth Buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="hidden sm:flex items-center space-x-2">
             {isAuthenticated ? (
               <>
                 <NotificationCenter />
@@ -180,6 +180,32 @@ const Header = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
                   Register
+                </Link>
+              </>
+            )}
+          </div>
+
+          <div className="flex sm:hidden items-center space-x-2">
+            {isAuthenticated ? (
+              <button
+                onClick={() => navigate(ROUTES.DASHBOARD)}
+                className="bg-blue-700 hover:bg-blue-600 px-3 py-1.5 rounded text-xs font-semibold transition-colors text-white"
+              >
+                Dashboard
+              </button>
+            ) : (
+              <>
+                <Link
+                  to={ROUTES.LOGIN}
+                  className="bg-blue-700 hover:bg-blue-600 px-3 py-1.5 rounded text-xs font-semibold transition-colors text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  to={ROUTES.REGISTER}
+                  className="bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded text-xs font-semibold transition-colors text-white"
+                >
+                  Join
                 </Link>
               </>
             )}
