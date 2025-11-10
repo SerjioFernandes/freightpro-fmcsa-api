@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 // @ts-ignore - no types available for @changey/react-leaflet-markercluster
@@ -7,19 +8,10 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import type { Load } from '../../types/load.types';
 
-// Ensure Leaflet marker clustering plugin and styles are registered before use
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-
 declare global {
   interface Window {
     L?: typeof L;
   }
-}
-
-if (typeof window !== 'undefined') {
-  window.L = window.L || L;
 }
 
 interface LoadMapProps {
@@ -40,6 +32,49 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const LoadMap = ({ loads, onLoadClick, selectedLoadId }: LoadMapProps) => {
+  const [clusterReady, setClusterReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadClusterResources = async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      window.L = window.L || L;
+
+      try {
+        await Promise.all([
+          import('leaflet.markercluster'),
+          import('leaflet.markercluster/dist/MarkerCluster.css'),
+          import('leaflet.markercluster/dist/MarkerCluster.Default.css'),
+        ]);
+
+        if (isMounted) {
+          setClusterReady(true);
+        }
+      } catch (error) {
+        console.error('Failed to load Leaflet marker cluster plugin', error);
+      }
+    };
+
+    loadClusterResources();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!clusterReady) {
+    return (
+      <div className="w-full min-h-[600px] rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 bg-white flex flex-col items-center justify-center gap-3">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-blue/20 border-t-primary-blue"></div>
+        <p className="text-sm text-gray-500">Loading interactive map…</p>
+      </div>
+    );
+  }
+
   // Calculate bounds for all loads
   const calculateBounds = () => {
     const validCoords: [number, number][] = [];
