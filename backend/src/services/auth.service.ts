@@ -184,19 +184,32 @@ export class AuthService {
   async verifyEmail(email: string, code: string) {
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
+      logger.warn('Email verification failed - user not found', { email });
       throw new Error('Invalid email or code');
     }
 
     if (user.isEmailVerified) {
+      logger.info('Email already verified', { email });
       return { success: true, message: 'Email already verified' };
     }
 
     if (!user.emailVerificationCodeHash || !user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
+      logger.warn('Email verification failed - code expired', { 
+        email, 
+        hasHash: !!user.emailVerificationCodeHash,
+        expiresAt: user.emailVerificationExpires,
+        now: new Date()
+      });
       throw new Error('Verification code expired');
     }
 
-    const match = await bcryptjs.compare(String(code), user.emailVerificationCodeHash);
+    const match = await bcryptjs.compare(String(code).trim(), user.emailVerificationCodeHash);
     if (!match) {
+      logger.warn('Email verification failed - invalid code', { 
+        email, 
+        providedCode: code.trim(),
+        codeLength: code.trim().length
+      });
       throw new Error('Invalid verification code');
     }
 
@@ -206,6 +219,7 @@ export class AuthService {
     user.emailVerificationExpires = undefined;
     await user.save();
 
+    logger.info('Email verified successfully', { email });
     return { success: true, message: 'Email verified successfully' };
   }
 
