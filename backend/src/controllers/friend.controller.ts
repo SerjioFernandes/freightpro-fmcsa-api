@@ -5,22 +5,32 @@ import { FriendRequest } from '../models/FriendRequest.model.js';
 import { User } from '../models/User.model.js';
 import { logger } from '../utils/logger.js';
 
+const toObjectId = (value: string | undefined, field: string): mongoose.Types.ObjectId => {
+  if (!value || !mongoose.Types.ObjectId.isValid(value)) {
+    throw new Error(`Invalid ObjectId for ${field}`);
+  }
+  return new mongoose.Types.ObjectId(value);
+};
+
 export const sendFriendRequest = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const { recipientId } = req.body;
+    const { recipientId } = req.body as { recipientId?: string };
 
     if (!userId || !recipientId) {
       res.status(400).json({ success: false, error: 'Missing required fields' });
       return;
     }
 
-    if (userId === recipientId) {
+    const requesterObjectId = toObjectId(userId, 'requester');
+    const recipientObjectId = toObjectId(recipientId, 'recipient');
+
+    if (requesterObjectId.equals(recipientObjectId)) {
       res.status(400).json({ success: false, error: 'You cannot connect with yourself' });
       return;
     }
 
-    const recipientExists = await User.exists({ _id: recipientId });
+    const recipientExists = await User.exists({ _id: recipientObjectId });
     if (!recipientExists) {
       res.status(404).json({ success: false, error: 'Recipient not found' });
       return;
@@ -28,8 +38,8 @@ export const sendFriendRequest = async (req: AuthRequest, res: Response): Promis
 
     const existing = await FriendRequest.findOne({
       $or: [
-        { requester: userId, recipient: recipientId },
-        { requester: recipientId, recipient: userId },
+        { requester: requesterObjectId, recipient: recipientObjectId },
+        { requester: recipientObjectId, recipient: requesterObjectId },
       ],
     });
 
@@ -44,8 +54,8 @@ export const sendFriendRequest = async (req: AuthRequest, res: Response): Promis
         return;
       }
 
-      existing.requester = new mongoose.Types.ObjectId(userId);
-      existing.recipient = new mongoose.Types.ObjectId(recipientId);
+      existing.requester = requesterObjectId;
+      existing.recipient = recipientObjectId;
       existing.status = 'pending';
       existing.respondedAt = undefined;
       await existing.save();
@@ -55,14 +65,18 @@ export const sendFriendRequest = async (req: AuthRequest, res: Response): Promis
     }
 
     const request = await FriendRequest.create({
-      requester: userId,
-      recipient: recipientId,
+      requester: requesterObjectId,
+      recipient: recipientObjectId,
       status: 'pending',
     });
 
     res.status(201).json({ success: true, message: 'Friend request sent', data: request });
   } catch (error: any) {
-    logger.error('Send friend request failed', { error: error.message });
+    logger.error('Send friend request failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to send friend request' });
   }
 };
@@ -85,7 +99,11 @@ export const sendFriendRequestByUniqueId = async (req: AuthRequest, res: Respons
     req.body.recipientId = recipient._id.toString();
     await sendFriendRequest(req, res);
   } catch (error: any) {
-    logger.error('Send friend request by ID failed', { error: error.message });
+    logger.error('Send friend request by ID failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to send friend request' });
   }
 };
@@ -123,7 +141,11 @@ export const respondToFriendRequest = async (req: AuthRequest, res: Response): P
 
     res.json({ success: true, message: `Request ${action}ed`, data: request });
   } catch (error: any) {
-    logger.error('Respond to friend request failed', { error: error.message });
+    logger.error('Respond to friend request failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to update friend request' });
   }
 };
@@ -153,7 +175,11 @@ export const cancelFriendRequest = async (req: AuthRequest, res: Response): Prom
 
     res.json({ success: true, message: 'Request cancelled' });
   } catch (error: any) {
-    logger.error('Cancel friend request failed', { error: error.message });
+    logger.error('Cancel friend request failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to cancel request' });
   }
 };
@@ -168,14 +194,16 @@ export const listFriendRequests = async (req: AuthRequest, res: Response): Promi
       return;
     }
 
+    const userObjectId = toObjectId(userId, 'user');
+
     const filter: Record<string, unknown>[] = [];
 
     if (type === 'incoming' || type === 'all') {
-      filter.push({ recipient: userId, status: 'pending' });
+      filter.push({ recipient: userObjectId, status: 'pending' });
     }
 
     if (type === 'outgoing' || type === 'all') {
-      filter.push({ requester: userId, status: 'pending' });
+      filter.push({ requester: userObjectId, status: 'pending' });
     }
 
     const query = filter.length > 0 ? { $or: filter } : { status: 'pending' };
@@ -187,7 +215,11 @@ export const listFriendRequests = async (req: AuthRequest, res: Response): Promi
 
     res.json({ success: true, data: requests });
   } catch (error: any) {
-    logger.error('List friend requests failed', { error: error.message });
+    logger.error('List friend requests failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to fetch requests' });
   }
 };
@@ -200,11 +232,13 @@ export const listFriends = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
+    const userObjectId = toObjectId(userId, 'user');
+
     const connections = await FriendRequest.find({
       status: 'accepted',
       $or: [
-        { requester: userId },
-        { recipient: userId },
+        { requester: userObjectId },
+        { recipient: userObjectId },
       ],
     })
       .populate('requester', 'company email accountType')
@@ -213,7 +247,7 @@ export const listFriends = async (req: AuthRequest, res: Response): Promise<void
       .lean();
 
     const friends = connections.map((connection: any) => {
-      const friend = connection.requester._id.toString() === userId
+      const friend = connection.requester._id.toString() === userObjectId.toString()
         ? connection.recipient
         : connection.requester;
       return {
@@ -228,7 +262,11 @@ export const listFriends = async (req: AuthRequest, res: Response): Promise<void
 
     res.json({ success: true, data: friends });
   } catch (error: any) {
-    logger.error('List friends failed', { error: error.message });
+    logger.error('List friends failed', {
+      error: error?.message,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
     res.status(500).json({ success: false, error: 'Failed to fetch connections' });
   }
 };

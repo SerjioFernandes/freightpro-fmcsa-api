@@ -37,10 +37,14 @@ const CarrierDashboard = () => {
   };
 
   // Filter booked loads for this carrier (check if bookedBy is object or ID)
-  const bookedLoads = loads.filter(load => {
+  const bookedLoadsLocal = loads.filter(load => {
     const bookedById = typeof load.bookedBy === 'object' ? load.bookedBy?._id : load.bookedBy;
     return bookedById === user?.id;
   });
+
+  const bookedLoads = (dashboardData?.recentLoads && dashboardData.recentLoads.length > 0)
+    ? dashboardData.recentLoads
+    : bookedLoadsLocal;
 
   // Use API data if available, fallback to local calculations
   const stats = dashboardData?.stats ? [
@@ -75,21 +79,21 @@ const CarrierDashboard = () => {
   ] : [
     {
       label: 'Booked Loads',
-      value: bookedLoads.length,
+      value: bookedLoadsLocal.length,
       icon: <Package className="h-12 w-12" />,
       color: 'text-orange-accent',
       bgColor: 'bg-orange-accent/10'
     },
     {
       label: 'Total Earnings',
-      value: `$${bookedLoads.reduce((sum, load) => sum + (load.rate || 0), 0).toLocaleString()}`,
+      value: `$${bookedLoadsLocal.reduce((sum, load) => sum + (load.rate || 0), 0).toLocaleString()}`,
       icon: <DollarSign className="h-12 w-12" />,
       color: 'text-primary-blue',
       bgColor: 'bg-primary-blue/10'
     },
     {
       label: 'Total Miles',
-      value: bookedLoads.reduce((sum, load) => sum + (load.distance || 0), 0).toLocaleString(),
+      value: bookedLoadsLocal.reduce((sum, load) => sum + (load.distance || 0), 0).toLocaleString(),
       icon: <TrendingUp className="h-12 w-12" />,
       color: 'text-green-600',
       bgColor: 'bg-green-600/10'
@@ -287,7 +291,7 @@ const CarrierDashboard = () => {
             </div>
           ) : bookedLoads.length > 0 ? (
             <div className="space-y-4">
-              {bookedLoads.slice(0, 5).map((load, index) => (
+              {bookedLoads.slice(0, 5).map((load: any, index: number) => (
                 <div 
                   key={load._id} 
                   className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in card-hover"
