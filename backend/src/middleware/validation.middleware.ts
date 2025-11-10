@@ -45,12 +45,17 @@ export function validateEINRequired(req: Request, res: Response, next: NextFunct
       return;
     }
     
-    if (!validateEIN(ein)) {
+    // Trim whitespace before validation
+    const trimmedEIN = (ein || '').trim();
+    if (!validateEIN(trimmedEIN)) {
       res.status(400).json({
-        error: 'Invalid EIN format. Use format: 12-3456789'
+        error: `Invalid EIN format. Use format: 12-3456789 (received: "${trimmedEIN}")`
       });
       return;
     }
+    
+    // Update the body with trimmed value
+    req.body.ein = trimmedEIN;
   }
   
   // Remove EIN from shippers
