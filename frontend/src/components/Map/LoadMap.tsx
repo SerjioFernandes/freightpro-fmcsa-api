@@ -1,9 +1,11 @@
+import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import type { Load } from '../../types/load.types';
+import { getStateCentroid, getStateCodeFromInput } from '../../utils/geo';
 
 interface LoadMapProps {
   loads: Load[];
@@ -23,40 +25,70 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const LoadMap = ({ loads, onLoadClick, selectedLoadId }: LoadMapProps) => {
-  // Calculate bounds for all loads
-  const calculateBounds = () => {
-    const validCoords: [number, number][] = [];
-    
-    loads.forEach(load => {
-      if (load.origin.coordinates?.lat && load.origin.coordinates?.lng) {
-        validCoords.push([load.origin.coordinates.lat, load.origin.coordinates.lng]);
-      }
-      if (load.destination.coordinates?.lat && load.destination.coordinates?.lng) {
-        validCoords.push([load.destination.coordinates.lat, load.destination.coordinates.lng]);
-      }
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const displayLoads = useMemo(() => {
+    return loads.map((load) => {
+      const originCoords =
+        load.origin.coordinates?.lat && load.origin.coordinates?.lng
+          ? { lat: load.origin.coordinates.lat, lng: load.origin.coordinates.lng }
+          : getStateCentroid(getStateCodeFromInput(load.origin.state) || load.origin.state?.toUpperCase());
+
+      const destinationCoords =
+        load.destination.coordinates?.lat && load.destination.coordinates?.lng
+          ? { lat: load.destination.coordinates.lat, lng: load.destination.coordinates.lng }
+          : getStateCentroid(getStateCodeFromInput(load.destination.state) || load.destination.state?.toUpperCase());
+
+      return {
+        data: load,
+        originCoords,
+        destinationCoords
+      };
     });
+  }, [loads]);
 
-    if (validCoords.length === 0) {
-      return { center: [39.8283, -98.5795] as [number, number], zoom: 4 }; // Center of USA
+  const validOriginPositions = displayLoads
+    .filter((item) => item.originCoords)
+    .map((item) => [item.originCoords!.lat, item.originCoords!.lng] as [number, number]);
+
+  const bounds = useMemo(() => {
+    if (!validOriginPositions.length) {
+      return { center: [39.8283, -98.5795] as [number, number], zoom: 4 };
     }
-
-    // Simple bounds calculation (not using fitBounds here to avoid auto-recenter on updates)
-    const center: [number, number] = validCoords.length > 0
-      ? validCoords[Math.floor(validCoords.length / 2)]
-      : [39.8283, -98.5795];
-
+    const center = validOriginPositions[Math.floor(validOriginPositions.length / 2)];
     return { center, zoom: 5 };
-  };
+  }, [validOriginPositions]);
 
-  const bounds = calculateBounds();
+  const markers = displayLoads.filter((item) => item.originCoords);
 
-  // Create markers for each load
-  const markers = loads
-    .filter(load => load.origin.coordinates?.lat && load.origin.coordinates?.lng)
-    .map(load => ({
-      load,
-      position: [load.origin.coordinates!.lat!, load.origin.coordinates!.lng!] as [number, number]
-    }));
+  if (!isClient) {
+    return (
+      <div className="w-full min-h-[600px] rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 bg-white flex flex-col items-center justify-center gap-3">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-blue/20 border-t-primary-blue"></div>
+        <p className="text-sm text-gray-500">Preparing map visualization…</p>
+      </div>
+    );
+  }
+
+  if (markers.length === 0) {
+    return (
+      <div className="w-full min-h-[600px] rounded-xl overflow-hidden shadow-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-slate-50 to-white flex flex-col items-center justify-center gap-4 text-center p-12">
+        <div className="bg-blue-100 text-blue-600 h-16 w-16 rounded-full flex items-center justify-center shadow-inner">
+          <span className="text-2xl font-bold">CL</span>
+        </div>
+        <div>
+          <h3 className="text-xl font-semibold text-slate-800 mb-2">No locations available</h3>
+          <p className="text-sm text-slate-500 max-w-md">
+            These loads are missing precise coordinates. Try adjusting your filters or ensure origin/destination details include states or cities.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full min-h-[600px] rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
@@ -71,10 +103,10 @@ const LoadMap = ({ loads, onLoadClick, selectedLoadId }: LoadMapProps) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {markers.map(({ load, position }) => (
+        {markers.map(({ data: load, originCoords, destinationCoords }) => (
           <Marker
             key={load._id}
-            position={position}
+            position={[originCoords!.lat, originCoords!.lng]}
             eventHandlers={{
               click: () => onLoadClick?.(load)
             }}
@@ -101,11 +133,11 @@ const LoadMap = ({ loads, onLoadClick, selectedLoadId }: LoadMapProps) => {
             </Popup>
             
             {/* Route line if destination coordinates available */}
-            {load.destination.coordinates?.lat && load.destination.coordinates?.lng && (
+              {destinationCoords && (
               <Polyline
                 positions={[
-                  [load.origin.coordinates!.lat!, load.origin.coordinates!.lng!],
-                  [load.destination.coordinates.lat, load.destination.coordinates.lng]
+                    [originCoords!.lat, originCoords!.lng],
+                    [destinationCoords.lat, destinationCoords.lng]
                 ] as LatLngExpression[]}
                 pathOptions={{
                   color: selectedLoadId === load._id ? '#ff6a3d' : '#2563eb',

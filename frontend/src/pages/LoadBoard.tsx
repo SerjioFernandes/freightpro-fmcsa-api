@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -6,6 +6,9 @@ import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
 import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, Map, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
 import LoadMap from '../components/Map/LoadMap';
+import BoardSearchBar from '../components/board/BoardSearchBar';
+import type { BoardSearchFilters } from '../types/board.types';
+import { getStateCodeFromInput, getStateCentroid, haversineMiles } from '../utils/geo';
 
 const LoadBoard = () => {
   const { loads, pagination, isLoading, fetchLoads, bookLoad } = useLoadStore();
@@ -15,6 +18,17 @@ const LoadBoard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(20);
   const [isBooking, setIsBooking] = useState<string | null>(null);
+  const [filters, setFilters] = useState<BoardSearchFilters>({
+    origin: '',
+    destination: '',
+    equipmentType: '',
+    pickupDate: '',
+    minRate: undefined,
+    maxMiles: undefined,
+    radiusMiles: undefined,
+    rateType: '',
+    keywords: ''
+  });
 
   // Enable real-time updates for load board
   useRealTimeUpdates();
@@ -43,6 +57,89 @@ const LoadBoard = () => {
     );
   }
 
+  const equipmentOptions = useMemo(() => {
+    const unique = new Set<string>();
+    loads.forEach((load) => {
+      if (load.equipmentType) {
+        unique.add(load.equipmentType);
+      }
+    });
+    return Array.from(unique).sort();
+  }, [loads]);
+
+  const filteredLoads = useMemo(() => {
+    const originStateCode = getStateCodeFromInput(filters.origin);
+    const originStateCoords = originStateCode ? getStateCentroid(originStateCode) : null;
+
+    return loads.filter((load) => {
+      const { origin, destination, pickupDate, equipmentType, rate, distance, rateType, title, description } = load;
+      const originMatch =
+        !filters.origin ||
+        `${origin.city} ${origin.state} ${origin.zip}`.toLowerCase().includes(filters.origin.toLowerCase());
+
+      if (!originMatch) return false;
+
+      const destinationMatch =
+        !filters.destination ||
+        `${destination.city} ${destination.state} ${destination.zip}`.toLowerCase().includes(filters.destination.toLowerCase());
+
+      if (!destinationMatch) return false;
+
+      if (filters.equipmentType && filters.equipmentType !== equipmentType) {
+        return false;
+      }
+
+      if (filters.rateType && filters.rateType !== rateType) {
+        return false;
+      }
+
+      if (filters.pickupDate) {
+        const pickupDateString = new Date(pickupDate).toISOString().split('T')[0];
+        if (pickupDateString !== filters.pickupDate) {
+          return false;
+        }
+      }
+
+      if (typeof filters.minRate === 'number' && rate < filters.minRate) {
+        return false;
+      }
+
+      if (typeof filters.maxMiles === 'number') {
+        if (typeof distance === 'number') {
+          if (distance > filters.maxMiles) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+
+      if (typeof filters.radiusMiles === 'number' && originStateCoords) {
+        const loadOriginStateCode = getStateCodeFromInput(origin.state) || origin.state?.toUpperCase();
+        const loadOriginCoords =
+          load.origin.coordinates?.lat && load.origin.coordinates?.lng
+            ? { lat: load.origin.coordinates.lat, lng: load.origin.coordinates.lng }
+            : getStateCentroid(loadOriginStateCode);
+
+        if (loadOriginCoords) {
+          const distanceMiles = haversineMiles(originStateCoords, loadOriginCoords);
+          if (distanceMiles > filters.radiusMiles) {
+            return false;
+          }
+        }
+      }
+
+      if (filters.keywords) {
+        const searchSpace = `${title} ${description}`.toLowerCase();
+        if (!searchSpace.includes(filters.keywords.toLowerCase())) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [loads, filters]);
+
   const handleBookLoad = async (loadId: string) => {
     setIsBooking(loadId);
     try {
@@ -59,6 +156,8 @@ const LoadBoard = () => {
   };
 
   const canBookLoads = user?.accountType === 'carrier';
+  const filteredPaginationTotal = filteredLoads.length;
+  const equipmentSelectOptions = equipmentOptions.length ? equipmentOptions : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,17 +201,36 @@ const LoadBoard = () => {
           </div>
         </div>
 
+        <BoardSearchBar
+          filters={filters}
+          onChange={(updates) => setFilters((prev) => ({ ...prev, ...updates }))}
+          onClear={() =>
+            setFilters({
+              origin: '',
+              destination: '',
+              equipmentType: '',
+              pickupDate: '',
+              minRate: undefined,
+              maxMiles: undefined,
+              radiusMiles: undefined,
+              rateType: '',
+              keywords: ''
+            })
+          }
+          equipmentOptions={equipmentSelectOptions}
+        />
+
         {isLoading ? (
           <div className="text-center py-20 card">
             <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-primary-blue/30 border-t-orange-accent"></div>
             <p className="text-gray-700 text-lg mt-6 font-medium">Loading loads...</p>
           </div>
-        ) : loads.length > 0 ? (
+        ) : filteredLoads.length > 0 ? (
           viewMode === 'map' ? (
-            <LoadMap loads={loads} />
+            <LoadMap loads={filteredLoads} />
           ) : (
             <div className="grid gap-6">
-            {loads.map((load, index) => (
+            {filteredLoads.map((load, index) => (
               <div 
                 key={load._id} 
                 className="card card-hover border-2 border-primary-blue/30 hover:border-orange-accent animate-slide-up"
@@ -275,7 +393,7 @@ const LoadBoard = () => {
         )}
 
         {/* Pagination */}
-        {pagination && pagination.pages > 1 && (
+        {pagination && pagination.pages > 1 && filteredPaginationTotal === loads.length && (
           <div className="mt-8 flex items-center justify-center gap-4">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -327,11 +445,16 @@ const LoadBoard = () => {
           </div>
         )}
 
-        {pagination && (
+        {filteredPaginationTotal !== loads.length ? (
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Showing {filteredLoads.length} filtered loads out of {pagination?.total ?? loads.length}
+          </div>
+        ) : (
+        pagination && (
           <div className="mt-4 text-center text-sm text-gray-600">
             Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} loads
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

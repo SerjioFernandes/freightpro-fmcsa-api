@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { shipmentService } from '../../services/shipment.service';
 import { useUIStore } from '../../store/uiStore';
 import ShipmentCard from './ShipmentCard';
@@ -6,13 +6,16 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import EmptyState from '../common/EmptyState';
 import { Package, AlertCircle } from 'lucide-react';
 import type { Shipment } from '../../types/shipment.types';
+import type { BoardSearchFilters } from '../../types/board.types';
+import { getStateCentroid, getStateCodeFromInput, haversineMiles } from '../../utils/geo';
 
 interface ShipmentListProps {
   status?: string;
   onShipmentUpdate?: () => void;
+  filters?: BoardSearchFilters;
 }
 
-const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
+const ShipmentList = ({ status, onShipmentUpdate, filters }: ShipmentListProps) => {
   const { addNotification } = useUIStore();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +52,60 @@ const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
     }
   };
 
+  const filteredShipments = useMemo(() => {
+    if (!filters) return shipments;
+
+    const originStateCode = getStateCodeFromInput(filters.origin);
+    const originStateCoords = originStateCode ? getStateCentroid(originStateCode) : null;
+
+    return shipments.filter((shipment) => {
+      const { pickup, delivery, title, description } = shipment;
+
+      if (filters.origin) {
+        const originString = `${pickup.city} ${pickup.state} ${pickup.zip}`.toLowerCase();
+        if (!originString.includes(filters.origin.toLowerCase())) {
+          return false;
+        }
+      }
+
+      if (filters.destination) {
+        const destinationString = `${delivery.city} ${delivery.state} ${delivery.zip}`.toLowerCase();
+        if (!destinationString.includes(filters.destination.toLowerCase())) {
+          return false;
+        }
+      }
+
+      if (filters.pickupDate) {
+        const pickupDateString = new Date(shipment.createdAt).toISOString().split('T')[0];
+        if (pickupDateString !== filters.pickupDate) {
+          return false;
+        }
+      }
+
+      if (filters.keywords) {
+        const searchSpace = `${title} ${description}`.toLowerCase();
+        if (!searchSpace.includes(filters.keywords.toLowerCase())) {
+          return false;
+        }
+      }
+
+      if (typeof filters.radiusMiles === 'number' && originStateCoords) {
+        const shipmentOriginStateCode = getStateCodeFromInput(pickup.state) || pickup.state?.toUpperCase();
+        const shipmentOriginCoords = getStateCentroid(shipmentOriginStateCode);
+        if (shipmentOriginCoords) {
+          const distance = haversineMiles(originStateCoords, shipmentOriginCoords);
+          if (distance > filters.radiusMiles) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }, [filters, shipments]);
+
+  const showLoadMore = hasMore && filteredShipments.length === shipments.length;
+
   if (isLoading && shipments.length === 0) {
     return (
       <div className="py-16">
@@ -70,7 +127,7 @@ const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
     );
   }
 
-  if (shipments.length === 0) {
+  if (filteredShipments.length === 0) {
     return (
       <EmptyState
         icon={<Package className="h-16 w-16" />}
@@ -86,7 +143,7 @@ const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
 
   return (
     <div className="space-y-6">
-      {shipments.map((shipment) => (
+      {filteredShipments.map((shipment) => (
         <ShipmentCard
           key={shipment._id}
           shipment={shipment}
@@ -97,7 +154,7 @@ const ShipmentList = ({ status, onShipmentUpdate }: ShipmentListProps) => {
       ))}
 
       {/* Pagination */}
-      {hasMore && (
+      {showLoadMore && (
         <div className="flex justify-center pt-6">
           <button
             onClick={() => setPage(page + 1)}

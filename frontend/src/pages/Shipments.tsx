@@ -8,6 +8,8 @@ import ShipmentList from '../components/shipments/ShipmentList';
 import CreateShipmentForm from '../components/forms/CreateShipmentForm';
 import ShipmentRequestModal from '../components/shipments/ShipmentRequestModal';
 import type { ShipmentRequest } from '../types/shipment.types';
+import BoardSearchBar from '../components/board/BoardSearchBar';
+import type { BoardSearchFilters } from '../types/board.types';
 
 const Shipments = () => {
   const { user } = useAuthStore();
@@ -17,6 +19,17 @@ const Shipments = () => {
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
   const [_isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [filters, setFilters] = useState<BoardSearchFilters>({
+    origin: '',
+    destination: '',
+    equipmentType: '',
+    pickupDate: '',
+    minRate: undefined,
+    maxMiles: undefined,
+    radiusMiles: undefined,
+    rateType: '',
+    keywords: ''
+  });
 
   const isShipper = user?.accountType === 'shipper';
 
@@ -99,6 +112,31 @@ const Shipments = () => {
             )}
           </div>
         </div>
+
+        <BoardSearchBar
+          filters={filters}
+          onChange={(updates) => setFilters((prev) => ({ ...prev, ...updates }))}
+          onClear={() =>
+            setFilters({
+              origin: '',
+              destination: '',
+              equipmentType: '',
+              pickupDate: '',
+              minRate: undefined,
+              maxMiles: undefined,
+              radiusMiles: undefined,
+              rateType: '',
+              keywords: ''
+            })
+          }
+          title="Shippboard Search"
+          subtitle="Filter shipments by lane, partner, and request status"
+          showEquipment={false}
+          showMinRate={false}
+          showMaxMiles={false}
+          showRateType={false}
+          showRadius={false}
+        />
 
         {/* Pending Requests Badge (Shippers) */}
         {isShipper && requests.length > 0 && (
@@ -199,6 +237,7 @@ const Shipments = () => {
           <ShipmentList 
             status={statusFilter || undefined}
             onShipmentUpdate={handleRequestUpdate}
+            filters={filters}
           />
         </div>
 
