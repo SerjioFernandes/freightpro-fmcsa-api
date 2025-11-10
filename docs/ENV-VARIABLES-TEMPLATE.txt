@@ -17,8 +17,11 @@ PORT=4000
 
 FRONTEND_URL=https://www.yourdomain.com
 
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-gmail-app-password-16-chars
+EMAIL_USER=info@yourdomain.com
+EMAIL_PASS=your-smtp-password
+EMAIL_HOST=smtp.yourdomain.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
 
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
@@ -48,10 +51,10 @@ MongoDB Connection:
 From MongoDB Atlas → Cluster → Connect → Connect your application
 Copy connection string and replace username/password.
 
-Gmail App Password:
--------------------
-Google Account → Security → 2-Step Verification → App passwords
-Generate → Mail → Custom name → Copy 16-char password
+SMTP Credentials:
+-----------------
+Use the SMTP username/password provided by your email host (e.g. Hostinger, SendGrid).
+For SSL (port 465) set EMAIL_SECURE=true. For STARTTLS (port 587) set EMAIL_SECURE=false.
 
 ================================================================
 IMPORTANT

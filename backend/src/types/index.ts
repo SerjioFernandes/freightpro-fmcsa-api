@@ -294,6 +294,9 @@ export interface EnvironmentConfig {
   ADMIN_2FA_SECRET?: string;
   EMAIL_USER?: string;
   EMAIL_PASS?: string;
+  EMAIL_HOST?: string;
+  EMAIL_PORT?: number;
+  EMAIL_SECURE?: boolean;
   EMAIL_VERIFICATION_TTL_MS: number;
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;

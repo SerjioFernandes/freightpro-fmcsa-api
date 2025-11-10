@@ -10,34 +10,61 @@ class EmailService {
   }
 
   private initialize(): void {
-    const user = config.EMAIL_USER;
+    const user = config.EMAIL_USER?.trim();
     const pass = config.EMAIL_PASS;
+    const host = config.EMAIL_HOST?.trim();
+    const port = typeof config.EMAIL_PORT === 'number' ? config.EMAIL_PORT : undefined;
+    const secure = typeof config.EMAIL_SECURE === 'boolean' ? config.EMAIL_SECURE : (port === 465);
 
-    logger.info('Email configuration check', { userSet: !!user, passSet: !!pass });
+    logger.info('Email configuration check', {
+      userSet: !!user,
+      passSet: !!pass,
+      host: host || null,
+      port: port ?? null,
+      secure
+    });
 
     if (!user || !pass) {
       logger.warn('EMAIL_USER or EMAIL_PASS environment variables are missing. Email notifications are disabled.');
       return;
     }
 
+    if (!host) {
+      logger.warn('EMAIL_HOST environment variable is missing. Email notifications are disabled.');
+      return;
+    }
+
+    const resolvedPort = port ?? (secure ? 465 : 587);
+
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // use STARTTLS
+      host,
+      port: resolvedPort,
+      secure,
       auth: { user, pass },
-      tls: { 
-        rejectUnauthorized: true, // Changed from false for security
+      tls: {
+        rejectUnauthorized: true,
         minVersion: 'TLSv1.2'
       },
-      connectionTimeout: 10000, // 10s timeout
+      connectionTimeout: 15000,
       greetingTimeout: 10000,
-      socketTimeout: 15000,
-      logger: true, // Enable nodemailer logging
-      debug: config.NODE_ENV === 'development' // Debug in dev only
+      socketTimeout: 20000,
+      logger: config.NODE_ENV === 'development',
+      debug: config.NODE_ENV === 'development'
     });
 
-    logger.info('Email transporter created successfully');
+    this.transporter
+      .verify()
+      .then(() => logger.info('SMTP connection verified successfully', { host, port: resolvedPort, secure }))
+      .catch((error: any) => logger.error('SMTP connection failed', {
+        host,
+        port: resolvedPort,
+        secure,
+        code: error?.code,
+        command: error?.command,
+        message: error?.message
+      }));
+
+    logger.info('Email transporter created successfully', { host, port: resolvedPort, secure });
   }
 
   async sendVerificationEmail(email: string, code: string): Promise<boolean> {

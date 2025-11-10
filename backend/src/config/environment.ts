@@ -17,6 +17,11 @@ export const config: EnvironmentConfig = {
   ADMIN_2FA_SECRET: process.env.ADMIN_2FA_SECRET,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
+  EMAIL_HOST: process.env.EMAIL_HOST,
+  EMAIL_PORT: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT, 10) : undefined,
+  EMAIL_SECURE: typeof process.env.EMAIL_SECURE === 'string'
+    ? process.env.EMAIL_SECURE.toLowerCase() === 'true'
+    : undefined,
   EMAIL_VERIFICATION_TTL_MS: Number(process.env.EMAIL_VERIFICATION_TTL_MS) || 24 * 60 * 60 * 1000,
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
