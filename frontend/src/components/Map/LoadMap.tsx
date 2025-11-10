@@ -2,18 +2,31 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import type { LatLngExpression } from 'leaflet';
 // @ts-ignore - no types available for @changey/react-leaflet-markercluster
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import type { Load } from '../../types/load.types';
+
+// Ensure Leaflet marker clustering plugin and styles are registered before use
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+declare global {
+  interface Window {
+    L?: typeof L;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.L = window.L || L;
+}
 
 interface LoadMapProps {
   loads: Load[];
   onLoadClick?: (load: Load) => void;
   selectedLoadId?: string;
 }
-
-// Fix Leaflet default markers in React/Webpack
-import L from 'leaflet';
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
