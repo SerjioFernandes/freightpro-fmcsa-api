@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "project": "CargoLume Freight Management Platform",
+    "date": "2025-11-04",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "CargoLume is a professional freight management platform designed for carriers, brokers, and shippers to efficiently manage loads, shipments, communications, and analytics through a secure, scalable, and user-friendly interface.",
+  "core_goals": [
+    "Enable secure user authentication and management for multiple user roles including carriers, brokers, shippers, and admins.",
+    "Provide robust load and shipment management including posting, searching, and CRUD operations with validations.",
+    "Facilitate real-time messaging and friend connections to improve communication between users.",
+    "Offer comprehensive role-based dashboards featuring analytics, charts, and statistics for operational insights.",
+    "Support document and profile management including upload, download, and session security features.",
+    "Implement saved searches and notifications for enhanced load board discovery and user alerting.",
+    "Ensure high security standards including JWT authentication, password hashing, rate limiting, and input validation.",
+    "Deliver a seamless user experience using modern frontend technologies with responsive design and offline capabilities."
+  ],
+  "key_features": [
+    "User Authentication & Verification: Secure registration, login, password hashing, and multi-role email verification workflows.",
+    "Admin Command Center: Dark-themed admin console with dashboards, user management, load seeding actions, and audit logging.",
+    "Load & Shipment Management: Full CRUD APIs and UI for managing freight loads and shipments with validation and seeding scripts.",
+    "Messaging & Friend Connections: Real-time communication via Socket.IO and friend requests using unique identifiers.",
+    "Analytics & Dashboards: Role-based dashboards with embedded statistical charts and analytics services for carriers, brokers, and shippers.",
+    "Document & Profile Management: Document upload/download, profile editing, and security session monitoring.",
+    "Search & Saved Queries: Advanced search capabilities with saved query support and UI navigation on the load board.",
+    "Notifications & System Settings: Push notifications, system settings management, support contact integration, and rate limiting to prevent abuse.",
+    "Performance & Security Enhancements: Implementation of JWT, bcrypt, CORS, Helmet security headers, gzip compression, and optimized backend queries."
+  ],
+  "user_flow_summary": [
+    "User registers or logs in with secure authentication flow including email verification for carriers, brokers, shippers, and admins.",
+    "Users access their role-specific dashboards presenting key analytics and statistics.",
+    "Carriers, brokers, and shippers post new loads and shipments or interact with existing ones through search and filter functionalities.",
+    "Users send and receive real-time messages with friends through a responsive chat interface supported by WebSocket.",
+    "Users manage profile details and upload necessary documents securely while monitoring active security sessions.",
+    "Admins utilize the command center to manage users, oversee audit logs, and perform system maintenance activities like seed loads.",
+    "Users create, save, and execute saved searches to receive alerts and discover relevant freight loads.",
+    "Notifications and system settings help users keep informed and customize their experience with support access and push alerts."
+  ],
+  "validation_criteria": [
+    "All user authentication flows (registration, login, email verification) function securely and without errors.",
+    "Admin dashboard features operate with correct role-based access control and responsiveness.",
+    "Load and shipment CRUD operations validate input properly and reflect changes instantly in the UI.",
+    "Real-time messaging delivers messages without delay and friend connections resolve correctly using unique IDs.",
+    "Dashboards accurately display real-time analytics and charts per user role with correct data representation.",
+    "Document uploads enforce file type and size constraints and are securely stored and retrievable.",
+    "Search and saved queries return accurate results matching user input criteria and allow query management.",
+    "Push notifications and system settings save changes successfully and rate limiting triggers appropriately under excessive requests.",
+    "Security measures including JWT verification, password hashing, CORS, rate limiting, and input validation pass all penetration and smoke tests.",
+    "Frontend performance targets such as first load under 3 seconds and API response under 500ms are met reliably."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "React",
+      "Vite",
+      "TailwindCSS",
+      "Zustand",
+      "Express",
+      "Node.js",
+      "MongoDB",
+      "Socket.IO",
+      "Chart.js",
+      "Leaflet"
+    ],
+    "features": [
+      {
+        "name": "User Authentication & Verification",
+        "description": "Handles registration, login, password hashing, and email verification flows for carriers, brokers, shippers, and admins.",
+        "files": [
+          "backend/src/routes/auth.routes.ts",
+          "backend/src/controllers/auth.controller.ts",
+          "backend/src/services/auth.service.ts",
+          "backend/src/middleware/validation.middleware.ts",
+          "frontend/src/store/authStore.ts",
+          "frontend/src/pages/Auth/Login.tsx",
+          "frontend/src/pages/Auth/Register.tsx"
+        ]
+      },
+      {
+        "name": "Admin Command Center",
+        "description": "Dark-themed admin console with dashboards, user management, seed loads action, and audit logging.",
+        "files": [
+          "frontend/src/components/layout/AdminLayout.tsx",
+          "frontend/src/pages/Admin/AdminDashboard.tsx",
+          "frontend/src/services/admin.service.ts",
+          "backend/src/controllers/admin.controller.ts",
+          "backend/src/routes/admin.routes.ts"
+        ]
+      },
+      {
+        "name": "Load & Shipment Management",
+        "description": "CRUD APIs and UI for loads, shipments, and posting new freight with validation and seeding scripts.",
+        "files": [
+          "frontend/src/pages/PostLoad.tsx",
+          "frontend/src/components/forms/PostLoadForm.tsx",
+          "frontend/src/pages/Dashboard/BrokerDashboard.tsx",
+          "backend/src/controllers/load.controller.ts",
+          "backend/src/controllers/shipment.controller.ts",
+          "backend/src/scripts/seedLoads.ts"
+        ]
+      },
+      {
+        "name": "Messaging & Friend Connections",
+        "description": "Real-time messaging, friend requests via unique IDs, and Socket.IO client integration.",
+        "files": [
+          "frontend/src/pages/Messages.tsx",
+          "frontend/src/services/friend.service.ts",
+          "frontend/src/services/message.service.ts",
+          "backend/src/controllers/message.controller.ts",
+          "backend/src/controllers/friend.controller.ts",
+          "backend/src/socket/index.ts"
+        ]
+      },
+      {
+        "name": "Analytics & Dashboards",
+        "description": "Role-based dashboards with statistics, charts, and analytics services for carriers, brokers, and shippers.",
+        "files": [
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/pages/Dashboard/CarrierDashboard.tsx",
+          "frontend/src/pages/Dashboard/ShipperDashboard.tsx",
+          "backend/src/controllers/dashboard.controller.ts",
+          "backend/src/services/analytics.service.ts"
+        ]
+      },
+      {
+        "name": "Document & Profile Management",
+        "description": "Allows users to upload documents, manage profile information, and view security sessions.",
+        "files": [
+          "frontend/src/pages/Documents.tsx",
+          "frontend/src/components/Documents/DocumentUploadModal.tsx",
+          "frontend/src/pages/Profile.tsx",
+          "frontend/src/pages/Settings.tsx",
+          "backend/src/controllers/document.controller.ts",
+          "backend/src/controllers/session.controller.ts"
+        ]
+      },
+      {
+        "name": "Search & Saved Queries",
+        "description": "Provides saved searches, search APIs, and UI navigation for load board discovery.",
+        "files": [
+          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/services/search.service.ts",
+          "backend/src/controllers/search.controller.ts",
+          "backend/src/controllers/savedSearch.controller.ts"
+        ]
+      },
+      {
+        "name": "Notifications & System Settings",
+        "description": "Manages push notifications, system settings, support contact, and rate limiting.",
+        "files": [
+          "frontend/src/store/uiStore.ts",
+          "frontend/src/components/notifications/NotificationCenter.tsx",
+          "backend/src/controllers/notification.controller.ts",
+          "backend/src/controllers/settings.controller.ts",
+          "backend/src/controllers/push.controller.ts",
+          "backend/src/middleware/adminRateLimit.middleware.ts"
+        ]
+      }
+    ]
+  }
+}

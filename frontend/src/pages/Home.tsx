@@ -122,7 +122,7 @@ const Home = () => {
               Why Choose CargoLume?
             </h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-              Everything you need to manage and grow your freight business in one powerful platform.
+              Everything you need to manage and grow your freight business in one powerful platform. CargoLume combines cutting-edge technology with deep industry expertise to streamline your logistics operations, reduce costs, and increase efficiency across your entire supply chain.
             </p>
           </div>
 
@@ -131,32 +131,32 @@ const Home = () => {
               {
                 icon: <Truck className="w-12 h-12 text-blue-600" />,
                 title: 'Real-Time Load Board',
-                description: 'Access thousands of verified loads updated in real-time across North America.'
+                description: 'Access thousands of verified freight loads updated in real-time across North America. Our advanced matching algorithm helps you find the perfect loads for your trucks, maximizing efficiency and profitability while minimizing empty miles.'
               },
               {
                 icon: <Users className="w-12 h-12 text-green-600" />,
                 title: 'Verified Network',
-                description: 'Connect with trusted carriers, brokers, and shippers verified by our team.'
+                description: 'Connect with trusted carriers, brokers, and shippers verified by our team through comprehensive background checks, FMCSA compliance validation, and insurance verification to ensure safe, reliable partnerships.'
               },
               {
                 icon: <BarChart3 className="w-12 h-12 text-purple-600" />,
                 title: 'Market Analytics',
-                description: 'Get insights into freight rates, trends, and market conditions.'
+                description: 'Get actionable insights into freight rates, lane trends, seasonal patterns, and market conditions with our data-driven analytics dashboard powered by machine learning and historical market intelligence.'
               },
               {
                 icon: <DollarSign className="w-12 h-12 text-orange-600" />,
                 title: 'Competitive Pricing',
-                description: 'Find the best rates and maximize your profit margins.'
+                description: 'Find the best freight rates and maximize your profit margins with transparent pricing tools, rate calculators, and market benchmarking features that help you negotiate better deals and win more business.'
               },
               {
                 icon: <Search className="w-12 h-12 text-blue-600" />,
                 title: 'Advanced Search',
-                description: 'Filter loads by location, equipment type, and price quickly.'
+                description: 'Filter freight loads by origin, destination, equipment type, weight, price range, and delivery deadlines using our powerful search engine designed specifically for logistics professionals to save time and find ideal matches.'
               },
               {
                 icon: <Rocket className="w-12 h-12 text-green-600" />,
                 title: 'Easy Posting',
-                description: 'Post your loads in minutes with our streamlined interface.'
+                description: 'Post your loads in minutes with our streamlined interface featuring auto-fill templates, lane favorites, and batch posting capabilities that help you get loads to market faster than ever before.'
               }
             ].map((feature, index) => (
               <div
@@ -172,6 +172,49 @@ const Home = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              How CargoLume Works
+            </h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Getting started with CargoLume is simple. Our platform is designed to help freight carriers, brokers, and shippers connect, communicate, and collaborate seamlessly.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-blue-600">1</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Create Your Account</h3>
+              <p className="text-gray-700">
+                Sign up for free in under 2 minutes. Choose your account type (carrier, broker, or shipper), verify your DOT/MC credentials, and customize your profile to match your business needs.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-green-600">2</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Browse or Post Loads</h3>
+              <p className="text-gray-700">
+                Carriers can instantly search our nationwide load board for freight opportunities, while brokers and shippers post loads with detailed specifications, pickup/delivery locations, and competitive pricing.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-orange-600">3</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Connect & Grow</h3>
+              <p className="text-gray-700">
+                Use our built-in messaging system to negotiate rates, confirm booking details, and build lasting business relationships. Track shipments, manage documents, and access analytics to optimize your operations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       {!isAuthenticated && (
         <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-20 text-center">
@@ -180,7 +223,7 @@ const Home = () => {
               Ready to Get Started?
             </h2>
             <p className="text-xl text-white mb-10 max-w-3xl mx-auto opacity-90">
-              Join thousands of freight professionals growing their business with CargoLume.
+              Join thousands of freight professionals growing their business with CargoLume. Whether you're a carrier looking for consistent loads, a broker expanding your network, or a shipper seeking reliable transportation, CargoLume has the tools and connections to help you succeed in today's competitive freight market.
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
               <Link

@@ -1,0 +1,550 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration Success",
+    "description": "Verify that a new user can register successfully with valid data and receives an email verification prompt.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Input valid user information including role (carrier, broker, shipper, admin)."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the registration completes without error."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an email verification link is sent to the provided email."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Registration Validation Failures",
+    "description": "Validate registration form input checks and error messages for invalid or missing data.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Submit registration with missing required fields."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate error messages are displayed for missing fields."
+      },
+      {
+        "type": "action",
+        "description": "Submit registration with invalid email format."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation error for invalid email is shown."
+      },
+      {
+        "type": "action",
+        "description": "Submit registration with weak password."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify password strength validation error is displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Login Success",
+    "description": "Verify that a registered and verified user can log in with correct credentials.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter valid email and password."
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is authenticated and redirected to role-specific dashboard."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "User Login Failure with Incorrect Credentials",
+    "description": "Verify that login fails with incorrect email or password and appropriate error messages display.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter incorrect email or password."
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login is rejected with a clear error message."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Email Verification Workflow",
+    "description": "Verify that user cannot access main features until email is verified and email verification link works.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Register a new user."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is marked as unverified in the system."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to login and access restricted features."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied with messaging prompting email verification."
+      },
+      {
+        "type": "action",
+        "description": "Click the email verification link received in email."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user status updates to verified."
+      },
+      {
+        "type": "action",
+        "description": "Login and confirm access to all authorized features."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Admin Dashboard Access Control",
+    "description": "Verify that only admin users can access the admin command center and features are role-restricted.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as an admin user."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the admin dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify admin dashboard loads with correct data and functional links."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access admin dashboard when logged in as carrier or broker or shipper."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied with appropriate error or redirect."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Load CRUD Operations",
+    "description": "Verify create, read, update, and delete operations for freight loads with proper validation.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as authorized user."
+      },
+      {
+        "type": "action",
+        "description": "Create a new load with valid data."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify load is created and appears in load list."
+      },
+      {
+        "type": "action",
+        "description": "Update load details with valid changes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify load details are updated in UI and backend."
+      },
+      {
+        "type": "action",
+        "description": "Delete the load."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify load is removed from list and backend."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to create update with invalid data (e.g. invalid dates, missing fields)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation errors are shown and operation is blocked."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Real-time Messaging Functionality",
+    "description": "Verify real-time messaging works between two users with correct friend connection setup.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as user A and send a friend request to user B using their unique identifier."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user B receives the friend request and can accept it."
+      },
+      {
+        "type": "action",
+        "description": "User A sends a real-time message to user B after friend acceptance."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user B receives the message instantly."
+      },
+      {
+        "type": "action",
+        "description": "User B replies in real-time."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user A receives the reply message instantly."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Dashboard Analytics Data Accuracy",
+    "description": "Verify that role-based dashboards display correct real-time analytics, charts, and statistics matching backend data.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as carrier, broker, and shipper respectively."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify each dashboard shows accurate charts and statistics relevant to the role."
+      },
+      {
+        "type": "action",
+        "description": "Trigger backend updates that affect analytics data."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard analytics update in real-time or on refresh."
+      },
+      {
+        "type": "action",
+        "description": "Validate data correctness with database query results."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Document Upload and Download",
+    "description": "Verify document upload enforces file type and size constraints, stores securely, and download functions properly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user and navigate to document upload page."
+      },
+      {
+        "type": "action",
+        "description": "Upload a document of allowed file type and within size limits."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify upload is accepted and file is stored securely."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload a document exceeding size limits or invalid file type."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify upload is rejected with clear error messages."
+      },
+      {
+        "type": "action",
+        "description": "Download an uploaded document."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify document downloads successfully and file integrity is maintained."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Search and Saved Queries Functionality",
+    "description": "Verify advanced search returns accurate results and saved queries can be created, executed, edited, and deleted.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform a load search with specific filter criteria."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify search results only include loads matching criteria."
+      },
+      {
+        "type": "action",
+        "description": "Save the search query with a custom name."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify saved query appears in saved queries list."
+      },
+      {
+        "type": "action",
+        "description": "Execute the saved query."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the executed query returns correct results."
+      },
+      {
+        "type": "action",
+        "description": "Edit the saved query and save changes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes are saved and executed correctly."
+      },
+      {
+        "type": "action",
+        "description": "Delete the saved query."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify it is removed from saved queries list."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Push Notifications and Rate Limiting",
+    "description": "Verify push notifications are delivered for alerts and rate limiting triggers properly under abuse scenarios.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Trigger an event that should generate a push notification (e.g. new load, message)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user receives push notification on UI and/or device."
+      },
+      {
+        "type": "action",
+        "description": "Send excessive requests to API endpoints to simulate abuse."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify rate limiting blocks requests and appropriate error is returned."
+      },
+      {
+        "type": "action",
+        "description": "Verify normal requests after rate limiting cooldown succeed."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Security Mechanisms Validation",
+    "description": "Ensure JWT authentication, password hashing, CORS policies, Helmet headers, and input validation function correctly and resist attacks.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt unauthorized access to protected API endpoints without JWT token."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied."
+      },
+      {
+        "type": "action",
+        "description": "Login and capture JWT token, then use token for API requests."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify token grants access to authorized resources."
+      },
+      {
+        "type": "action",
+        "description": "Inspect password storage to confirm use of bcrypt hashing."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify stored passwords are hashed and salted."
+      },
+      {
+        "type": "action",
+        "description": "Test input fields with injection strings."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify input validation prevents injection attacks."
+      },
+      {
+        "type": "action",
+        "description": "Verify HTTP responses include CORS, Helmet security headers, and gzip compression."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Frontend Performance and Responsiveness",
+    "description": "Verify frontend loads within 3 seconds, API responses occur in under 500ms, and UI adapts responsively across devices.",
+    "category": "performance",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load main web pages on broadband network."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page load time is under 3 seconds."
+      },
+      {
+        "type": "action",
+        "description": "Measure API response times for critical endpoints."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response times are below 500ms."
+      },
+      {
+        "type": "action",
+        "description": "Resize browser window or test on various devices."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI elements adjust properly and remain usable."
+      },
+      {
+        "type": "action",
+        "description": "Test app offline capabilities."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI shows appropriate offline indicators and limited functionality."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "User Profile Management",
+    "description": "Verify users can view and edit their profile details securely, and changes persist correctly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user and navigate to profile page."
+      },
+      {
+        "type": "action",
+        "description": "Edit profile information fields and submit changes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify updated information is saved and displayed correctly."
+      },
+      {
+        "type": "action",
+        "description": "Attempt invalid profile updates (e.g. invalid email format)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation errors are shown and updates rejected."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Session Security and Monitoring",
+    "description": "Verify user security sessions display current active sessions and allow secure logout from other sessions.",
+    "category": "security",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login from multiple browsers/devices."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to session monitoring page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all active sessions are listed with accurate details."
+      },
+      {
+        "type": "action",
+        "description": "Trigger logout from a selected session."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is terminated securely."
+      }
+    ]
+  }
+]
