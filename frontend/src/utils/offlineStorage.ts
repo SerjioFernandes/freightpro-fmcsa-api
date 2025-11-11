@@ -8,6 +8,13 @@ const STORES = {
   pendingRequests: 'pendingRequests'
 };
 
+export interface QueuedRequest {
+  url: string;
+  method: string;
+  body?: unknown;
+  headers?: Record<string, string>;
+}
+
 class OfflineStorage {
   private db: IDBDatabase | null = null;
 
@@ -41,7 +48,7 @@ class OfflineStorage {
     });
   }
 
-  async set(storeName: string, data: any): Promise<void> {
+  async set<T>(storeName: string, data: T): Promise<void> {
     if (!this.db) await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readwrite');
@@ -53,26 +60,26 @@ class OfflineStorage {
     });
   }
 
-  async get(storeName: string, key: string): Promise<any> {
+  async get<T = unknown>(storeName: string, key: string): Promise<T | undefined> {
     if (!this.db) await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => resolve(request.result as T | undefined);
       request.onerror = () => reject(request.error);
     });
   }
 
-  async getAll(storeName: string): Promise<any[]> {
+  async getAll<T = unknown>(storeName: string): Promise<T[]> {
     if (!this.db) await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.getAll();
 
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => resolve(request.result as T[]);
       request.onerror = () => reject(request.error);
     });
   }
@@ -102,15 +109,15 @@ class OfflineStorage {
   }
 
   // Queue failed requests for retry when online
-  async queueRequest(request: { url: string; method: string; body?: any; headers?: any }): Promise<void> {
-    await this.set(STORES.pendingRequests, {
+  async queueRequest(request: QueuedRequest): Promise<void> {
+    await this.set<QueuedRequest & { timestamp: number; id?: number }>(STORES.pendingRequests, {
       ...request,
       timestamp: Date.now()
     });
   }
 
-  async getPendingRequests(): Promise<any[]> {
-    return this.getAll(STORES.pendingRequests);
+  async getPendingRequests(): Promise<Array<QueuedRequest & { timestamp: number; id?: number }>> {
+    return this.getAll<QueuedRequest & { timestamp: number; id?: number }>(STORES.pendingRequests);
   }
 
   async clearPendingRequest(id: number): Promise<void> {

@@ -1,51 +1,61 @@
+import type { ApiResponse } from '../types/api.types';
+import type { Load } from '../types/load.types';
+import type { Shipment, ShipmentRequest } from '../types/shipment.types';
 import api from './api';
 
+export type DashboardTrendDirection = 'up' | 'down' | 'stable';
+
+export interface DashboardTrendMetric {
+  total: number;
+  average?: number;
+  active?: number;
+  completed?: number;
+  cancelled?: number;
+  trend: DashboardTrendDirection;
+  change: number;
+}
+
+export interface DashboardTimeSeriesPoint {
+  date: string;
+  value?: number;
+  count?: number;
+}
+
+export interface DashboardSummary {
+  totalBooked?: number;
+  totalEarnings?: number;
+  totalMiles?: number;
+  activeLoads?: number;
+  averageRate?: number;
+  rating?: string;
+  totalPosted?: number;
+  carrierRequests?: number;
+  potentialRevenue?: number;
+  totalShipments?: number;
+  activeShipments?: number;
+  totalProposals?: number;
+  totalSpend?: number;
+}
+
 export interface DashboardStats {
-  stats: {
-    totalBooked?: number;
-    totalEarnings?: number;
-    totalMiles?: number;
-    activeLoads?: number;
-    averageRate?: number;
-    rating?: string;
-    totalPosted?: number;
-    carrierRequests?: number;
-    potentialRevenue?: number;
-    totalShipments?: number;
-    activeShipments?: number;
-    totalProposals?: number;
-    totalSpend?: number;
-  };
+  stats: DashboardSummary;
   analytics?: {
-    revenue?: {
-      total: number;
-      average: number;
-      trend: 'up' | 'down' | 'stable';
-      change: number;
-    };
-    loads?: {
-      total: number;
-      active: number;
-      completed: number;
-      cancelled: number;
-      trend: 'up' | 'down' | 'stable';
-      change: number;
-    };
+    revenue?: DashboardTrendMetric;
+    loads?: DashboardTrendMetric;
   };
   timeSeries?: {
-    revenue?: Array<{ date: string; value: number }>;
-    loads?: Array<{ date: string; count: number }>;
+    revenue?: DashboardTimeSeriesPoint[];
+    loads?: DashboardTimeSeriesPoint[];
   };
   topEquipment?: Array<{ type: string; count: number }>;
-  recentLoads?: any[];
-  recentShipments?: any[];
-  recentRequests?: any[];
+  recentLoads?: Load[];
+  recentShipments?: Shipment[];
+  recentRequests?: ShipmentRequest[];
 }
 
 export const dashboardService = {
-  async getStats(): Promise<{ success: boolean; data?: DashboardStats; error?: string }> {
-    const response = await api.get('/dashboard/stats');
+  async getStats(): Promise<ApiResponse<DashboardStats>> {
+    const response = await api.get<ApiResponse<DashboardStats>>('/dashboard/stats');
     return response.data;
   }
 };
-

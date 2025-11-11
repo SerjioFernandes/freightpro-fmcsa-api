@@ -8,6 +8,7 @@ export interface BoardSearchFilters {
   radiusMiles?: number;
   rateType?: string;
   keywords: string;
+  stateShortcut?: string;
 }
 
 

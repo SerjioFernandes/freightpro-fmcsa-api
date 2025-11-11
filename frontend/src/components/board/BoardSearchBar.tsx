@@ -96,7 +96,7 @@ const BoardSearchBar = ({
           <input
             type="text"
             value={filters.origin}
-            onChange={(event) => onChange({ origin: event.target.value })}
+            onChange={(event) => onChange({ origin: event.target.value, stateShortcut: '' })}
             placeholder="City, State or ZIP"
             className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
           />
@@ -250,7 +250,7 @@ const BoardSearchBar = ({
               onChange={(event) => {
                 const value = event.target.value;
                 if (value) {
-                  onChange({ origin: value });
+                  onChange({ origin: value, stateShortcut: value });
                   event.target.value = '';
                 }
               }}

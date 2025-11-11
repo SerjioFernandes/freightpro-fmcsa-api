@@ -1,15 +1,22 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Package, MessageSquare, User, LayoutDashboard, Bookmark } from 'lucide-react';
+import { Package, MessageSquare, User, LayoutDashboard, Bookmark, Navigation2 } from 'lucide-react';
 import { ROUTES } from '../../utils/constants';
+import { useAuthStore } from '../../store/authStore';
+import { canViewLoadBoard, canViewShipments } from '../../utils/permissions';
 
 const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+
+  const showLoadBoard = canViewLoadBoard(user?.accountType);
+  const showShipments = canViewShipments(user?.accountType);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: ROUTES.DASHBOARD },
-    { icon: Package, label: 'Loads', path: ROUTES.LOAD_BOARD },
-    { icon: Bookmark, label: 'Searches', path: ROUTES.SAVED_SEARCHES },
+    ...(showLoadBoard ? [{ icon: Package, label: 'Loads', path: ROUTES.LOAD_BOARD }] : []),
+    ...(showShipments ? [{ icon: Navigation2, label: 'Shippboard', path: ROUTES.SHIPMENTS }] : []),
+    ...(showLoadBoard ? [{ icon: Bookmark, label: 'Searches', path: ROUTES.SAVED_SEARCHES }] : []),
     { icon: MessageSquare, label: 'Messages', path: ROUTES.MESSAGES },
     { icon: User, label: 'Profile', path: ROUTES.PROFILE }
   ];
@@ -22,7 +29,7 @@ const MobileBottomNav = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
-          
+
           return (
             <button
               key={item.path}

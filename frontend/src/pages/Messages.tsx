@@ -7,14 +7,21 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { FriendConnection, FriendRequest } from '../types/friend.types';
+import type { ConversationPreview, ConversationMessage } from '../types/message.types';
+import { getErrorMessage } from '../utils/errors';
+
+type MessageDeletionEvent = {
+  messageId: string;
+  conversationId?: string;
+};
 
 const Messages = () => {
   const { addNotification } = useUIStore();
   const { user } = useAuthStore();
   const { subscribe, joinRoom, leaveRoom } = useWebSocket();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<ConversationPreview[]>([]);
+  const [selectedUser, setSelectedUser] = useState<ConversationPreview | null>(null);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [subject, setSubject] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -38,12 +45,13 @@ const Messages = () => {
     setConversationsError(null);
     try {
       const response = await messageService.getConversations();
-      if (response.success) {
+      if (response.success && response.data) {
         setConversations(response.data);
       }
-    } catch (error: any) {
-      setConversationsError('Failed to load conversations');
-      addNotification({ type: 'error', message: 'Failed to load conversations' });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, 'Failed to load conversations');
+      setConversationsError(message);
+      addNotification({ type: 'error', message });
     } finally {
       setIsConversationsLoading(false);
     }
@@ -57,11 +65,11 @@ const Messages = () => {
     setIsFriendsLoading(true);
     try {
       const response = await friendService.getFriends();
-      if (response.success) {
+      if (response.success && Array.isArray(response.data)) {
         setConnections(response.data);
       }
-    } catch (error) {
-      addNotification({ type: 'error', message: 'Failed to load connections' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to load connections') });
     } finally {
       setIsFriendsLoading(false);
     }
@@ -81,8 +89,8 @@ const Messages = () => {
       if (outgoing.success) {
         setOutgoingRequests(outgoing.data);
       }
-    } catch (error) {
-      addNotification({ type: 'error', message: 'Failed to load friend requests' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to load friend requests') });
     } finally {
       setIsRequestsLoading(false);
     }
@@ -98,12 +106,13 @@ const Messages = () => {
     setMessagesError(null);
     try {
       const response = await messageService.getConversation(userId);
-      if (response.success) {
+      if (response.success && response.data) {
         setMessages(response.data);
       }
-    } catch (error: any) {
-      setMessagesError('Failed to load conversation');
-      addNotification({ type: 'error', message: 'Failed to load conversation' });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, 'Failed to load conversation');
+      setMessagesError(message);
+      addNotification({ type: 'error', message });
     } finally {
       setIsMessagesLoading(false);
     }
@@ -127,7 +136,7 @@ const Messages = () => {
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Messages] Setting up WebSocket listeners');
 
-    const unsubscribeNewMessage = subscribe('new_message', (message: any) => {
+    const unsubscribeNewMessage = subscribe<ConversationMessage>('new_message', (message) => {
       if (import.meta.env.DEV) console.log('[Messages] Received new_message event', message);
       
       const senderId = typeof message.sender === 'object' ? message.sender._id?.toString() : message.sender?.toString();
@@ -157,14 +166,14 @@ const Messages = () => {
       loadConversations();
     });
 
-    const unsubscribeMessageUpdate = subscribe('message_updated', (message: any) => {
+    const unsubscribeMessageUpdate = subscribe<ConversationMessage>('message_updated', (message) => {
       setMessages(prev => prev.map(msg => 
         msg._id === message._id ? message : msg
       ));
     });
 
-    const unsubscribeMessageDelete = subscribe('message_deleted', (data: any) => {
-      setMessages(prev => prev.filter(msg => msg._id !== data.messageId));
+    const unsubscribeMessageDelete = subscribe<MessageDeletionEvent>('message_deleted', (data) => {
+      setMessages((prev) => prev.filter((msg) => msg._id !== data.messageId));
     });
 
     return () => {
@@ -206,45 +215,45 @@ const Messages = () => {
       await loadConversation(selectedUser.userId);
       await loadConversations();
       addNotification({ type: 'success', message: 'Message sent!' });
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to send message';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to send message') });
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleEditMessage = async (msg: any, newMessage: string) => {
+  const handleEditMessage = async (msg: ConversationMessage, newMessage: string) => {
+    if (!selectedUser) return;
     try {
       await messageService.editMessage(msg._id, newMessage);
       addNotification({ type: 'success', message: 'Message updated!' });
-      await loadConversation(selectedUser?.userId || '');
+      await loadConversation(selectedUser.userId);
       setEditingMessage(null);
-    } catch (error: any) {
-      addNotification({ 
-        type: 'error', 
-        message: error.response?.data?.error || 'Failed to edit message' 
-      });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to edit message') });
     }
   };
 
-  const handleDeleteMessage = async (msg: any) => {
+  const handleDeleteMessage = async (msg: ConversationMessage) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
+    if (!selectedUser) return;
 
     try {
       await messageService.deleteMessage(msg._id);
       addNotification({ type: 'success', message: 'Message deleted!' });
-      await loadConversation(selectedUser?.userId || '');
-    } catch (error: any) {
-      addNotification({ 
-        type: 'error', 
-        message: error.response?.data?.error || 'Failed to delete message' 
-      });
+      await loadConversation(selectedUser.userId);
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to delete message') });
     }
   };
 
-  const isMyMessage = (msg: any): boolean => {
-    return !!(user && msg.sender?._id?.toString() === user.id);
+  const isMyMessage = (msg: ConversationMessage): boolean => {
+    if (!user) return false;
+    const senderId =
+      typeof msg.sender === 'object'
+        ? msg.sender._id?.toString()
+        : msg.sender?.toString();
+    return senderId === user.id;
   };
 
   const handleNewMessage = async () => {
@@ -258,9 +267,8 @@ const Messages = () => {
         addNotification({ type: 'success', message: response.message || 'Connection request sent!' });
       }
       await loadFriendRequests();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to send connection request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to send connection request') });
     } finally {
       setShowNewMessageModal(false);
       setUserSearchQuery('');
@@ -276,9 +284,8 @@ const Messages = () => {
         addNotification({ type: action === 'accept' ? 'success' : 'info', message: response.message });
         await Promise.all([loadFriendRequests(), loadFriends(), loadConversations()]);
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to update request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to update request') });
     }
   };
 
@@ -289,9 +296,8 @@ const Messages = () => {
         addNotification({ type: 'info', message: response.message || 'Request cancelled' });
         await loadFriendRequests();
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to cancel request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to cancel request') });
     }
   };
 
@@ -336,12 +342,15 @@ const Messages = () => {
                   connections.map((connection) => (
                     <button
                       key={connection.connectionId}
-                      onClick={() => setSelectedUser({
-                        userId: connection.friendId,
-                        company: connection.company,
-                        email: connection.email,
-                        accountType: connection.accountType,
-                      })}
+                      onClick={() =>
+                        setSelectedUser({
+                          userId: connection.friendId,
+                          company: connection.company,
+                          email: connection.email,
+                          accountType: connection.accountType,
+                          unreadCount: 0,
+                        })
+                      }
                       className={`w-full text-left px-3 py-2 rounded-lg transition-colors border ${
                         selectedUser?.userId === connection.friendId
                           ? 'bg-blue-50 border-blue-500 text-blue-900'
@@ -493,7 +502,7 @@ const Messages = () => {
                     ) : messages.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">No messages yet. Start a conversation!</p>
                     ) : (
-                      messages.map((msg: any) => (
+                      messages.map((msg) => (
                         <div
                           key={msg._id}
                           className={`flex ${

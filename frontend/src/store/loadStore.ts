@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Load } from '../types/load.types';
 import { loadService } from '../services/load.service';
+import { getErrorMessage } from '../utils/errors';
 import type { PaginationParams } from '../types/api.types';
 
 interface LoadState {
@@ -32,9 +33,10 @@ export const useLoadStore = create<LoadState>((set) => ({
         pagination: response.pagination || null,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, 'Failed to fetch loads');
       set({
-        error: error.response?.data?.message || error.response?.data?.error || 'Failed to fetch loads',
+        error: message,
         isLoading: false,
       });
     }
@@ -50,9 +52,10 @@ export const useLoadStore = create<LoadState>((set) => ({
           load._id === loadId ? { ...load, status: 'booked' as const } : load
         )
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, 'Failed to book load');
       set({
-        error: error.response?.data?.message || error.response?.data?.error || 'Failed to book load',
+        error: message,
       });
       throw error;
     }

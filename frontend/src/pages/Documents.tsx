@@ -3,6 +3,8 @@ import { documentService } from '../services/document.service';
 import { useUIStore } from '../store/uiStore';
 import { FileText, Upload, Trash2, Download, Filter, Grid3x3, List, Plus, Eye } from 'lucide-react';
 import DocumentUploadModal from '../components/Documents/DocumentUploadModal';
+import type { DocumentRecord } from '../types/document.types';
+import { getErrorMessage } from '../utils/errors';
 
 const DOCUMENT_TYPES = [
   'ALL',
@@ -17,7 +19,7 @@ const DOCUMENT_TYPES = [
 
 const Documents = () => {
   const { addNotification } = useUIStore();
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [selectedType, setSelectedType] = useState('ALL');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,17 +34,17 @@ const Documents = () => {
     try {
       const params = selectedType !== 'ALL' ? { type: selectedType } : {};
       const response = await documentService.listDocuments(params);
-      if (response.success) {
+      if (response.success && response.data) {
         setDocuments(response.data);
       }
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to load documents' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to load documents') });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDownload = async (doc: any) => {
+  const handleDownload = async (doc: DocumentRecord) => {
     try {
       const blob = await documentService.downloadDocument(doc._id);
       const url = window.URL.createObjectURL(blob);
@@ -54,8 +56,8 @@ const Documents = () => {
       window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       addNotification({ type: 'success', message: 'Download started' });
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to download document' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to download document') });
     }
   };
 
@@ -63,23 +65,27 @@ const Documents = () => {
     if (!confirm('Are you sure you want to delete this document?')) return;
 
     try {
-      await documentService.deleteDocument(id);
-      addNotification({ type: 'success', message: 'Document deleted successfully' });
-      loadDocuments();
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to delete document' });
+      const response = await documentService.deleteDocument(id);
+      if (response.success) {
+        addNotification({ type: 'success', message: 'Document deleted successfully' });
+        void loadDocuments();
+      } else {
+        addNotification({ type: 'error', message: response.error || 'Failed to delete document' });
+      }
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to delete document') });
     }
   };
 
-  const handleView = async (doc: any) => {
+  const handleView = async (doc: DocumentRecord) => {
     try {
       const blob = await documentService.downloadDocument(doc._id);
       const url = window.URL.createObjectURL(blob);
       window.open(url, '_blank');
       // Clean up after a delay to ensure the new tab can load the file
       setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to open document' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to open document') });
     }
   };
 

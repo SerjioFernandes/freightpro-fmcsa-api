@@ -3,6 +3,7 @@ import { shipmentService } from '../../services/shipment.service';
 import { useUIStore } from '../../store/uiStore';
 import { X, CheckCircle, XCircle } from 'lucide-react';
 import type { ShipmentRequest } from '../../types/shipment.types';
+import { getErrorMessage } from '../../utils/errors';
 
 interface ShipmentRequestModalProps {
   request: ShipmentRequest;
@@ -26,9 +27,8 @@ const ShipmentRequestModal = ({ request, onUpdate, onClose }: ShipmentRequestMod
         onUpdate();
       }
       onClose();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to approve request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to approve request') });
     } finally {
       setIsUpdating(false);
       setActionType(null);
@@ -45,9 +45,8 @@ const ShipmentRequestModal = ({ request, onUpdate, onClose }: ShipmentRequestMod
         onUpdate();
       }
       onClose();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to reject request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to reject request') });
     } finally {
       setIsUpdating(false);
       setActionType(null);

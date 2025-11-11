@@ -1,8 +1,8 @@
 // Lightweight polling service for real-time updates
-interface PollingOptions {
+interface PollingOptions<T> {
   interval: number; // milliseconds
   maxAttempts?: number; // max poll attempts before stopping
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
 }
 
@@ -12,7 +12,7 @@ class PollingService {
   /**
    * Start polling
    */
-  start(key: string, fn: () => Promise<any>, options: PollingOptions): void {
+  start<T>(key: string, fn: () => Promise<T>, options: PollingOptions<T>): void {
     // Clear any existing interval for this key
     this.stop(key);
 

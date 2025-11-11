@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { useLoadStore } from '../../store/loadStore';
 import { useAuthStore } from '../../store/authStore';
 import { dashboardService } from '../../services/dashboard.service';
+import type { DashboardStats } from '../../services/dashboard.service';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
 import { Plus, Package, Users, DollarSign, MapPin } from 'lucide-react';
 import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import BarChart from '../../components/Analytics/BarChart';
+import type { Load } from '../../types/load.types';
 
 const BrokerDashboard = () => {
   const { user } = useAuthStore();
   const { loads, fetchLoads, isLoading } = useLoadStore();
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -28,8 +30,10 @@ const BrokerDashboard = () => {
       if (response.success && response.data) {
         setDashboardData(response.data);
       }
-    } catch (error: any) {
-      // Silently fail - stats are optional
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load broker dashboard stats', error);
+      }
     } finally {
       setIsLoadingStats(false);
     }
@@ -97,7 +101,7 @@ const BrokerDashboard = () => {
     },
     {
       label: 'Total Revenue',
-      value: `$${bookedLoads.reduce((sum, load) => sum + (load.rate || 0), 0).toLocaleString()}`,
+      value: `$${bookedLoads.reduce((sum, load) => sum + load.rate, 0).toLocaleString()}`,
       icon: <DollarSign className="h-12 w-12" />,
       color: 'text-purple-600',
       bgColor: 'bg-purple-600/10'
@@ -105,19 +109,25 @@ const BrokerDashboard = () => {
   ];
 
   // Prepare chart data for loads time series
-  const loadsChartData = dashboardData?.timeSeries?.loads ? {
-    labels: dashboardData.timeSeries.loads.map((item: any) => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }),
-    datasets: [{
-      label: 'Loads Posted',
-      data: dashboardData.timeSeries.loads.map((item: any) => item.count),
-      backgroundColor: 'rgba(37, 99, 235, 0.8)',
-      borderColor: '#2563eb',
-      borderWidth: 1
-    }]
-  } : null;
+  const loadsSeries = dashboardData?.timeSeries?.loads ?? [];
+  const loadsChartData =
+    loadsSeries.length > 0
+      ? {
+          labels: loadsSeries.map((item) => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }),
+          datasets: [
+            {
+              label: 'Loads Posted',
+              data: loadsSeries.map((item) => item.count ?? 0),
+              backgroundColor: 'rgba(37, 99, 235, 0.8)',
+              borderColor: '#2563eb',
+              borderWidth: 1,
+            },
+          ],
+        }
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -185,7 +195,7 @@ const BrokerDashboard = () => {
               Most Posted Equipment Types
             </h3>
             <div className="grid md:grid-cols-3 gap-4">
-              {dashboardData.topEquipment.map((item: any) => (
+              {dashboardData.topEquipment.map((item) => (
                 <div
                   key={item.type}
                   className="p-4 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary-blue transition-colors"
@@ -238,7 +248,7 @@ const BrokerDashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-heading font-bold text-orange-accent">
-                        ${load.rate?.toLocaleString()}
+                        ${load.rate.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-600">
                         {load.status}

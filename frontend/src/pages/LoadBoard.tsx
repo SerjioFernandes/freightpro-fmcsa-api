@@ -1,34 +1,118 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
-import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, Map, List, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
-import LoadMap from '../components/Map/LoadMap';
 import BoardSearchBar from '../components/board/BoardSearchBar';
 import type { BoardSearchFilters } from '../types/board.types';
 import { getStateCodeFromInput, getStateCentroid, haversineMiles } from '../utils/geo';
+import { getErrorMessage } from '../utils/errors';
+
+const createDefaultFilters = (): BoardSearchFilters => ({
+  origin: '',
+  destination: '',
+  equipmentType: '',
+  pickupDate: '',
+  minRate: undefined,
+  maxMiles: undefined,
+  radiusMiles: undefined,
+  rateType: '',
+  keywords: '',
+  stateShortcut: ''
+});
+
+const parseNumberParam = (value: string | null): number | undefined => {
+  if (!value) return undefined;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+};
+
+const buildFiltersFromSearchParams = (params: URLSearchParams): BoardSearchFilters | null => {
+  const recognizedKeys = [
+    'origin',
+    'originState',
+    'destination',
+    'destinationState',
+    'equipment',
+    'pickupDate',
+    'minRate',
+    'maxMiles',
+    'radius',
+    'rateType',
+    'keywords',
+    'state'
+  ];
+
+  const hasRelevant = recognizedKeys.some((key) => params.has(key));
+  if (!hasRelevant) {
+    return null;
+  }
+
+  const defaults = createDefaultFilters();
+
+  return {
+    ...defaults,
+    origin: params.get('origin') ?? params.get('originState') ?? defaults.origin,
+    destination: params.get('destination') ?? params.get('destinationState') ?? defaults.destination,
+    equipmentType: params.get('equipment') ?? defaults.equipmentType,
+    pickupDate: params.get('pickupDate') ?? defaults.pickupDate,
+    minRate: parseNumberParam(params.get('minRate')) ?? defaults.minRate,
+    maxMiles: parseNumberParam(params.get('maxMiles')) ?? defaults.maxMiles,
+    radiusMiles: parseNumberParam(params.get('radius')) ?? defaults.radiusMiles,
+    rateType: params.get('rateType') ?? defaults.rateType,
+    keywords: params.get('keywords') ?? defaults.keywords,
+    stateShortcut: params.get('state') ?? defaults.stateShortcut
+  };
+};
 
 const LoadBoard = () => {
   const { loads, pagination, isLoading, fetchLoads, bookLoad } = useLoadStore();
   const { user } = useAuthStore();
   const { addNotification } = useUIStore();
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lastPrefillKeyRef = useRef<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(20);
   const [isBooking, setIsBooking] = useState<string | null>(null);
-  const [filters, setFilters] = useState<BoardSearchFilters>({
-    origin: '',
-    destination: '',
-    equipmentType: '',
-    pickupDate: '',
-    minRate: undefined,
-    maxMiles: undefined,
-    radiusMiles: undefined,
-    rateType: '',
-    keywords: ''
-  });
+  const [filters, setFilters] = useState<BoardSearchFilters>(() => createDefaultFilters());
+
+  useEffect(() => {
+    const serialized = searchParams.toString();
+    if (serialized === lastPrefillKeyRef.current) {
+      return;
+    }
+
+    lastPrefillKeyRef.current = serialized;
+
+    const derivedFilters = buildFiltersFromSearchParams(searchParams);
+    const pageParam = parseNumberParam(searchParams.get('page'));
+
+    if (derivedFilters) {
+      setFilters(derivedFilters);
+      setCurrentPage(1);
+
+      if (searchParams.has('prefill')) {
+        const updatedParams = new URLSearchParams(searchParams);
+        updatedParams.delete('prefill');
+        lastPrefillKeyRef.current = updatedParams.toString();
+        setSearchParams(updatedParams, { replace: true });
+      }
+      return;
+    }
+
+    if (!serialized) {
+      setFilters(createDefaultFilters());
+      setCurrentPage(1);
+      return;
+    }
+
+    if (pageParam && pageParam > 0 && pageParam !== currentPage) {
+      setCurrentPage(pageParam);
+    }
+  }, [searchParams, setSearchParams, currentPage]);
 
   // Enable real-time updates for load board
   useRealTimeUpdates();
@@ -37,25 +121,7 @@ const LoadBoard = () => {
     fetchLoads(currentPage, limit);
   }, [fetchLoads, currentPage, limit]);
 
-  // Access control: Only carriers and brokers can view the load board
-  if (!canViewLoadBoard(user?.accountType)) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="card text-center animate-fade-in">
-            <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h2>
-            <p className="text-gray-600 mb-6">
-              Only carriers and brokers can access the Load Board.
-            </p>
-            <p className="text-sm text-gray-500">
-              Shippers can create shipments instead. Check your dashboard for shipment management options.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isLoadBoardAccessible = canViewLoadBoard(user?.accountType);
 
   const equipmentOptions = useMemo(() => {
     const unique = new Set<string>();
@@ -70,6 +136,7 @@ const LoadBoard = () => {
   const filteredLoads = useMemo(() => {
     const originStateCode = getStateCodeFromInput(filters.origin);
     const originStateCoords = originStateCode ? getStateCentroid(originStateCode) : null;
+    const shortcutState = filters.stateShortcut?.trim().toUpperCase();
 
     return loads.filter((load) => {
       const { origin, destination, pickupDate, equipmentType, rate, distance, rateType, title, description } = load;
@@ -78,6 +145,15 @@ const LoadBoard = () => {
         `${origin.city} ${origin.state} ${origin.zip}`.toLowerCase().includes(filters.origin.toLowerCase());
 
       if (!originMatch) return false;
+
+      if (shortcutState) {
+        const loadOriginState = origin.state?.toUpperCase();
+        const loadDestinationState = destination.state?.toUpperCase();
+
+        if (loadOriginState !== shortcutState && loadDestinationState !== shortcutState) {
+          return false;
+        }
+      }
 
       const destinationMatch =
         !filters.destination ||
@@ -140,6 +216,26 @@ const LoadBoard = () => {
     });
   }, [loads, filters]);
 
+  // Access control: Only carriers and brokers can view the load board
+  if (!isLoadBoardAccessible) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="card text-center animate-fade-in">
+            <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h2>
+            <p className="text-gray-600 mb-6">
+              Only carriers and brokers can access the Load Board.
+            </p>
+            <p className="text-sm text-gray-500">
+              Shippers can create shipments instead. Check your dashboard for shipment management options.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleBookLoad = async (loadId: string) => {
     setIsBooking(loadId);
     try {
@@ -147,8 +243,8 @@ const LoadBoard = () => {
       addNotification({ type: 'success', message: 'Load booked successfully!' });
       // Refresh current page after booking
       await fetchLoads(currentPage, limit);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to book load. Please try again.';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, 'Failed to book load. Please try again.');
       addNotification({ type: 'error', message: errorMessage });
     } finally {
       setIsBooking(null);
@@ -173,50 +269,13 @@ const LoadBoard = () => {
                 Browse and book available freight loads in real-time
               </p>
             </div>
-            {/* View Toggle */}
-            <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-md">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-primary-blue text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="h-5 w-5" />
-                <span className="hidden sm:inline">List</span>
-              </button>
-              <button
-                onClick={() => setViewMode('map')}
-                className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
-                  viewMode === 'map'
-                    ? 'bg-primary-blue text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Map className="h-5 w-5" />
-                <span className="hidden sm:inline">Map</span>
-              </button>
-            </div>
           </div>
         </div>
 
         <BoardSearchBar
           filters={filters}
           onChange={(updates) => setFilters((prev) => ({ ...prev, ...updates }))}
-          onClear={() =>
-            setFilters({
-              origin: '',
-              destination: '',
-              equipmentType: '',
-              pickupDate: '',
-              minRate: undefined,
-              maxMiles: undefined,
-              radiusMiles: undefined,
-              rateType: '',
-              keywords: ''
-            })
-          }
+          onClear={() => setFilters(createDefaultFilters())}
           equipmentOptions={equipmentSelectOptions}
         />
 
@@ -226,160 +285,156 @@ const LoadBoard = () => {
             <p className="text-gray-700 text-lg mt-6 font-medium">Loading loads...</p>
           </div>
         ) : filteredLoads.length > 0 ? (
-          viewMode === 'map' ? (
-            <LoadMap loads={filteredLoads} />
-          ) : (
-            <div className="grid gap-6">
-            {filteredLoads.map((load, index) => (
-              <div 
-                key={load._id} 
-                className="card card-hover border-2 border-primary-blue/30 hover:border-orange-accent animate-slide-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                  {/* Load Details */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-2xl font-heading font-bold text-gray-900">
-                        {load.title}
-                      </h3>
-                      <span className={`badge ${load.status === 'available' ? 'badge-success' : 'badge-warning'} ml-4`}>
-                        {load.status}
-                      </span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-6">{load.description}</p>
-                    
-                    {/* Route Information */}
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-primary-blue/10 p-2 rounded-lg">
-                          <MapPin className="h-5 w-5 text-primary-blue" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            Origin
-                          </p>
-                          <p className="text-gray-900 font-medium">
-                            {load.origin.city}, {load.origin.state} {load.origin.zip}
-                          </p>
-                        </div>
+          <div className="grid gap-6">
+          {filteredLoads.map((load, index) => (
+            <div 
+              key={load._id} 
+              className="card card-hover border-2 border-primary-blue/30 hover:border-orange-accent animate-slide-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                {/* Load Details */}
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-2xl font-heading font-bold text-gray-900">
+                      {load.title}
+                    </h3>
+                    <span className={`badge ${load.status === 'available' ? 'badge-success' : 'badge-warning'} ml-4`}>
+                      {load.status}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-6">{load.description}</p>
+                  
+                  {/* Route Information */}
+                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-primary-blue/10 p-2 rounded-lg">
+                        <MapPin className="h-5 w-5 text-primary-blue" />
                       </div>
-                      
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-orange-accent/10 p-2 rounded-lg">
-                          <Navigation className="h-5 w-5 text-orange-accent" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            Destination
-                          </p>
-                          <p className="text-gray-900 font-medium">
-                            {load.destination.city}, {load.destination.state} {load.destination.zip}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-primary-blue/10 p-2 rounded-lg">
-                          <Calendar className="h-5 w-5 text-primary-blue" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            Pickup Date
-                          </p>
-                          <p className="text-gray-900 font-medium">
-                            {new Date(load.pickupDate).toLocaleDateString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-orange-accent/10 p-2 rounded-lg">
-                          <Weight className="h-5 w-5 text-orange-accent" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            Weight
-                          </p>
-                          <p className="text-gray-900 font-medium">
-                            {load.weight.toLocaleString()} lbs
-                          </p>
-                        </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Origin
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {load.origin.city}, {load.origin.state} {load.origin.zip}
+                        </p>
                       </div>
                     </div>
                     
-                    {/* Load Metadata */}
-                    <div className="flex items-center flex-wrap gap-3">
-                      <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-lg">
-                        <Truck className="h-4 w-4 text-primary-blue" />
-                        <span className="font-medium">{load.equipmentType}</span>
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-orange-accent/10 p-2 rounded-lg">
+                        <Navigation className="h-5 w-5 text-orange-accent" />
                       </div>
-                      {load.isInterstate && (
-                        <span className="badge badge-success">Interstate</span>
-                      )}
-                      {load.distance && (
-                        <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
-                          📍 {load.distance} miles
-                        </span>
-                      )}
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Destination
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {load.destination.city}, {load.destination.state} {load.destination.zip}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-primary-blue/10 p-2 rounded-lg">
+                        <Calendar className="h-5 w-5 text-primary-blue" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Pickup Date
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {new Date(load.pickupDate).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-orange-accent/10 p-2 rounded-lg">
+                        <Weight className="h-5 w-5 text-orange-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Weight
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {load.weight.toLocaleString()} lbs
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Pricing & Action */}
-                  <div className="flex flex-col items-center lg:items-end justify-between min-w-[220px] space-y-4">
-                    <div className="text-center lg:text-right gradient-blue rounded-xl p-6 w-full">
-                      <p className="text-sm text-white/80 font-medium uppercase tracking-wide mb-2">
-                        Rate
-                      </p>
-                      <p className="text-4xl font-heading font-bold text-orange-accent mb-1">
-                        ${load.rate.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-white/90">
-                        {load.rateType === 'per_mile' ? 'per mile' : 'flat rate'}
-                      </p>
+                  
+                  {/* Load Metadata */}
+                  <div className="flex items-center flex-wrap gap-3">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-lg">
+                      <Truck className="h-4 w-4 text-primary-blue" />
+                      <span className="font-medium">{load.equipmentType}</span>
                     </div>
-
-                    {canBookLoads && load.status === 'available' && (
-                      <button
-                        onClick={() => handleBookLoad(load._id)}
-                        disabled={isBooking === load._id || isLoading}
-                        className="btn btn-accent w-full group"
-                      >
-                        {isBooking === load._id ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                            Booking...
-                          </span>
-                        ) : (
-                          <>
-                            Book Load
-                            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                          </>
-                        )}
-                      </button>
+                    {load.isInterstate && (
+                      <span className="badge badge-success">Interstate</span>
                     )}
-                    {canBookLoads && load.status !== 'available' && (
-                      <div className="text-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
-                        {load.status === 'booked' ? 'Already Booked' : load.status}
-                      </div>
-                    )}
-                    {!canBookLoads && (
-                      <div className="text-center text-sm text-gray-600 bg-light-ivory px-4 py-2 rounded-lg">
-                        Carrier accounts only
-                      </div>
+                    {load.distance && (
+                      <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                        📍 {load.distance} miles
+                      </span>
                     )}
                   </div>
                 </div>
+
+                {/* Pricing & Action */}
+                <div className="flex flex-col items-center lg:items-end justify-between min-w-[220px] space-y-4">
+                  <div className="text-center lg:text-right gradient-blue rounded-xl p-6 w-full">
+                    <p className="text-sm text-white/80 font-medium uppercase tracking-wide mb-2">
+                      Rate
+                    </p>
+                    <p className="text-4xl font-heading font-bold text-orange-accent mb-1">
+                      ${load.rate.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-white/90">
+                      {load.rateType === 'per_mile' ? 'per mile' : 'flat rate'}
+                    </p>
+                  </div>
+
+                  {canBookLoads && load.status === 'available' && (
+                    <button
+                      onClick={() => handleBookLoad(load._id)}
+                      disabled={isBooking === load._id || isLoading}
+                      className="btn btn-accent w-full group"
+                    >
+                      {isBooking === load._id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                          Booking...
+                        </span>
+                      ) : (
+                        <>
+                          Book Load
+                          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {canBookLoads && load.status !== 'available' && (
+                    <div className="text-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+                      {load.status === 'booked' ? 'Already Booked' : load.status}
+                    </div>
+                  )}
+                  {!canBookLoads && (
+                    <div className="text-center text-sm text-gray-600 bg-light-ivory px-4 py-2 rounded-lg">
+                      Carrier accounts only
+                    </div>
+                  )}
+                </div>
               </div>
-            ))}
             </div>
-          )
+          ))}
+          </div>
         ) : (
           <div className="text-center py-20 card">
             <Package className="h-20 w-20 text-gray-300 mx-auto mb-6" />

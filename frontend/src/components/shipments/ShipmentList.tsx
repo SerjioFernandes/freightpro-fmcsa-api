@@ -8,6 +8,7 @@ import { Package, AlertCircle } from 'lucide-react';
 import type { Shipment } from '../../types/shipment.types';
 import type { BoardSearchFilters } from '../../types/board.types';
 import { getStateCentroid, getStateCodeFromInput, haversineMiles } from '../../utils/geo';
+import { getErrorMessage } from '../../utils/errors';
 
 interface ShipmentListProps {
   status?: string;
@@ -28,12 +29,12 @@ const ShipmentList = ({ status, onShipmentUpdate, filters }: ShipmentListProps) 
     setError(null);
     try {
       const response = await shipmentService.getShipments(page, 20, status);
-      if (response.success) {
-        setShipments(response.shipments || []);
-        setHasMore(response.pagination.page < response.pagination.pages);
+      if (response.success && response.data) {
+        setShipments(response.data.shipments ?? []);
+        setHasMore((response.data.pagination?.page ?? 0) < (response.data.pagination?.pages ?? 0));
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to load shipments';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, 'Failed to load shipments');
       setError(errorMessage);
       addNotification({ type: 'error', message: errorMessage });
     } finally {

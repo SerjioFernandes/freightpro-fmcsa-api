@@ -1,9 +1,10 @@
-// Utility functions for exporting data to CSV and PDF
+import type { Load } from '../types/load.types';
+import type { ConversationMessage } from '../types/message.types';
+import type { Shipment } from '../types/shipment.types';
 
-/**
- * Convert array of objects to CSV string
- */
-export const arrayToCSV = (data: any[], headers?: string[]): string => {
+type CsvRow = Record<string, unknown>;
+
+export const arrayToCSV = (data: CsvRow[], headers?: string[]): string => {
   if (!data || data.length === 0) return '';
 
   // Get headers from first object if not provided
@@ -13,8 +14,8 @@ export const arrayToCSV = (data: any[], headers?: string[]): string => {
   const headerRow = csvHeaders.join(',');
 
   // Create CSV data rows
-  const dataRows = data.map(row => {
-    return csvHeaders.map(header => {
+  const dataRows = data.map((row) => {
+    return csvHeaders.map((header) => {
       const value = row[header];
       // Escape quotes and wrap in quotes if contains comma
       if (value === null || value === undefined) return '';
@@ -50,7 +51,7 @@ export const downloadCSV = (csvContent: string, filename: string): void => {
 /**
  * Export loads to CSV
  */
-export const exportLoadsToCSV = (loads: any[]): void => {
+export const exportLoadsToCSV = (loads: Load[]): void => {
   const headers = [
     'title',
     'origin',
@@ -65,7 +66,7 @@ export const exportLoadsToCSV = (loads: any[]): void => {
     'postedBy'
   ];
 
-  const csvData = loads.map(load => ({
+  const csvData = loads.map((load) => ({
     title: load.title,
     origin: `${load.origin?.city}, ${load.origin?.state}`,
     destination: `${load.destination?.city}, ${load.destination?.state}`,
@@ -87,10 +88,10 @@ export const exportLoadsToCSV = (loads: any[]): void => {
 /**
  * Export messages to CSV
  */
-export const exportMessagesToCSV = (messages: any[]): void => {
+export const exportMessagesToCSV = (messages: ConversationMessage[]): void => {
   const headers = ['date', 'from', 'to', 'subject', 'message', 'read'];
   
-  const csvData = messages.map(msg => ({
+  const csvData = messages.map((msg) => ({
     date: new Date(msg.createdAt).toLocaleString(),
     from: msg.sender?.company || msg.sender?.email || '',
     to: msg.receiver?.company || msg.receiver?.email || '',
@@ -107,7 +108,7 @@ export const exportMessagesToCSV = (messages: any[]): void => {
 /**
  * Export shipments to CSV
  */
-export const exportShipmentsToCSV = (shipments: any[]): void => {
+export const exportShipmentsToCSV = (shipments: Shipment[]): void => {
   const headers = [
     'shipmentId',
     'title',
@@ -117,7 +118,7 @@ export const exportShipmentsToCSV = (shipments: any[]): void => {
     'createdAt'
   ];
 
-  const csvData = shipments.map(shipment => ({
+  const csvData = shipments.map((shipment) => ({
     shipmentId: shipment.shipmentId,
     title: shipment.title,
     pickup: `${shipment.pickup?.city}, ${shipment.pickup?.state}`,
@@ -169,7 +170,10 @@ export const printPage = (elementId?: string): void => {
 /**
  * Format data for print-friendly report
  */
-export const formatReportData = (data: any[], type: 'loads' | 'messages' | 'shipments'): string => {
+export const formatReportData = (
+  data: Load[] | ConversationMessage[] | Shipment[],
+  type: 'loads' | 'messages' | 'shipments'
+): string => {
   let html = '<table style="width:100%; border-collapse:collapse; margin:20px 0;">';
   
   switch (type) {
@@ -182,7 +186,7 @@ export const formatReportData = (data: any[], type: 'loads' | 'messages' | 'ship
       html += '<th style="padding:10px; text-align:left;">Status</th>';
       html += '</tr></thead><tbody>';
       
-      data.forEach((load, idx) => {
+      (data as Load[]).forEach((load, idx) => {
         const rowColor = idx % 2 === 0 ? '#f9fafb' : 'white';
         html += `<tr style="background:${rowColor};">`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${load.title}</td>`;
@@ -202,7 +206,7 @@ export const formatReportData = (data: any[], type: 'loads' | 'messages' | 'ship
       html += '<th style="padding:10px; text-align:left;">Read</th>';
       html += '</tr></thead><tbody>';
       
-      data.forEach((msg, idx) => {
+      (data as ConversationMessage[]).forEach((msg, idx) => {
         const rowColor = idx % 2 === 0 ? '#f9fafb' : 'white';
         html += `<tr style="background:${rowColor};">`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${new Date(msg.createdAt).toLocaleString()}</td>`;
@@ -222,7 +226,7 @@ export const formatReportData = (data: any[], type: 'loads' | 'messages' | 'ship
       html += '<th style="padding:10px; text-align:left;">Status</th>';
       html += '</tr></thead><tbody>';
       
-      data.forEach((shipment, idx) => {
+      (data as Shipment[]).forEach((shipment, idx) => {
         const rowColor = idx % 2 === 0 ? '#f9fafb' : 'white';
         html += `<tr style="background:${rowColor};">`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${shipment.shipmentId}</td>`;

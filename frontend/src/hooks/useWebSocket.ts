@@ -27,8 +27,8 @@ export const useWebSocket = () => {
     websocketService.leaveRoom(roomName);
   }, []);
 
-  const subscribe = useCallback((event: string, callback: (data: unknown) => void) => {
-    return websocketService.on(event, callback);
+  const subscribe = useCallback(<T,>(event: string, callback: (data: T) => void) => {
+    return websocketService.on<T>(event, callback);
   }, []);
 
   const emitTypingStart = useCallback((conversationId: string) => {

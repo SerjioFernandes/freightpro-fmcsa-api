@@ -1,7 +1,21 @@
 import { io, Socket } from 'socket.io-client';
+import type { Load } from '../types/load.types';
+import type { ConversationMessage } from '../types/message.types';
+import type { NotificationRecord } from './notification.service';
 import { API_BASE_URL } from '../utils/constants';
 
-type SocketEventCallback = (data: any) => void;
+interface LoadUpdateEvent {
+  loadId: string;
+  status: string;
+  bookedBy?: string;
+}
+
+interface MessageDeletionEvent {
+  messageId: string;
+  conversationId?: string;
+}
+
+type SocketEventCallback<T = unknown> = (data: T) => void;
 
 class WebSocketService {
   private socket: Socket | null = null;
@@ -66,27 +80,27 @@ class WebSocketService {
     });
 
     // Listen for real-time events
-    this.socket.on('new_load', (data: any) => {
+    this.socket.on('new_load', (data: Load) => {
       this.emitToListeners('new_load', data);
     });
 
-    this.socket.on('load_updated', (data: any) => {
+    this.socket.on('load_updated', (data: LoadUpdateEvent) => {
       this.emitToListeners('load_updated', data);
     });
 
-    this.socket.on('new_message', (data: any) => {
+    this.socket.on('new_message', (data: ConversationMessage) => {
       this.emitToListeners('new_message', data);
     });
 
-    this.socket.on('message_updated', (data: any) => {
+    this.socket.on('message_updated', (data: ConversationMessage) => {
       this.emitToListeners('message_updated', data);
     });
 
-    this.socket.on('message_deleted', (data: any) => {
+    this.socket.on('message_deleted', (data: MessageDeletionEvent) => {
       this.emitToListeners('message_deleted', data);
     });
 
-    this.socket.on('notification', (data: any) => {
+    this.socket.on('notification', (data: NotificationRecord) => {
       this.emitToListeners('notification', data);
     });
   }
@@ -94,7 +108,7 @@ class WebSocketService {
   /**
    * Emit event to listeners
    */
-  private emitToListeners(event: string, data: any): void {
+  private emitToListeners<T>(event: string, data: T): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.forEach(callback => callback(data));
@@ -104,18 +118,22 @@ class WebSocketService {
   /**
    * Subscribe to socket event
    */
-  on(event: string, callback: SocketEventCallback): () => void {
+  on<T>(event: string, callback: SocketEventCallback<T>): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    
-    this.listeners.get(event)!.add(callback);
+
+    const wrappedCallback: SocketEventCallback = (data) => {
+      callback(data as T);
+    };
+
+    this.listeners.get(event)!.add(wrappedCallback);
 
     // Return unsubscribe function
     return () => {
       const callbacks = this.listeners.get(event);
       if (callbacks) {
-        callbacks.delete(callback);
+        callbacks.delete(wrappedCallback);
       }
     };
   }

@@ -10,6 +10,7 @@ import ShipmentRequestModal from '../components/shipments/ShipmentRequestModal';
 import type { ShipmentRequest } from '../types/shipment.types';
 import BoardSearchBar from '../components/board/BoardSearchBar';
 import type { BoardSearchFilters } from '../types/board.types';
+import { getErrorMessage } from '../utils/errors';
 
 const Shipments = () => {
   const { user } = useAuthStore();
@@ -44,11 +45,13 @@ const Shipments = () => {
     setIsLoadingRequests(true);
     try {
       const response = await shipmentService.getShipmentRequests('pending');
-      if (response.success) {
-        setRequests(response.requests || []);
+      if (response.success && response.data) {
+        setRequests(response.data.requests ?? []);
       }
-    } catch (error: any) {
-      // Silently fail - requests are optional
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load shipment requests', getErrorMessage(error));
+      }
     } finally {
       setIsLoadingRequests(false);
     }

@@ -1,12 +1,20 @@
+import type { ApiResponse, PaginationParams } from '../types/api.types';
+import type { NotificationPreferences } from '../types/user.types';
 import api from './api';
 
-export interface Notification {
+export interface NotificationPayload {
+  notifications: NotificationRecord[];
+  pagination: PaginationParams;
+  unreadCount: number;
+}
+
+export interface NotificationRecord {
   _id: string;
   userId: string;
   type: 'info' | 'warning' | 'success' | 'error' | 'load_update' | 'message' | 'shipment' | 'system';
   title: string;
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   isRead: boolean;
   isImportant: boolean;
   actionUrl?: string;
@@ -15,67 +23,60 @@ export interface Notification {
   readAt?: string;
 }
 
-interface NotificationResponse {
-  success: boolean;
-  data?: {
-    notifications: Notification[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
-    };
-    unreadCount: number;
-  };
-  error?: string;
+export interface NotificationFilters {
+  isRead?: boolean;
+  type?: string;
+  isImportant?: boolean;
 }
 
 export const notificationService = {
   async getNotifications(
-    page: number = 1,
-    limit: number = 50,
-    filters?: { isRead?: boolean; type?: string; isImportant?: boolean }
-  ): Promise<NotificationResponse> {
+    page = 1,
+    limit = 50,
+    filters?: NotificationFilters
+  ): Promise<ApiResponse<NotificationPayload>> {
     const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
     if (filters?.isRead !== undefined) params.append('isRead', filters.isRead.toString());
     if (filters?.type) params.append('type', filters.type);
     if (filters?.isImportant !== undefined) params.append('isImportant', filters.isImportant.toString());
 
-    const response = await api.get(`/notifications?${params.toString()}`);
+    const response = await api.get<ApiResponse<NotificationPayload>>(`/notifications?${params.toString()}`);
     return response.data;
   },
 
-  async markAsRead(id: string): Promise<{ success: boolean; error?: string }> {
-    const response = await api.put(`/notifications/${id}/read`);
+  async markAsRead(id: string): Promise<ApiResponse<undefined>> {
+    const response = await api.put<ApiResponse<undefined>>(`/notifications/${id}/read`);
     return response.data;
   },
 
-  async markAllAsRead(): Promise<{ success: boolean; count?: number; error?: string }> {
-    const response = await api.put('/notifications/read-all');
+  async markAllAsRead(): Promise<ApiResponse<{ count?: number }>> {
+    const response = await api.put<ApiResponse<{ count?: number }>>('/notifications/read-all');
     return response.data;
   },
 
-  async toggleImportant(id: string): Promise<{ success: boolean; data?: Notification; error?: string }> {
-    const response = await api.put(`/notifications/${id}/important`);
+  async toggleImportant(id: string): Promise<ApiResponse<NotificationRecord>> {
+    const response = await api.put<ApiResponse<NotificationRecord>>(`/notifications/${id}/important`);
     return response.data;
   },
 
-  async deleteNotification(id: string): Promise<{ success: boolean; error?: string }> {
-    const response = await api.delete(`/notifications/${id}`);
+  async deleteNotification(id: string): Promise<ApiResponse<undefined>> {
+    const response = await api.delete<ApiResponse<undefined>>(`/notifications/${id}`);
     return response.data;
   },
 
-  async deleteAllNotifications(filters?: { isRead?: boolean; type?: string }): Promise<{ success: boolean; count?: number; error?: string }> {
+  async deleteAllNotifications(filters?: Pick<NotificationFilters, 'isRead' | 'type'>): Promise<ApiResponse<{ count?: number }>> {
     const params = new URLSearchParams();
     if (filters?.isRead !== undefined) params.append('isRead', filters.isRead.toString());
     if (filters?.type) params.append('type', filters.type);
 
-    const response = await api.delete(`/notifications?${params.toString()}`);
+    const query = params.toString();
+    const url = query ? `/notifications?${query}` : '/notifications';
+    const response = await api.delete<ApiResponse<{ count?: number }>>(url);
     return response.data;
   },
 
-  async getPreferences(): Promise<{ success: boolean; data?: any; error?: string }> {
-    const response = await api.get('/notifications/preferences');
+  async getPreferences(): Promise<ApiResponse<NotificationPreferences>> {
+    const response = await api.get<ApiResponse<NotificationPreferences>>('/notifications/preferences');
     return response.data;
   }
 };

@@ -14,6 +14,7 @@ import {
   ActivitySquare,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
+import { getErrorMessage } from '../../utils/errors';
 
 type CategorisedLogs = {
   communications: AdminAuditLog[];
@@ -58,8 +59,8 @@ const AdminDashboard = () => {
           }
         }, 2000);
       }
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.error || error.message || 'Failed to seed loads';
+    } catch (error: unknown) {
+      const errorMsg = getErrorMessage(error, 'Failed to seed loads');
       addNotification({ type: 'error', message: `❌ Seeding failed: ${errorMsg}` });
     } finally {
       setIsSeeding(false);
@@ -85,7 +86,10 @@ const AdminDashboard = () => {
         if (usersResponse.success) {
           setRecentSignups(usersResponse.data);
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        if (import.meta.env.DEV) {
+          console.warn('Failed to load admin dashboard data', error);
+        }
         addNotification({ type: 'error', message: 'Failed to load admin mission data.' });
       } finally {
         setIsLoading(false);

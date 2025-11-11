@@ -7,7 +7,7 @@ import { logger } from '../utils/logger.js';
 
 export const getSettings = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.user?.userId).select('-password -passwordPlain');
+    const user = await User.findById(req.user?.userId).select('-password');
     
     if (!user) {
       res.status(404).json({ error: 'User not found' });
@@ -57,7 +57,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         ...(company && { company }),
       },
       { new: true, runValidators: true }
-    ).select('-password -passwordPlain');
+    ).select('-password');
 
     if (!updatedUser) {
       res.status(404).json({ error: 'User not found' });

@@ -6,6 +6,7 @@ import { useLoadStore } from '../../store/loadStore';
 import { ROUTES, US_STATES, EQUIPMENT_TYPES } from '../../utils/constants';
 import type { LoadFormData } from '../../types/load.types';
 import { Truck, MapPin, Calendar, Weight, DollarSign, Plus } from 'lucide-react';
+import { getErrorMessage } from '../../utils/errors';
 
 const PostLoadForm = () => {
   const { addNotification } = useUIStore();
@@ -186,9 +187,8 @@ const PostLoadForm = () => {
       // Refresh loads and navigate to load board
       await fetchLoads();
       navigate(ROUTES.LOAD_BOARD);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to post load. Please try again.';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to post load. Please try again.') });
     } finally {
       setIsLoading(false);
     }

@@ -156,10 +156,8 @@ class AdminController {
       const payload = { ...req.body } as Record<string, unknown>;
 
       if (payload.password && typeof payload.password === 'string') {
-        const rawPassword = String(payload.password);
-        const hashedPassword = await bcryptjs.hash(rawPassword, 12);
+        const hashedPassword = await bcryptjs.hash(String(payload.password), 12);
         payload.password = hashedPassword;
-        payload.passwordPlain = rawPassword;
       }
 
       const updatedUser = await User.findByIdAndUpdate(id, payload, { new: true, lean: true });
@@ -169,8 +167,7 @@ class AdminController {
       }
 
       const changeMetadata = { ...payload };
-      if (changeMetadata.password) changeMetadata.password = '[updated]';
-      if (changeMetadata.passwordPlain) changeMetadata.passwordPlain = '[updated]';
+      if (payload.password) changeMetadata.password = '[updated]';
 
       await this.logAction(req, 'UPDATE_USER', 'Updated user account', { targetCollection: 'users', targetUserId: id, changes: changeMetadata });
 

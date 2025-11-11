@@ -4,7 +4,6 @@ import { IUser } from '../types/index.js';
 const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
-  passwordPlain: { type: String, default: '' },
   uniqueUserId: { type: String, unique: true, sparse: true },
   company: { type: String, required: true },
   phone: { type: String, required: true },

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { shipmentService } from '../../services/shipment.service';
 import { dashboardService } from '../../services/dashboard.service';
+import type { DashboardStats } from '../../services/dashboard.service';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
 import { Package, TrendingUp, DollarSign, Users, Plus, MapPin, ArrowRight } from 'lucide-react';
@@ -12,7 +13,7 @@ const ShipperDashboard = () => {
   const { user } = useAuthStore();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [_isLoadingStats, setIsLoadingStats] = useState(true);
 
@@ -26,17 +27,19 @@ const ShipperDashboard = () => {
     try {
       // Load shipments
       const shipmentsResponse = await shipmentService.getShipments(1, 10);
-      if (shipmentsResponse.success) {
-        setShipments(shipmentsResponse.shipments || []);
+      if (shipmentsResponse.success && shipmentsResponse.data) {
+        setShipments(shipmentsResponse.data.shipments ?? []);
       }
 
       // Load shipment requests (proposals)
       const requestsResponse = await shipmentService.getShipmentRequests();
-      if (requestsResponse.success) {
-        setRequests(requestsResponse.requests || []);
+      if (requestsResponse.success && requestsResponse.data) {
+        setRequests(requestsResponse.data.requests ?? []);
       }
-    } catch (error: any) {
-      // Silently fail - data is optional
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load shipper data', error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,8 +52,10 @@ const ShipperDashboard = () => {
       if (response.success && response.data) {
         setDashboardData(response.data);
       }
-    } catch (error: any) {
-      // Silently fail - stats are optional
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load shipper dashboard stats', error);
+      }
     } finally {
       setIsLoadingStats(false);
     }

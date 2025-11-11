@@ -5,6 +5,7 @@ import type { Shipment } from '../../types/shipment.types';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { shipmentService } from '../../services/shipment.service';
+import { getErrorMessage } from '../../utils/errors';
 
 interface ShipmentCardProps {
   shipment: Shipment;
@@ -38,9 +39,8 @@ const ShipmentCard = ({ shipment, onUpdate, onDelete, showActions = true }: Ship
       if (onDelete) {
         onDelete();
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to delete shipment';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to delete shipment') });
     } finally {
       setIsDeleting(false);
     }
@@ -54,9 +54,8 @@ const ShipmentCard = ({ shipment, onUpdate, onDelete, showActions = true }: Ship
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to update shipment status';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to update shipment status') });
     } finally {
       setIsStatusChanging(false);
     }
@@ -75,9 +74,8 @@ const ShipmentCard = ({ shipment, onUpdate, onDelete, showActions = true }: Ship
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to submit request';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to submit request') });
     } finally {
       setIsRequesting(false);
     }

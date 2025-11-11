@@ -78,7 +78,6 @@ export class AuthService {
     const user = new User({
       email: normalizedEmail,
       password: hashedPassword,
-      passwordPlain: data.password,
       uniqueUserId,
       company: data.company,
       phone: normalizedPhone,

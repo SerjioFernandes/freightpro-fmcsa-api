@@ -4,6 +4,7 @@ import { useUIStore } from '../../store/uiStore';
 import { US_STATES } from '../../utils/constants';
 import type { ShipmentFormData } from '../../types/shipment.types';
 import { MapPin, Package } from 'lucide-react';
+import { getErrorMessage } from '../../utils/errors';
 
 interface CreateShipmentFormProps {
   onSuccess?: () => void;
@@ -95,9 +96,8 @@ const CreateShipmentForm = ({ onSuccess, onCancel }: CreateShipmentFormProps) =>
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to create shipment. Please try again.';
-      addNotification({ type: 'error', message: errorMessage });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to create shipment. Please try again.') });
     } finally {
       setIsLoading(false);
     }

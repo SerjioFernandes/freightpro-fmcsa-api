@@ -1,9 +1,11 @@
-export interface ApiResponse<T = any> {
+import type { User } from './user.types';
+
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface PaginationParams {
@@ -13,24 +15,16 @@ export interface PaginationParams {
   pages: number;
 }
 
-export interface PaginatedResponse<T> extends ApiResponse {
-  loads?: T[];
-  data?: T[];
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   pagination: PaginationParams;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  message: string;
+export interface AuthResponse extends ApiResponse<User> {
   token?: string;
-  user?: any;
+  user?: User;
   emailVerificationRequired?: boolean;
   emailSent?: boolean;
   verification?: {
     code: string;
   };
 }
-
-
-
-

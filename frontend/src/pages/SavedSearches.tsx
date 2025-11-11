@@ -1,38 +1,64 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { savedSearchService, type SavedSearch } from '../services/savedSearch.service';
 import { useUIStore } from '../store/uiStore';
-import { useLoadStore } from '../store/loadStore';
 import { Bookmark, Search, Bell, BellOff, Trash2, Play, Settings } from 'lucide-react';
+import { ROUTES } from '../utils/constants';
 
 const SavedSearches = () => {
   const { addNotification } = useUIStore();
-  const { fetchLoads } = useLoadStore();
+  const navigate = useNavigate();
   const [searches, setSearches] = useState<SavedSearch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadSearches();
-  }, []);
-
-  const loadSearches = async () => {
+  const loadSearches = useCallback(async () => {
     try {
       const response = await savedSearchService.getSearches();
       if (response.success) {
         setSearches(response.data);
       }
-    } catch (error: any) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to load saved searches' });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [addNotification]);
 
-  const handleQuickApply = async (search: SavedSearch) => {
+  useEffect(() => {
+    loadSearches();
+  }, [loadSearches]);
+
+  const handleQuickApply = (search: SavedSearch) => {
     try {
-      // Apply filters to load board
-      await fetchLoads(1, 20, 'available');
+      const params = new URLSearchParams();
+      params.set('prefill', 'saved');
+      params.set('saved', search._id);
+      params.set('name', search.name);
+
+      if (search.filters.originState) {
+        params.set('originState', search.filters.originState);
+        params.set('state', search.filters.originState);
+      }
+
+      if (search.filters.destinationState) {
+        params.set('destinationState', search.filters.destinationState);
+        params.set('destination', search.filters.destinationState);
+      }
+
+      if (search.filters.equipment && search.filters.equipment.length > 0) {
+        params.set('equipment', search.filters.equipment[0]);
+      }
+
+      if (typeof search.filters.priceMin === 'number') {
+        params.set('minRate', String(search.filters.priceMin));
+      }
+
+      if (typeof search.filters.radius === 'number') {
+        params.set('radius', String(search.filters.radius));
+      }
+
+      navigate({ pathname: ROUTES.LOAD_BOARD, search: params.toString() });
       addNotification({ type: 'success', message: `Applied search: ${search.name}` });
-      // TODO: Apply actual filters
     } catch (error) {
       addNotification({ type: 'error', message: 'Failed to apply search' });
     }
@@ -48,7 +74,7 @@ const SavedSearches = () => {
           message: `Alerts ${response.data.alertEnabled ? 'enabled' : 'disabled'}` 
         });
       }
-    } catch (error) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to toggle alert' });
     }
   };
@@ -62,7 +88,7 @@ const SavedSearches = () => {
         setSearches(searches.filter(s => s._id !== id));
         addNotification({ type: 'success', message: 'Saved search deleted' });
       }
-    } catch (error) {
+    } catch {
       addNotification({ type: 'error', message: 'Failed to delete search' });
     }
   };

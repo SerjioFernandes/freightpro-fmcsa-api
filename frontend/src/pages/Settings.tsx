@@ -8,6 +8,16 @@ import api from '../services/api';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../utils/constants';
 import { sessionService, type Session } from '../services/session.service';
+import type { NotificationPreferences } from '../types/user.types';
+import { getErrorMessage } from '../utils/errors';
+
+type NotificationPreferencesState = {
+  emailLoads: boolean;
+  emailMessages: boolean;
+  emailUpdates: boolean;
+  emailMarketing: boolean;
+  frequency: 'instant' | 'daily' | 'weekly';
+};
 
 const SettingsPage = () => {
   const { user, setUser } = useAuthStore();
@@ -36,13 +46,7 @@ const SettingsPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Notifications
-  const [notificationPrefs, setNotificationPrefs] = useState<{
-    emailLoads: boolean;
-    emailMessages: boolean;
-    emailUpdates: boolean;
-    emailMarketing: boolean;
-    frequency: 'instant' | 'daily' | 'weekly';
-  }>({
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferencesState>({
     emailLoads: true,
     emailMessages: true,
     emailUpdates: true,
@@ -118,11 +122,14 @@ const SettingsPage = () => {
     });
   };
 
-  const handleNotificationChange = (field: string, value: any) => {
-    setNotificationPrefs({
-      ...notificationPrefs,
-      [field]: value
-    });
+  const handleNotificationChange = <K extends keyof NotificationPreferencesState>(
+    field: K,
+    value: NotificationPreferencesState[K]
+  ) => {
+    setNotificationPrefs((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -131,15 +138,12 @@ const SettingsPage = () => {
 
     try {
       const response = await settingsService.updateProfile(formData);
-      if (response.success) {
+      if (response.success && response.data) {
         setUser(response.data);
         addNotification({ type: 'success', message: 'Profile updated successfully!' });
       }
-    } catch (error: any) {
-      addNotification({ 
-        type: 'error', 
-        message: error.response?.data?.error || 'Failed to update profile' 
-      });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to update profile') });
     } finally {
       setIsLoading(false);
     }
@@ -165,11 +169,8 @@ const SettingsPage = () => {
         addNotification({ type: 'success', message: 'Password changed successfully!' });
         setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
       }
-    } catch (error: any) {
-      addNotification({ 
-        type: 'error', 
-        message: error.response?.data?.error || 'Failed to change password' 
-      });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to change password') });
     } finally {
       setIsLoading(false);
     }
@@ -186,15 +187,13 @@ const SettingsPage = () => {
       
       if (response.data.success) {
         if (user) {
-          setUser({ ...user, notifications: response.data.data as any });
+          const updatedNotifications = response.data.data as NotificationPreferences | undefined;
+          setUser({ ...user, notifications: updatedNotifications ?? user.notifications });
         }
         addNotification({ type: 'success', message: 'Notification preferences saved!' });
       }
-    } catch (error: any) {
-      addNotification({ 
-        type: 'error', 
-        message: 'Failed to save notification preferences' 
-      });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to save notification preferences') });
     } finally {
       setIsLoading(false);
     }
@@ -264,8 +263,8 @@ const SettingsPage = () => {
         addNotification({ type: 'success', message: 'Profile photo updated!' });
         setAvatarFile(null);
       }
-    } catch (error: any) {
-      addNotification({ type: 'error', message: 'Failed to upload photo' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to upload photo') });
     } finally {
       setIsLoading(false);
     }

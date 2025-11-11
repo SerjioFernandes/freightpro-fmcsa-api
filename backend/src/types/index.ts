@@ -50,7 +50,6 @@ export interface IUser {
   _id: Types.ObjectId;
   email: string;
   password: string;
-  passwordPlain?: string;
   uniqueUserId: string;
   company: string;
   phone: string;

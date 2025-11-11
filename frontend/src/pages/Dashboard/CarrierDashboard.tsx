@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useLoadStore } from '../../store/loadStore';
 import { useAuthStore } from '../../store/authStore';
 import { dashboardService } from '../../services/dashboard.service';
+import type { DashboardStats } from '../../services/dashboard.service';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
+import type { Load } from '../../types/load.types';
 import { Truck, DollarSign, TrendingUp, Package, MapPin, ArrowRight, TrendingDown, Activity } from 'lucide-react';
 import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -13,7 +15,7 @@ import BarChart from '../../components/Analytics/BarChart';
 const CarrierDashboard = () => {
   const { user } = useAuthStore();
   const { loads, isLoading, fetchLoads } = useLoadStore();
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -29,22 +31,25 @@ const CarrierDashboard = () => {
       if (response.success && response.data) {
         setDashboardData(response.data);
       }
-    } catch (error: any) {
-      // Silently fail - stats are optional
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load carrier dashboard stats', error);
+      }
     } finally {
       setIsLoadingStats(false);
     }
   };
 
   // Filter booked loads for this carrier (check if bookedBy is object or ID)
-  const bookedLoadsLocal = loads.filter(load => {
+  const bookedLoadsLocal = loads.filter((load) => {
     const bookedById = typeof load.bookedBy === 'object' ? load.bookedBy?._id : load.bookedBy;
     return bookedById === user?.id;
   });
 
-  const bookedLoads = (dashboardData?.recentLoads && dashboardData.recentLoads.length > 0)
-    ? dashboardData.recentLoads
-    : bookedLoadsLocal;
+  const bookedLoads: Load[] =
+    dashboardData?.recentLoads && dashboardData.recentLoads.length > 0
+      ? dashboardData.recentLoads
+      : bookedLoadsLocal;
 
   // Use API data if available, fallback to local calculations
   const stats = dashboardData?.stats ? [
@@ -86,7 +91,7 @@ const CarrierDashboard = () => {
     },
     {
       label: 'Total Earnings',
-      value: `$${bookedLoadsLocal.reduce((sum, load) => sum + (load.rate || 0), 0).toLocaleString()}`,
+      value: `$${bookedLoadsLocal.reduce((sum, load) => sum + load.rate, 0).toLocaleString()}`,
       icon: <DollarSign className="h-12 w-12" />,
       color: 'text-primary-blue',
       bgColor: 'bg-primary-blue/10'
@@ -108,34 +113,46 @@ const CarrierDashboard = () => {
   ];
 
   // Prepare chart data
-  const revenueChartData = dashboardData?.timeSeries?.revenue ? {
-    labels: dashboardData.timeSeries.revenue.map((item: any) => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }),
-    datasets: [{
-      label: 'Revenue',
-      data: dashboardData.timeSeries.revenue.map((item: any) => item.value),
-      borderColor: '#2563eb',
-      backgroundColor: 'rgba(37, 99, 235, 0.1)',
-      fill: true,
-      tension: 0.4
-    }]
-  } : null;
+  const revenueSeries = dashboardData?.timeSeries?.revenue ?? [];
+  const revenueChartData =
+    revenueSeries.length > 0
+      ? {
+          labels: revenueSeries.map((item) => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }),
+          datasets: [
+            {
+              label: 'Revenue',
+              data: revenueSeries.map((item) => item.value ?? 0),
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        }
+      : null;
 
-  const loadCountChartData = dashboardData?.timeSeries?.loads ? {
-    labels: dashboardData.timeSeries.loads.map((item: any) => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }),
-    datasets: [{
-      label: 'Loads Booked',
-      data: dashboardData.timeSeries.loads.map((item: any) => item.count),
-      backgroundColor: 'rgba(255, 106, 61, 0.8)',
-      borderColor: '#ff6a3d',
-      borderWidth: 1
-    }]
-  } : null;
+  const loadSeries = dashboardData?.timeSeries?.loads ?? [];
+  const loadCountChartData =
+    loadSeries.length > 0
+      ? {
+          labels: loadSeries.map((item) => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }),
+          datasets: [
+            {
+              label: 'Loads Booked',
+              data: loadSeries.map((item) => item.count ?? 0),
+              backgroundColor: 'rgba(255, 106, 61, 0.8)',
+              borderColor: '#ff6a3d',
+              borderWidth: 1,
+            },
+          ],
+        }
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -260,7 +277,7 @@ const CarrierDashboard = () => {
               Top Equipment Types
             </h3>
             <div className="grid md:grid-cols-3 gap-4">
-              {dashboardData.topEquipment.map((item: any) => (
+              {dashboardData.topEquipment.map((item) => (
                 <div
                   key={item.type}
                   className="p-4 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary-blue transition-colors"
@@ -291,7 +308,7 @@ const CarrierDashboard = () => {
             </div>
           ) : bookedLoads.length > 0 ? (
             <div className="space-y-4">
-              {bookedLoads.slice(0, 5).map((load: any, index: number) => (
+              {bookedLoads.slice(0, 5).map((load, index) => (
                 <div 
                   key={load._id} 
                   className="border-2 border-primary-blue/30 rounded-lg p-5 hover:border-orange-accent hover:shadow-lg transition-all duration-200 bg-white animate-fade-in card-hover"
@@ -313,11 +330,11 @@ const CarrierDashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-heading font-bold text-orange-accent">
-                        ${load.rate?.toLocaleString()}
+                        ${load.rate.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-600">
-                        {load.distance} miles
-                      </p>
+                      {typeof load.distance === 'number' && (
+                        <p className="text-sm text-gray-600">{load.distance} miles</p>
+                      )}
                     </div>
                   </div>
                 </div>

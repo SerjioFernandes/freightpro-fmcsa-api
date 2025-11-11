@@ -1,33 +1,14 @@
+import type { ApiResponse, PaginationParams } from '../types/api.types';
+import type { Shipment, ShipmentFormData, ShipmentRequest, ShipmentRequestFormData } from '../types/shipment.types';
 import api from './api';
-import type { Shipment, ShipmentRequest, ShipmentFormData, ShipmentRequestFormData } from '../types/shipment.types';
-// import type { PaginatedResponse } from '../types/api.types';
 
-export interface ShipmentsResponse {
-  success: boolean;
+export interface ShipmentListPayload {
   shipments: Shipment[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
+  pagination: PaginationParams;
 }
 
-export interface ShipmentResponse {
-  success: boolean;
-  shipment: Shipment;
-  message?: string;
-}
-
-export interface ShipmentRequestsResponse {
-  success: boolean;
+export interface ShipmentRequestListPayload {
   requests: ShipmentRequest[];
-}
-
-export interface ShipmentRequestResponse {
-  success: boolean;
-  request: ShipmentRequest;
-  message?: string;
 }
 
 export const shipmentService = {
@@ -35,44 +16,44 @@ export const shipmentService = {
    * Get all shipments
    * Shippers see only their own, brokers see all open shipments
    */
-  async getShipments(page = 1, limit = 20, status?: string): Promise<ShipmentsResponse> {
-    const params: any = { page, limit };
+  async getShipments(page = 1, limit = 20, status?: string): Promise<ApiResponse<ShipmentListPayload>> {
+    const params: Record<string, string | number> = { page, limit };
     if (status) {
       params.status = status;
     }
-    const response = await api.get('/shipments', { params });
+    const response = await api.get<ApiResponse<ShipmentListPayload>>('/shipments', { params });
     return response.data;
   },
 
   /**
    * Get a single shipment by ID
    */
-  async getShipment(id: string): Promise<ShipmentResponse> {
-    const response = await api.get(`/shipments/${id}`);
+  async getShipment(id: string): Promise<ApiResponse<Shipment>> {
+    const response = await api.get<ApiResponse<Shipment>>(`/shipments/${id}`);
     return response.data;
   },
 
   /**
    * Create a new shipment (shippers only)
    */
-  async createShipment(data: ShipmentFormData): Promise<ShipmentResponse> {
-    const response = await api.post('/shipments', data);
+  async createShipment(data: ShipmentFormData): Promise<ApiResponse<Shipment>> {
+    const response = await api.post<ApiResponse<Shipment>>('/shipments', data);
     return response.data;
   },
 
   /**
    * Update a shipment (shipper who created it only)
    */
-  async updateShipment(id: string, data: Partial<ShipmentFormData>): Promise<ShipmentResponse> {
-    const response = await api.put(`/shipments/${id}`, data);
+  async updateShipment(id: string, data: Partial<ShipmentFormData>): Promise<ApiResponse<Shipment>> {
+    const response = await api.put<ApiResponse<Shipment>>(`/shipments/${id}`, data);
     return response.data;
   },
 
   /**
    * Delete a shipment (shipper who created it only)
    */
-  async deleteShipment(id: string): Promise<{ success: boolean; message: string }> {
-    const response = await api.delete(`/shipments/${id}`);
+  async deleteShipment(id: string): Promise<ApiResponse<undefined>> {
+    const response = await api.delete<ApiResponse<undefined>>(`/shipments/${id}`);
     return response.data;
   },
 
@@ -80,22 +61,22 @@ export const shipmentService = {
    * Get all shipment requests
    * Brokers see their own requests, shippers see requests for their shipments
    */
-  async getShipmentRequests(status?: string): Promise<ShipmentRequestsResponse> {
-    const params: any = {};
+  async getShipmentRequests(status?: string): Promise<ApiResponse<ShipmentRequestListPayload>> {
+    const params: Record<string, string> = {};
     if (status) {
       params.status = status;
     }
-    const response = await api.get('/shipments/requests/all', { params });
+    const response = await api.get<ApiResponse<ShipmentRequestListPayload>>('/shipments/requests/all', { params });
     return response.data;
   },
 
   /**
    * Request access to a shipment (brokers only)
    */
-  async requestAccess(data: ShipmentRequestFormData): Promise<ShipmentRequestResponse> {
+  async requestAccess(data: ShipmentRequestFormData): Promise<ApiResponse<ShipmentRequest>> {
     // Backend route: POST /api/shipments/:id/request
     // Backend expects shipmentId in body and brokerMessage in body
-    const response = await api.post(`/shipments/${data.shipmentId}/request`, {
+    const response = await api.post<ApiResponse<ShipmentRequest>>(`/shipments/${data.shipmentId}/request`, {
       shipmentId: data.shipmentId,
       brokerMessage: data.brokerMessage || ''
     });
@@ -110,8 +91,8 @@ export const shipmentService = {
     requestId: string,
     status: 'approved' | 'rejected',
     shipperResponse?: string
-  ): Promise<ShipmentRequestResponse> {
-    const response = await api.put(`/shipments/requests/${requestId}/status`, {
+  ): Promise<ApiResponse<ShipmentRequest>> {
+    const response = await api.put<ApiResponse<ShipmentRequest>>(`/shipments/requests/${requestId}/status`, {
       status,
       shipperResponse
     });
