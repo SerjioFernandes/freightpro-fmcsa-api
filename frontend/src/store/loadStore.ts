@@ -12,7 +12,7 @@ interface LoadState {
   
   // Actions
   fetchLoads: (page?: number, limit?: number, status?: string) => Promise<void>;
-  bookLoad: (loadId: string) => Promise<void>;
+  bookLoad: (loadId: string, options?: { agreedRate?: number; bookingNotes?: string }) => Promise<Load>;
   addLoad: (load: Load) => void;
   updateLoad: (loadId: string, updates: Partial<Load>) => void;
   clearError: () => void;
@@ -42,16 +42,18 @@ export const useLoadStore = create<LoadState>((set) => ({
     }
   },
 
-  bookLoad: async (loadId) => {
+  bookLoad: async (loadId, options) => {
     set({ isLoading: false, error: null }); // Don't set loading to true - let component handle UI state
     try {
-      await loadService.bookLoad(loadId);
+      const response = await loadService.bookLoad(loadId, options);
+      const updatedLoad = response.load;
       // Update the specific load status in the store
       set((state) => ({
         loads: state.loads.map(load => 
-          load._id === loadId ? { ...load, status: 'booked' as const } : load
+          load._id === loadId ? { ...load, ...updatedLoad } : load
         )
       }));
+      return updatedLoad;
     } catch (error: unknown) {
       const message = getErrorMessage(error, 'Failed to book load');
       set({

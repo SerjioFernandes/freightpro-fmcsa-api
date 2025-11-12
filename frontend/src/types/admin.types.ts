@@ -69,6 +69,9 @@ export interface AdminSystemStats {
     total: number;
     open: number;
     booked: number;
+    inTransit: number;
+    delivered: number;
+    readyForBilling: number;
   };
   shipments: {
     total: number;
@@ -76,6 +79,18 @@ export interface AdminSystemStats {
   };
   messages: {
     total: number;
+  };
+  documents: {
+    total: number;
+    verified: number;
+    pending: number;
+    verificationRate: number;
+  };
+  analytics: {
+    conversionRate: number;
+    activeLaneCount: number;
+    averageHoursToBook: number;
+    readyForBilling: number;
   };
   generatedAt: string;
 }

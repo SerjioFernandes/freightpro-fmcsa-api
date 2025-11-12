@@ -11,24 +11,38 @@ const accountTypes = ['carrier', 'broker', 'shipper'] as const;
 const roles = ['user', 'admin'] as const;
 const subscriptionPlans = ['free', 'ultima', 'premium'] as const;
 
+type FormState = {
+  phone: string;
+  accountType: AdminUser['accountType'];
+  role: AdminUser['role'];
+  subscriptionPlan: string;
+  isActive: boolean;
+  usdotNumber: string;
+  mcNumber: string;
+};
+
 const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSubmit }) => {
-  const [formValues, setFormValues] = useState({
-    phone: String(user.phone || ''),
-    accountType: String(user.accountType || 'carrier'),
-    role: String(user.role || 'user'),
-    subscriptionPlan: String(user.subscriptionPlan || 'ultima'),
+  const [formValues, setFormValues] = useState<FormState>({
+    phone: user.phone || '',
+    accountType: user.accountType ?? 'carrier',
+    role: user.role ?? 'user',
+    subscriptionPlan: user.subscriptionPlan ?? 'ultima',
     isActive: Boolean(user.isActive),
-    usdotNumber: String(user.usdotNumber || ''),
-    mcNumber: String(user.mcNumber || ''),
+    usdotNumber: user.usdotNumber ?? '',
+    mcNumber: user.mcNumber ?? '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
-    const checked = 'checked' in event.target ? event.target.checked : undefined;
+    const key = name as keyof FormState;
+    const nextValue =
+      type === 'checkbox'
+        ? (event.target as HTMLInputElement).checked
+        : (value as FormState[keyof FormState]);
     setFormValues((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [key]: nextValue,
     }));
   };
 
@@ -36,7 +50,16 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSubmit }
     event.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(formValues as any);
+      const payload: Partial<AdminUser> = {
+        phone: formValues.phone,
+        accountType: formValues.accountType,
+        role: formValues.role,
+        subscriptionPlan: formValues.subscriptionPlan,
+        isActive: formValues.isActive,
+        usdotNumber: formValues.usdotNumber,
+        mcNumber: formValues.mcNumber,
+      };
+      await onSubmit(payload);
       onClose();
     } finally {
       setIsSubmitting(false);

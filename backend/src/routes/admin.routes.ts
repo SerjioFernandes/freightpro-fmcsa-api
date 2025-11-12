@@ -15,8 +15,11 @@ router.get('/users/:id', adminController.getUserById.bind(adminController));
 router.put('/users/:id', adminController.updateUser.bind(adminController));
 router.delete('/users/:id', adminController.deleteUser.bind(adminController));
 router.get('/export/users', adminController.exportAllData.bind(adminController));
+router.get('/export/loads', adminController.exportLoads.bind(adminController));
+router.get('/export/shipments', adminController.exportShipments.bind(adminController));
 router.get('/system-stats', adminController.getSystemStats.bind(adminController));
 router.get('/audit-logs', adminController.getAuditLogs.bind(adminController));
+router.delete('/audit-logs/purge/:days', adminController.purgeAuditLogs.bind(adminController));
 
 export default router;
 

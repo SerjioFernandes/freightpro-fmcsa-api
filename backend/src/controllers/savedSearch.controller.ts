@@ -65,10 +65,16 @@ export class SavedSearchController {
     try {
       const { name, filters, alertEnabled, frequency } = req.body;
 
+      const updates: Record<string, unknown> = {};
+      if (name !== undefined) updates.name = name;
+      if (filters !== undefined) updates.filters = filters;
+      if (alertEnabled !== undefined) updates.alertEnabled = alertEnabled;
+      if (frequency !== undefined) updates.frequency = frequency;
+
       const search = await SavedSearch.findOneAndUpdate(
         { _id: req.params.id, userId: req.user?.userId },
-        { name, filters, alertEnabled, frequency },
-        { new: true }
+        updates,
+        { new: true, runValidators: true }
       );
 
       if (!search) {

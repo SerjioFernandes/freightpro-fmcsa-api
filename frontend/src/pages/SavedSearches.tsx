@@ -79,6 +79,21 @@ const SavedSearches = () => {
     }
   };
 
+  const handleFrequencyChange = async (search: SavedSearch, frequency: SavedSearch['frequency']) => {
+    try {
+      const response = await savedSearchService.updateSearch(search._id, { frequency });
+      if (response.success) {
+        setSearches(searches.map((s) => (s._id === search._id ? response.data : s)));
+        addNotification({
+          type: 'success',
+          message: `Alert frequency set to ${formatFrequency(frequency)}`,
+        });
+      }
+    } catch {
+      addNotification({ type: 'error', message: 'Failed to update alert frequency' });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this saved search?')) return;
     
@@ -100,6 +115,25 @@ const SavedSearches = () => {
       case 'weekly': return 'Weekly';
       default: return freq;
     }
+  };
+
+  const getNextAlertLabel = (search: SavedSearch): string => {
+    if (!search.alertEnabled) {
+      return 'Alerts disabled';
+    }
+    if (search.frequency === 'instant') {
+      return 'Alerts run hourly when matches appear';
+    }
+    if (!search.lastAlertSent) {
+      return 'Awaiting first digest';
+    }
+    const nextRun = new Date(search.lastAlertSent);
+    if (search.frequency === 'daily') {
+      nextRun.setDate(nextRun.getDate() + 1);
+    } else if (search.frequency === 'weekly') {
+      nextRun.setDate(nextRun.getDate() + 7);
+    }
+    return `Next alert around ${nextRun.toLocaleString()}`;
   };
 
   return (
@@ -177,17 +211,41 @@ const SavedSearches = () => {
                     </div>
 
                     {/* Alert Settings */}
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {search.alertEnabled && (
-                        <div className="flex items-center gap-2">
-                          <Bell className="h-4 w-4 text-green-600" />
-                          <span>{formatFrequency(search.frequency)}</span>
+                    <div className="flex flex-col gap-2 text-sm text-gray-600">
+                      {search.alertEnabled ? (
+                        <>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Bell className="h-4 w-4 text-green-600" />
+                              <span className="font-medium text-gray-700">Alert cadence</span>
+                            </div>
+                            <select
+                              value={search.frequency}
+                              onChange={(event) => {
+                                const nextFrequency = event.target.value as SavedSearch['frequency'];
+                                if (nextFrequency !== search.frequency) {
+                                  void handleFrequencyChange(search, nextFrequency);
+                                }
+                              }}
+                              className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            >
+                              <option value="instant">Every hour</option>
+                              <option value="daily">Daily digest</option>
+                              <option value="weekly">Weekly digest</option>
+                            </select>
+                            <span className="text-xs text-gray-500">{getNextAlertLabel(search)}</span>
+                          </div>
+                          {search.lastAlertSent && (
+                            <span className="text-xs text-gray-500">
+                              Last alert sent {new Date(search.lastAlertSent).toLocaleString()}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <BellOff className="h-4 w-4" />
+                          <span>Alerts disabled for this search</span>
                         </div>
-                      )}
-                      {search.lastAlertSent && (
-                        <span className="text-xs">
-                          Last alert: {new Date(search.lastAlertSent).toLocaleDateString()}
-                        </span>
                       )}
                     </div>
                   </div>

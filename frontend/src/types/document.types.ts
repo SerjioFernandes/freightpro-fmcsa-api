@@ -23,6 +23,15 @@ export interface DocumentRecord {
   isVerified: boolean;
   verifiedBy?: string;
   verifiedAt?: string;
+  tags?: string[];
+}
+
+export type DocumentBulkAction = 'verify' | 'unverify' | 'delete' | 'tag';
+
+export interface BulkDocumentActionPayload {
+  documentIds: string[];
+  action: DocumentBulkAction;
+  tags?: string[];
 }
 
 

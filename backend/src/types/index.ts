@@ -12,6 +12,7 @@ export type Country = 'US' | 'CA';
 export type LoadStatus = 'available' | 'booked' | 'in_transit' | 'delivered' | 'cancelled';
 export type ShipmentStatus = 'open' | 'closed';
 export type RequestStatus = 'pending' | 'approved' | 'rejected';
+export type BillingStatus = 'not_ready' | 'ready' | 'invoiced' | 'paid';
 
 export interface IAddress {
   street: string;
@@ -134,6 +135,10 @@ export interface ILoad {
   bookedBy?: Types.ObjectId;
   shipment?: Types.ObjectId;
   isInterstate: boolean;
+  agreedRate?: number;
+  bookedAt?: Date;
+  billingStatus: BillingStatus;
+  bookingNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -216,6 +221,52 @@ export interface IDocument {
   isVerified: boolean;
   verifiedBy?: Types.ObjectId;
   verifiedAt?: Date;
+  tags?: string[];
+}
+
+export interface InvoiceDocumentSummary {
+  id: string;
+  originalName: string;
+  type: IDocument['type'];
+  isVerified: boolean;
+  uploadedAt: Date;
+}
+
+export interface InvoicePreview {
+  loadId: string;
+  title: string;
+  pickupDate: Date;
+  deliveryDate: Date;
+  rateType: 'per_mile' | 'flat_rate';
+  rate: number;
+  agreedRate?: number;
+  distance?: number | null;
+  totalDue: number;
+  billingStatus: BillingStatus;
+  broker: {
+    company: string;
+    email: string;
+    phone: string;
+  };
+  carrier?: {
+    company: string;
+    email: string;
+    phone: string;
+  };
+  documents: InvoiceDocumentSummary[];
+  bookingNotes?: string;
+}
+
+export interface ISupportTicket {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved';
+  response?: string;
+  resolvedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ========================================

@@ -11,6 +11,13 @@ const AuditLogs = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
   const [isLoading, setIsLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState('');
+  const [collectionFilter, setCollectionFilter] = useState('');
+  const [adminFilter, setAdminFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [retentionDays, setRetentionDays] = useState('90');
+  const [isPurging, setIsPurging] = useState(false);
   const { addNotification } = useUIStore();
 
   const loadLogs = useCallback(async (page = 1) => {
@@ -20,6 +27,11 @@ const AuditLogs = () => {
         page,
         limit: pagination.limit,
         action: actionFilter || undefined,
+        collection: collectionFilter || undefined,
+        adminId: adminFilter || undefined,
+        search: searchTerm || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       });
       if (response.success) {
         setLogs(response.data);
@@ -30,11 +42,49 @@ const AuditLogs = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [actionFilter, pagination.limit, addNotification]);
+  }, [actionFilter, collectionFilter, adminFilter, searchTerm, startDate, endDate, pagination.limit, addNotification]);
 
   useEffect(() => {
     loadLogs(1);
   }, [loadLogs]);
+
+  const handleResetFilters = () => {
+    setActionFilter('');
+    setCollectionFilter('');
+    setAdminFilter('');
+    setSearchTerm('');
+    setStartDate('');
+    setEndDate('');
+    loadLogs(1);
+  };
+
+  const handlePurge = async () => {
+    const days = Number(retentionDays);
+    if (Number.isNaN(days) || days <= 0) {
+      addNotification({ type: 'error', message: 'Retention must be a positive number of days.' });
+      return;
+    }
+
+    if (!window.confirm(`Purge audit logs older than ${days} days? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsPurging(true);
+    try {
+      const response = await adminService.purgeAuditLogs(days);
+      if (response.success) {
+        addNotification({
+          type: 'success',
+          message: `Purged ${response.deleted.toLocaleString()} log entries older than ${days} days.`,
+        });
+        await loadLogs(1);
+      }
+    } catch (error) {
+      addNotification({ type: 'error', message: 'Failed to purge audit logs.' });
+    } finally {
+      setIsPurging(false);
+    }
+  };
 
   return (
     <AdminLayout title="Security Audit Trail">
@@ -50,27 +100,118 @@ const AuditLogs = () => {
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 shadow-2xl shadow-black/30 p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
-              <Search className="h-4 w-4" />
-              Filter by action code
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              loadLogs(1);
+            }}
+            className="space-y-4 mb-6"
+          >
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                <span className="inline-flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Action
+                </span>
+                <input
+                  type="text"
+                  value={actionFilter}
+                  onChange={(event) => setActionFilter(event.target.value.toUpperCase())}
+                  placeholder="VIEW_ALL_USERS, EXPORT_USERS..."
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder:text-slate-500"
+                />
+              </label>
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                Collection
+                <input
+                  type="text"
+                  value={collectionFilter}
+                  onChange={(event) => setCollectionFilter(event.target.value)}
+                  placeholder="users, loads, auditLogs..."
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder:text-slate-500"
+                />
+              </label>
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                Admin ID
+                <input
+                  type="text"
+                  value={adminFilter}
+                  onChange={(event) => setAdminFilter(event.target.value)}
+                  placeholder="Admin ObjectId"
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder:text-slate-500"
+                />
+              </label>
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                Search
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search description, IP, action..."
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder:text-slate-500"
+                />
+              </label>
             </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={actionFilter}
-                onChange={(event) => setActionFilter(event.target.value.toUpperCase())}
-                placeholder="VIEW_ALL_USERS, EXPORT_USERS..."
-                className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder:text-slate-500"
-              />
-              <button
-                onClick={() => loadLogs(1)}
-                className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800"
-              >
-                Apply
-              </button>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                Start Date
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(event) => setStartDate(event.target.value)}
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
+                />
+              </label>
+              <label className="flex flex-col text-xs uppercase tracking-[0.3em] text-slate-500 gap-2">
+                End Date
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(event) => setEndDate(event.target.value)}
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
+                />
+              </label>
+              <div className="flex items-end gap-3">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800"
+                >
+                  Apply Filters
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="px-4 py-2 rounded-lg bg-transparent border border-slate-700 text-slate-300 hover:bg-slate-900"
+                >
+                  Reset
+                </button>
+              </div>
+              <div className="flex items-end gap-3 justify-end">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+                  Retention
+                  <select
+                    value={retentionDays}
+                    onChange={(event) => setRetentionDays(event.target.value)}
+                    className="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
+                  >
+                    <option value="30">30 days</option>
+                    <option value="60">60 days</option>
+                    <option value="90">90 days</option>
+                    <option value="180">180 days</option>
+                    <option value="365">365 days</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={handlePurge}
+                  disabled={isPurging}
+                  className="px-4 py-2 rounded-lg bg-red-600/20 border border-red-500 text-red-200 hover:bg-red-600/30 disabled:opacity-50"
+                >
+                  {isPurging ? 'Purging…' : `Purge > ${retentionDays}d`}
+                </button>
+              </div>
             </div>
-          </div>
+          </form>
 
           <div className="overflow-x-auto border border-slate-800 rounded-xl">
             <table className="min-w-full divide-y divide-slate-800">

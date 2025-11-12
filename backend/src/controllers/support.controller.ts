@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types/index.js';
 import { logger } from '../utils/logger.js';
+import { SupportTicket } from '../models/SupportTicket.model.js';
 
 // Simple FAQ database
 const FAQ_DATABASE: Record<string, string> = {
@@ -112,6 +113,59 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
   } catch (error: any) {
     logger.error('AI chat failed', { error: error.message });
     res.status(500).json({ error: 'Failed to process chat message' });
+  }
+};
+
+export const createTicket = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { subject, message } = req.body ?? {};
+
+    if (!subject || !message) {
+      res.status(400).json({ error: 'Subject and message are required' });
+      return;
+    }
+
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const ticket = await SupportTicket.create({
+      userId: req.user.userId,
+      subject: subject.toString().slice(0, 150),
+      message: message.toString(),
+      status: 'open',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Support request submitted',
+      data: ticket,
+    });
+  } catch (error: any) {
+    logger.error('Support ticket creation failed', { error: error.message });
+    res.status(500).json({ error: 'Failed to submit support request' });
+  }
+};
+
+export const listTickets = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const tickets = await SupportTicket.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: tickets,
+    });
+  } catch (error: any) {
+    logger.error('Support ticket listing failed', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch support requests' });
   }
 };
 

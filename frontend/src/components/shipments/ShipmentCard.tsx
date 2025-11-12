@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Trash2, Eye, CheckCircle, XCircle, Send, X } from 'lucide-react';
+import { MapPin, Trash2, Eye, CheckCircle, XCircle, Send, X, ClipboardCopy } from 'lucide-react';
 import type { Shipment } from '../../types/shipment.types';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
@@ -81,6 +81,15 @@ const ShipmentCard = ({ shipment, onUpdate, onDelete, showActions = true }: Ship
     }
   };
 
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(shipment.shipmentId);
+      addNotification({ type: 'success', message: 'Shipment ID copied' });
+    } catch (error: unknown) {
+      addNotification({ type: 'error', message: getErrorMessage(error, 'Unable to copy shipment ID') });
+    }
+  };
+
   return (
     <div className="card card-hover border-2 border-primary-blue/30 hover:border-orange-accent animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -98,9 +107,17 @@ const ShipmentCard = ({ shipment, onUpdate, onDelete, showActions = true }: Ship
               }`}>
                 {shipment.status}
               </span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                {shipment.shipmentId}
-              </span>
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            {shipment.shipmentId}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyId}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            <ClipboardCopy className="h-3.5 w-3.5" />
+            Copy
+          </button>
             </div>
           </div>
           

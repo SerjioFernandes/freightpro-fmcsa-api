@@ -2,7 +2,23 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { settingsService } from '../services/settings.service';
-import { Settings, Save, Lock, Bell, User as UserIcon, Eye, EyeOff, Camera, Shield, Sparkles, LifeBuoy, Activity, MessageSquare, Send } from 'lucide-react';
+import { supportService, type SupportTicket } from '../services/support.service';
+import {
+  Settings,
+  Save,
+  Lock,
+  Bell,
+  User as UserIcon,
+  Eye,
+  EyeOff,
+  Camera,
+  Shield,
+  Sparkles,
+  LifeBuoy,
+  Activity,
+  MessageSquare,
+  Send,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
@@ -54,11 +70,14 @@ const SettingsPage = () => {
     frequency: 'instant'
   });
 
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+
   // Support draft
   const [supportDraft, setSupportDraft] = useState({
     subject: 'Need help with my CargoLume account',
     message: '',
   });
+  const activeSupportTicketCount = supportTickets.filter((ticket) => ticket.status !== 'resolved').length;
 
   // Avatar
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -107,6 +126,24 @@ const SettingsPage = () => {
 
     loadSessionsPreview();
   }, []);
+
+  useEffect(() => {
+    const loadSupportTickets = async () => {
+      try {
+        const response = await supportService.listTickets();
+        if (response.success && response.data) {
+          setSupportTickets(response.data);
+        }
+      } catch (error: unknown) {
+        addNotification({
+          type: 'error',
+          message: getErrorMessage(error, 'Failed to load support requests'),
+        });
+      }
+    };
+
+    loadSupportTickets();
+  }, [addNotification]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -208,13 +245,25 @@ const SettingsPage = () => {
 
     setIsSubmittingSupport(true);
     try {
-      // Placeholder for future email/service integration
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const response = await supportService.createTicket({
+        subject: supportDraft.subject.trim() || 'Support request',
+        message: supportDraft.message.trim(),
+      });
+
+      if (response.success && response.data) {
+        setSupportTickets((prev) => [response.data, ...prev]);
+      }
+
       addNotification({
         type: 'success',
-        message: 'Support request drafted. We will route emails to your upcoming support inbox.',
+        message: 'Support request submitted to our support team.',
       });
       setSupportDraft((prev) => ({ ...prev, message: '' }));
+    } catch (error: unknown) {
+      addNotification({
+        type: 'error',
+        message: getErrorMessage(error, 'Failed to submit support request'),
+      });
     } finally {
       setIsSubmittingSupport(false);
     }
@@ -790,7 +839,9 @@ const SettingsPage = () => {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-[11px] uppercase tracking-wide text-blue-600 font-semibold">
-                    Status: awaiting support email hookup
+                    {supportTickets.length > 0
+                      ? `${activeSupportTicketCount} active · ${supportTickets.length} total requests`
+                      : 'No support requests yet'}
                   </div>
                   <button
                     type="submit"
@@ -798,20 +849,70 @@ const SettingsPage = () => {
                     className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition-colors disabled:opacity-70"
                   >
                     <Send className="h-4 w-4" />
-                    {isSubmittingSupport ? 'Saving draft…' : 'Save Draft'}
+                    {isSubmittingSupport ? 'Submitting…' : 'Submit Request'}
                   </button>
                 </div>
               </form>
             </div>
 
+            {supportTickets.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-white/80 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs font-semibold uppercase tracking-wide text-blue-700">Recent support requests</h5>
+                  <span className="text-[11px] text-gray-500">
+                    Updated{' '}
+                    {formatDistanceToNow(new Date(supportTickets[0].updatedAt), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                </div>
+                <ul className="space-y-3">
+                  {supportTickets.map((ticket) => {
+                    const statusClasses =
+                      ticket.status === 'resolved'
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : ticket.status === 'in_progress'
+                        ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                        : 'bg-blue-100 text-blue-700 border border-blue-200';
+
+                    return (
+                      <li
+                        key={ticket._id}
+                        className="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-3 md:px-4 md:py-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{ticket.subject}</p>
+                            <p className="text-[11px] uppercase tracking-wide text-blue-500 mt-1">
+                              Created {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
+                            </p>
+                          </div>
+                          <span className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusClasses}`}>
+                            {ticket.status.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-700 leading-relaxed">{ticket.message}</p>
+                        {ticket.response && (
+                          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                            <p className="font-semibold mb-1">Support response</p>
+                            <p>{ticket.response}</p>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <ul className="mt-6 space-y-2 text-xs text-gray-500">
               <li className="flex items-start gap-2">
                 <span className="mt-1 h-2 w-2 rounded-full bg-blue-400"></span>
-                Drafts will appear in notifications for now. Once you share the support mailbox we’ll auto-forward them.
+                A support specialist will reply via email. You can also follow up in Messages for real-time collaboration.
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1 h-2 w-2 rounded-full bg-blue-400"></span>
-                Attach files inside Messages after creating a support thread.
+                Attach supporting screenshots or documents by replying to the support thread.
               </li>
             </ul>
           </div>

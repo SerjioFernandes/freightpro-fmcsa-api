@@ -115,6 +115,12 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
+    const unreadMessages = await Message.find({
+      sender: otherUserId,
+      receiver: userId,
+      isRead: false
+    }).select('_id');
+
     // Get all messages between current user and other user
     const messages = await Message.find({
       $or: [
@@ -127,16 +133,24 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
       .sort({ createdAt: 1 });
 
     // Mark messages as read
-    await Message.updateMany(
-      {
-        sender: otherUserId,
-        receiver: userId,
-        isRead: false
-      },
-      {
-        $set: { isRead: true }
-      }
-    );
+    if (unreadMessages.length > 0) {
+      await Message.updateMany(
+        {
+          sender: otherUserId,
+          receiver: userId,
+          isRead: false
+        },
+        {
+          $set: { isRead: true }
+        }
+      );
+
+      const conversationId = [userId, otherUserId].sort().join('_');
+      websocketService.emitToRoom(`conversation_${conversationId}`, 'messages_read', {
+        messageIds: unreadMessages.map((message) => message._id.toString()),
+        readerId: userId,
+      });
+    }
 
     res.json({
       success: true,

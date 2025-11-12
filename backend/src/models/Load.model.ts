@@ -43,6 +43,10 @@ const loadSchema = new Schema<ILoad>({
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   bookedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   shipment: { type: Schema.Types.ObjectId, ref: 'Shipment' },
+  agreedRate: { type: Number },
+  bookedAt: { type: Date },
+  bookingNotes: { type: String, maxlength: 1000 },
+  billingStatus: { type: String, enum: ['not_ready', 'ready', 'invoiced', 'paid'], default: 'not_ready' },
   
   // Authority validation
   isInterstate: { type: Boolean, default: true },

@@ -5,6 +5,40 @@ import { getFileUrl, deleteFile } from '../middleware/upload.middleware.js';
 import path from 'path';
 import { logger } from '../utils/logger.js';
 
+const allowedDocumentTypes = ['BOL', 'POD', 'INSURANCE', 'LICENSE', 'CARRIER_AUTHORITY', 'W9', 'OTHER'];
+
+const sanitizeTags = (raw: unknown): string[] => {
+  if (!raw) return [];
+
+  let values: string[] = [];
+
+  if (Array.isArray(raw)) {
+    values = raw as string[];
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        values = parsed as string[];
+      } else {
+        values = trimmed.split(',');
+      }
+    } catch {
+      values = trimmed.split(',');
+    }
+  }
+
+  return Array.from(
+    new Set(
+      values
+        .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+        .filter(Boolean)
+        .map((tag) => (tag.length > 32 ? tag.slice(0, 32) : tag))
+    )
+  );
+};
+
 export const uploadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) {
@@ -20,6 +54,13 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
+    if (!allowedDocumentTypes.includes(type)) {
+      res.status(400).json({ error: 'Invalid document type' });
+      return;
+    }
+
+    const tags = sanitizeTags(req.body.tags);
+
     // Create document record
     const document = await Document.create({
       userId,
@@ -31,7 +72,8 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
       mimeType: req.file.mimetype,
       size: req.file.size,
       url: getFileUrl(req.file.filename, 'document'),
-      isVerified: false
+      isVerified: false,
+      tags
     });
 
     res.status(201).json({
@@ -48,12 +90,13 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
 export const listDocuments = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const { type, loadId, shipmentId } = req.query;
+    const { type, loadId, shipmentId, tag } = req.query;
 
     const filter: any = { userId };
     if (type) filter.type = type;
     if (loadId) filter.loadId = loadId;
     if (shipmentId) filter.shipmentId = shipmentId;
+    if (tag) filter.tags = tag;
 
     const documents = await Document.find(filter)
       .sort({ uploadedAt: -1 });
@@ -196,6 +239,159 @@ export const linkToShipment = async (req: AuthRequest, res: Response): Promise<v
   } catch (error: any) {
     logger.error('Link document to shipment failed', { error: error.message });
     res.status(500).json({ error: 'Failed to link document' });
+  }
+};
+
+export const updateDocumentMetadata = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id);
+
+    if (!document) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+
+    const isAdmin = req.user?.role === 'admin';
+    if (!isAdmin && document.userId.toString() !== req.user?.userId) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const { type, isVerified, expiresAt, loadId, shipmentId, tags } = req.body ?? {};
+
+    if (type && !allowedDocumentTypes.includes(type)) {
+      res.status(400).json({ error: 'Invalid document type' });
+      return;
+    }
+
+    if (type) document.type = type;
+
+    if (typeof isVerified === 'boolean') {
+      document.isVerified = isVerified;
+      if (isVerified) {
+        document.verifiedBy = req.user?.userId ? (req.user.userId as any) : document.verifiedBy;
+        document.verifiedAt = new Date();
+      } else {
+        document.verifiedBy = undefined;
+        document.verifiedAt = undefined;
+      }
+    }
+
+    if (expiresAt !== undefined) {
+      document.expiresAt = expiresAt ? new Date(expiresAt) : undefined;
+    }
+
+    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'loadId')) {
+      document.loadId = loadId || undefined;
+    }
+
+    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'shipmentId')) {
+      document.shipmentId = shipmentId || undefined;
+    }
+
+    if (tags !== undefined) {
+      document.tags = sanitizeTags(tags);
+    }
+
+    await document.save();
+
+    res.json({
+      success: true,
+      message: 'Document updated successfully',
+      data: document
+    });
+  } catch (error: any) {
+    logger.error('Update document metadata failed', { error: error.message });
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+};
+
+export const bulkUpdateDocuments = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { documentIds, action, tags } = req.body ?? {};
+
+    if (!Array.isArray(documentIds) || documentIds.length === 0) {
+      res.status(400).json({ error: 'documentIds must be a non-empty array' });
+      return;
+    }
+
+    const documents = await Document.find({ _id: { $in: documentIds } });
+    if (documents.length === 0) {
+      res.status(404).json({ error: 'No documents found for the provided IDs' });
+      return;
+    }
+
+    const isAdmin = req.user?.role === 'admin';
+    const userId = req.user?.userId;
+
+    if (!isAdmin) {
+      const unauthorized = documents.some((doc) => doc.userId.toString() !== userId);
+      if (unauthorized) {
+        res.status(403).json({ error: 'Access denied for one or more documents' });
+        return;
+      }
+    }
+
+    let affected = 0;
+
+    switch (action) {
+      case 'verify': {
+        const result = await Document.updateMany(
+          { _id: { $in: documentIds } },
+          {
+            $set: {
+              isVerified: true,
+              verifiedBy: userId,
+              verifiedAt: new Date(),
+            },
+          }
+        );
+        affected = result.modifiedCount ?? result.matchedCount ?? 0;
+        break;
+      }
+      case 'unverify': {
+        const result = await Document.updateMany(
+          { _id: { $in: documentIds } },
+          {
+            $set: { isVerified: false },
+            $unset: { verifiedBy: '', verifiedAt: '' },
+          }
+        );
+        affected = result.modifiedCount ?? result.matchedCount ?? 0;
+        break;
+      }
+      case 'delete': {
+        for (const doc of documents) {
+          const filepath = path.join(process.cwd(), 'uploads', 'documents', doc.filename);
+          deleteFile(filepath);
+          await doc.deleteOne();
+          affected += 1;
+        }
+        break;
+      }
+      case 'tag': {
+        const sanitizedTags = sanitizeTags(tags);
+        const result = await Document.updateMany(
+          { _id: { $in: documentIds } },
+          { $set: { tags: sanitizedTags } }
+        );
+        affected = result.modifiedCount ?? result.matchedCount ?? 0;
+        break;
+      }
+      default:
+        res.status(400).json({ error: 'Unsupported bulk action' });
+        return;
+    }
+
+    res.json({
+      success: true,
+      message: 'Bulk document action completed successfully',
+      data: { affected },
+    });
+  } catch (error: any) {
+    logger.error('Bulk document update failed', { error: error.message });
+    res.status(500).json({ error: 'Failed to process bulk document action' });
   }
 };
 

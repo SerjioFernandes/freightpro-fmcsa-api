@@ -6,7 +6,6 @@ import type { DashboardStats } from '../../services/dashboard.service';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
 import { Package, TrendingUp, DollarSign, Users, Plus, MapPin, ArrowRight } from 'lucide-react';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import type { Shipment, ShipmentRequest } from '../../types/shipment.types';
 
 const ShipperDashboard = () => {
@@ -15,7 +14,7 @@ const ShipperDashboard = () => {
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [_isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -147,28 +146,35 @@ const ShipperDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
-          {stats.map((stat) => (
-            <div 
-              key={stat.label}
-              className="bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-100 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`${stat.bgColor} p-3 rounded-xl shadow-sm`}>
-                    <div className={`${stat.color} scale-90 md:scale-100`}>
-                      {stat.icon}
+          {isLoadingStats
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl shadow-md border border-gray-100 p-4 sm:p-5 animate-pulse space-y-4"
+                >
+                  <div className="h-12 w-12 bg-gray-200 rounded-xl" />
+                  <div className="h-3 w-20 bg-gray-200 rounded" />
+                  <div className="h-6 w-32 bg-gray-200 rounded" />
+                </div>
+              ))
+            : stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-100 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`${stat.bgColor} p-3 rounded-xl shadow-sm`}>
+                        <div className={`${stat.color} scale-90 md:scale-100`}>{stat.icon}</div>
+                      </div>
                     </div>
+                    <p className="text-xs md:text-sm text-gray-500 font-semibold uppercase tracking-wider mb-2">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl md:text-3xl font-bold text-gray-900">{stat.value}</p>
                   </div>
                 </div>
-                <p className="text-xs md:text-sm text-gray-500 font-semibold uppercase tracking-wider mb-2">
-                  {stat.label}
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          ))}
+              ))}
         </div>
 
         {/* Shipment Requests */}
@@ -185,8 +191,20 @@ const ShipperDashboard = () => {
           </div>
           
           {isLoading ? (
-            <div className="py-12">
-              <LoadingSpinner size="lg" className="mx-auto" />
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="border border-gray-200 rounded-xl p-5 md:p-6 bg-gradient-to-br from-white to-gray-50 animate-pulse space-y-3"
+                >
+                  <div className="h-4 bg-gray-200 rounded w-1/3" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 bg-gray-200 rounded w-24" />
+                    <div className="h-3 bg-gray-200 rounded w-16" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : shipments.length > 0 ? (
             <div className="space-y-4">

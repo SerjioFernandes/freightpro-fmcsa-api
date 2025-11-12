@@ -98,6 +98,11 @@ export const EQUIPMENT_TYPES = [
   'Power Only',
 ];
 
+// Freight guardrails
+export const MAX_LOAD_WEIGHT_LBS = 80000;
+export const MAX_LOAD_RATE_USD = 500000;
+export const MAX_PER_MILE_RATE_USD = 50;
+
 
 
 

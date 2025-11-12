@@ -23,8 +23,11 @@ export const loadService = {
     return response.data;
   },
 
-  async bookLoad(loadId: string): Promise<{ success: boolean; load: Load; message: string }> {
-    const response = await api.post(`/loads/${loadId}/book`);
+  async bookLoad(
+    loadId: string,
+    payload?: { agreedRate?: number; bookingNotes?: string }
+  ): Promise<{ success: boolean; load: Load; message: string }> {
+    const response = await api.post(`/loads/${loadId}/book`, payload ?? {});
     return response.data;
   },
 };

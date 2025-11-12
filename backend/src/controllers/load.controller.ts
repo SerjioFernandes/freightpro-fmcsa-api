@@ -9,6 +9,43 @@ import { logger } from '../utils/logger.js';
 import { websocketService } from '../services/websocket.service.js';
 import { geocodingService } from '../services/geocoding.service.js';
 
+const EARTH_RADIUS_MILES = 3958.8;
+
+const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
+
+const calculateDistanceMiles = (
+  origin?: { lat?: number; lng?: number },
+  destination?: { lat?: number; lng?: number }
+): number | null => {
+  if (
+    !origin ||
+    !destination ||
+    typeof origin.lat !== 'number' ||
+    typeof origin.lng !== 'number' ||
+    typeof destination.lat !== 'number' ||
+    typeof destination.lng !== 'number'
+  ) {
+    return null;
+  }
+
+  const dLat = toRadians(destination.lat - origin.lat);
+  const dLon = toRadians(destination.lng - origin.lng);
+  const lat1 = toRadians(origin.lat);
+  const lat2 = toRadians(destination.lat);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const miles = EARTH_RADIUS_MILES * c;
+
+  if (!Number.isFinite(miles) || miles <= 0) {
+    return null;
+  }
+
+  return Math.round(miles);
+};
+
 export class LoadController {
   async getLoads(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -112,6 +149,15 @@ export class LoadController {
       const originCoords = await geocodingService.geocodeAddress(origin);
       const destCoords = await geocodingService.geocodeAddress(destination);
 
+      const originCoordinates = originCoords
+        ? { lat: originCoords.latitude, lng: originCoords.longitude }
+        : undefined;
+      const destinationCoordinates = destCoords
+        ? { lat: destCoords.latitude, lng: destCoords.longitude }
+        : undefined;
+
+      const computedDistance = calculateDistanceMiles(originCoordinates, destinationCoordinates);
+
       const loadData = {
         ...req.body,
         origin: {
@@ -119,20 +165,22 @@ export class LoadController {
           state: origin.state.toUpperCase(),
           zip: origin.zip,
           country: origin.country || 'US',
-          coordinates: originCoords ? { lat: originCoords.latitude, lng: originCoords.longitude } : undefined
+          coordinates: originCoordinates
         },
         destination: {
           city: destination.city,
           state: destination.state.toUpperCase(),
           zip: destination.zip,
           country: destination.country || 'US',
-          coordinates: destCoords ? { lat: destCoords.latitude, lng: destCoords.longitude } : undefined
+          coordinates: destinationCoordinates
         },
         shipmentId: shipmentId || '',
         unlinked,
         isInterstate,
         shipment: shipmentRef,
-        postedBy: req.user.userId
+        postedBy: req.user.userId,
+        billingStatus: 'not_ready',
+        distance: computedDistance ?? undefined
       };
 
       const load = new Load(loadData);
@@ -174,12 +222,32 @@ export class LoadController {
         return;
       }
 
+      const { agreedRate, bookingNotes } = req.body ?? {};
+      const finalAgreedRate =
+        typeof agreedRate === 'number' && agreedRate > 0 ? agreedRate : loadToBook.rate;
+
       // Atomic update
+      const updatePayload: Record<string, any> = {
+        status: 'booked',
+        bookedBy: req.user.userId,
+        updatedAt: new Date(),
+        bookedAt: new Date(),
+        agreedRate: finalAgreedRate,
+        billingStatus: 'ready',
+      };
+
+      if (typeof bookingNotes === 'string' && bookingNotes.trim().length > 0) {
+        updatePayload.bookingNotes = bookingNotes.trim().slice(0, 1000);
+      }
+
       const load = await Load.findOneAndUpdate(
         { _id: req.params.id, status: 'available' },
-        { $set: { status: 'booked', bookedBy: req.user.userId, updatedAt: new Date() } },
+        { $set: updatePayload },
         { new: true }
-      );
+      ).populate([
+        { path: 'postedBy', select: 'company email accountType phone' },
+        { path: 'bookedBy', select: 'company email accountType phone' },
+      ]);
 
       if (!load) {
         res.status(409).json({ error: 'Load already booked or not available' });

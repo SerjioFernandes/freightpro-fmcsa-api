@@ -19,7 +19,8 @@ const documentSchema = new Schema<IDocument>({
   expiresAt: { type: Date },
   isVerified: { type: Boolean, default: false },
   verifiedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-  verifiedAt: { type: Date }
+  verifiedAt: { type: Date },
+  tags: { type: [String], default: [] }
 });
 
 // Indexes for performance
@@ -27,6 +28,7 @@ documentSchema.index({ userId: 1, uploadedAt: -1 });
 documentSchema.index({ loadId: 1 });
 documentSchema.index({ shipmentId: 1 });
 documentSchema.index({ type: 1 });
+documentSchema.index({ tags: 1 });
 
 export const Document: Model<IDocument> = mongoose.model<IDocument>('Document', documentSchema);
 

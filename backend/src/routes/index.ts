@@ -16,6 +16,7 @@ import searchRoutes from './search.routes.js';
 import sessionRoutes from './session.routes.js';
 import adminRoutes from './admin.routes.js';
 import friendRoutes from './friend.routes.js';
+import billingRoutes from './billing.routes.js';
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.use('/settings', settingsRoutes);
 router.use('/messages', messageRoutes);
 router.use('/support', supportRoutes);
 router.use('/documents', documentRoutes);
+router.use('/billing', billingRoutes);
 router.use('/push', pushRoutes);
 router.use('/locations', locationRoutes);
 router.use('/searches', savedSearchRoutes);

@@ -1,4 +1,5 @@
 export type LoadStatus = 'available' | 'booked' | 'in_transit' | 'delivered' | 'cancelled';
+export type BillingStatus = 'not_ready' | 'ready' | 'invoiced' | 'paid';
 export type Country = 'US' | 'CA';
 
 export interface Location {
@@ -33,13 +34,20 @@ export interface Load {
     company: string;
     email: string;
     accountType: string;
+    phone?: string;
   };
   bookedBy?: {
     _id: string;
     company: string;
     email: string;
+    accountType?: string;
+    phone?: string;
   };
   isInterstate: boolean;
+  agreedRate?: number;
+  bookedAt?: string | Date;
+  billingStatus: BillingStatus;
+  bookingNotes?: string;
   createdAt: string | Date;
   updatedAt: string | Date;
 }

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useWebSocket } from './hooks/useWebSocket';
 import { ROUTES } from './utils/constants';
@@ -23,7 +23,6 @@ import PostLoad from './pages/PostLoad';
 import Shipments from './pages/Shipments';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Messages from './pages/Messages';
 import Documents from './pages/Documents';
 import SavedSearches from './pages/SavedSearches';
 import ActiveSessions from './pages/ActiveSessions';
@@ -31,11 +30,13 @@ import Pricing from './pages/Pricing';
 import Offline from './pages/Offline';
 import SupportChatWidget from './components/SupportChat/SupportChatWidget';
 import InstallPrompt from './components/PWA/InstallPrompt';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import UserManagement from './pages/Admin/UserManagement';
-import UserDetails from './pages/Admin/UserDetails';
-import AuditLogs from './pages/Admin/AuditLogs';
-import SystemHealth from './pages/Admin/SystemHealth';
+
+const Messages = lazy(() => import('./pages/Messages'));
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
+const UserManagement = lazy(() => import('./pages/Admin/UserManagement'));
+const UserDetails = lazy(() => import('./pages/Admin/UserDetails'));
+const AuditLogs = lazy(() => import('./pages/Admin/AuditLogs'));
+const SystemHealth = lazy(() => import('./pages/Admin/SystemHealth'));
 
 // Protected Route Component
 import ProtectedRouteComponent from './components/auth/ProtectedRoute';
@@ -47,6 +48,12 @@ function ProtectedRoute({ children, allowedAccountTypes, requireAdmin }: { child
     </ProtectedRouteComponent>
   );
 }
+
+const PageLoader = () => (
+  <div className="flex justify-center py-16">
+    <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+  </div>
+);
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -128,7 +135,11 @@ function App() {
           path={ROUTES.MESSAGES}
           element={
             <ProtectedRoute>
-              <MainLayout><Messages /></MainLayout>
+              <Suspense fallback={<PageLoader />}>
+                <MainLayout>
+                  <Messages />
+                </MainLayout>
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -162,7 +173,9 @@ function App() {
           path={ROUTES.ADMIN_DASHBOARD}
           element={
             <ProtectedRoute requireAdmin>
-              <AdminDashboard />
+              <Suspense fallback={<PageLoader />}>
+                <AdminDashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -170,7 +183,9 @@ function App() {
           path={ROUTES.ADMIN_USERS}
           element={
             <ProtectedRoute requireAdmin>
-              <UserManagement />
+              <Suspense fallback={<PageLoader />}>
+                <UserManagement />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -178,7 +193,9 @@ function App() {
           path="/admin/users/:id"
           element={
             <ProtectedRoute requireAdmin>
-              <UserDetails />
+              <Suspense fallback={<PageLoader />}>
+                <UserDetails />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -186,7 +203,9 @@ function App() {
           path={ROUTES.ADMIN_AUDIT}
           element={
             <ProtectedRoute requireAdmin>
-              <AuditLogs />
+              <Suspense fallback={<PageLoader />}>
+                <AuditLogs />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -194,7 +213,9 @@ function App() {
           path={ROUTES.ADMIN_SYSTEM_HEALTH}
           element={
             <ProtectedRoute requireAdmin>
-              <SystemHealth />
+              <Suspense fallback={<PageLoader />}>
+                <SystemHealth />
+              </Suspense>
             </ProtectedRoute>
           }
         />

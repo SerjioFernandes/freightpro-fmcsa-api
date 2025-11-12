@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadService } from '../../services/load.service';
+import { shipmentService } from '../../services/shipment.service';
 import { useUIStore } from '../../store/uiStore';
 import { useLoadStore } from '../../store/loadStore';
-import { ROUTES, US_STATES, EQUIPMENT_TYPES } from '../../utils/constants';
-import type { LoadFormData } from '../../types/load.types';
+import { ROUTES, US_STATES, EQUIPMENT_TYPES, MAX_LOAD_RATE_USD, MAX_LOAD_WEIGHT_LBS, MAX_PER_MILE_RATE_USD } from '../../utils/constants';
+import type { Load, LoadFormData } from '../../types/load.types';
+import type { Shipment } from '../../types/shipment.types';
 import { Truck, MapPin, Calendar, Weight, DollarSign, Plus } from 'lucide-react';
 import { getErrorMessage } from '../../utils/errors';
 
-const PostLoadForm = () => {
+interface PostLoadFormProps {
+  onLoadPosted?: (load: Load, context?: { shipment?: Shipment | null }) => void;
+}
+
+const PostLoadForm = ({ onLoadPosted }: PostLoadFormProps) => {
   const { addNotification } = useUIStore();
   const { fetchLoads } = useLoadStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [isLoadingShipments, setIsLoadingShipments] = useState(false);
+  const [shipmentSearch, setShipmentSearch] = useState('');
 
   const [formData, setFormData] = useState<LoadFormData>({
     title: '',
@@ -39,6 +48,85 @@ const PostLoadForm = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const advisoryMessages = useMemo(() => {
+    const messages: string[] = [];
+
+    if (formData.weight >= MAX_LOAD_WEIGHT_LBS * 0.9) {
+      messages.push(
+        `Posted weight is ${formData.weight.toLocaleString()} lbs — double-check axle limits and permits for anything over ${(MAX_LOAD_WEIGHT_LBS * 0.9).toLocaleString()} lbs.`
+      );
+    }
+
+    if (formData.rateType === 'per_mile') {
+      if (formData.rate > MAX_PER_MILE_RATE_USD * 0.8) {
+        messages.push(
+          `Per-mile rate is $${formData.rate.toFixed(2)}/mi. Industry averages rarely exceed $${MAX_PER_MILE_RATE_USD.toFixed(
+            2
+          )}/mi — confirm your pricing.`
+        );
+      }
+    } else if (formData.rate > 0 && formData.rate < 500) {
+      messages.push('Flat rate is unusually low. Verify accessorials and fuel surcharge are accounted for.');
+    }
+
+    if (formData.pickupDate && formData.deliveryDate) {
+      const pickup = new Date(formData.pickupDate);
+      const delivery = new Date(formData.deliveryDate);
+      const leadTime = (delivery.getTime() - pickup.getTime()) / (1000 * 60 * 60 * 24);
+      if (leadTime > 7) {
+        messages.push('Lead time exceeds one week. Consider splitting or validating layovers.');
+      }
+    }
+
+    return messages;
+  }, [formData]);
+
+  const selectedShipment = useMemo(
+    () => shipments.find((shipment) => shipment.shipmentId === formData.shipmentId),
+    [shipments, formData.shipmentId]
+  );
+
+  const filteredShipments = useMemo(() => {
+    if (!shipmentSearch.trim()) {
+      return shipments;
+    }
+    const query = shipmentSearch.trim().toLowerCase();
+    return shipments.filter((shipment) => {
+      const haystack = [
+        shipment.shipmentId,
+        shipment.title,
+        shipment.pickup?.city,
+        shipment.pickup?.state,
+        shipment.delivery?.city,
+        shipment.delivery?.state,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [shipments, shipmentSearch]);
+
+  useEffect(() => {
+    const loadOpenShipments = async () => {
+      setIsLoadingShipments(true);
+      try {
+        const response = await shipmentService.getShipments(1, 50, 'open');
+        if (response.success && response.data) {
+          setShipments(response.data.shipments ?? []);
+        }
+      } catch (error: unknown) {
+        addNotification({
+          type: 'error',
+          message: getErrorMessage(error, 'Unable to fetch open shipments for linking.'),
+        });
+      } finally {
+        setIsLoadingShipments(false);
+      }
+    };
+
+    void loadOpenShipments();
+  }, [addNotification]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -160,10 +248,16 @@ const PostLoadForm = () => {
 
     if (!formData.weight || formData.weight <= 0) {
       newErrors.weight = 'Weight must be greater than 0';
+    } else if (formData.weight > MAX_LOAD_WEIGHT_LBS) {
+      newErrors.weight = `Weight cannot exceed ${MAX_LOAD_WEIGHT_LBS.toLocaleString()} lbs`;
     }
 
     if (!formData.rate || formData.rate <= 0) {
       newErrors.rate = 'Rate must be greater than 0';
+    } else if (formData.rate > MAX_LOAD_RATE_USD) {
+      newErrors.rate = `Rate cannot exceed $${MAX_LOAD_RATE_USD.toLocaleString()}`;
+    } else if (formData.rateType === 'per_mile' && formData.rate > MAX_PER_MILE_RATE_USD) {
+      newErrors.rate = `Per-mile rate cannot exceed $${MAX_PER_MILE_RATE_USD.toLocaleString()}`;
     }
 
     setErrors(newErrors);
@@ -181,12 +275,41 @@ const PostLoadForm = () => {
     setIsLoading(true);
 
     try {
-      await loadService.postLoad(formData);
+      const response = await loadService.postLoad(formData);
+      const createdLoad = response.load;
+
       addNotification({ type: 'success', message: 'Load posted successfully!' });
-      
-      // Refresh loads and navigate to load board
+
       await fetchLoads();
-      navigate(ROUTES.LOAD_BOARD);
+
+      if (createdLoad && onLoadPosted) {
+        onLoadPosted(createdLoad, { shipment: selectedShipment ?? null });
+        setFormData({
+          title: '',
+          description: '',
+          origin: {
+            city: '',
+            state: '',
+            zip: '',
+            country: 'US',
+          },
+          destination: {
+            city: '',
+            state: '',
+            zip: '',
+            country: 'US',
+          },
+          pickupDate: '',
+          deliveryDate: '',
+          equipmentType: '',
+          weight: 0,
+          rate: 0,
+          rateType: 'flat_rate',
+          shipmentId: '',
+        });
+      } else {
+        navigate(ROUTES.LOAD_BOARD);
+      }
     } catch (error: unknown) {
       addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to post load. Please try again.') });
     } finally {
@@ -418,6 +541,7 @@ const PostLoadForm = () => {
                 name="weight"
                 required
                 min="1"
+                max={MAX_LOAD_WEIGHT_LBS}
                 className={`input pl-10 ${errors.weight ? 'border-red-500' : ''}`}
                 value={formData.weight || ''}
                 onChange={handleChange}
@@ -461,6 +585,7 @@ const PostLoadForm = () => {
                 name="rate"
                 required
                 min="1"
+                max={MAX_LOAD_RATE_USD}
                 step="0.01"
                 className={`input pl-10 ${errors.rate ? 'border-red-500' : ''}`}
                 value={formData.rate || ''}
@@ -470,22 +595,136 @@ const PostLoadForm = () => {
             {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
           </div>
         </div>
+        {advisoryMessages.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-white/70 p-4 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Posting advisory</p>
+            <ul className="list-disc list-inside text-sm text-emerald-900 space-y-1.5">
+              {advisoryMessages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      {/* Optional: Shipment ID */}
-      <div className="rounded-2xl bg-gray-50 border-2 border-gray-100 p-6">
-        <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-          Shipment ID (Optional)
-        </label>
-        <input
-          type="text"
-          name="shipmentId"
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-900"
-          value={formData.shipmentId}
-          onChange={handleChange}
-          placeholder="Link to existing shipment reference"
-        />
-        <p className="text-xs text-gray-500 mt-2">If this load is linked to a specific shipment request, enter the ID here</p>
+      {/* Optional: Shipment Link */}
+      <div className="rounded-2xl bg-gray-50 border-2 border-gray-100 p-6 space-y-5">
+        <div className="flex items-center gap-2">
+          <Truck className="h-4 w-4 text-gray-500" />
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Link to Shipment (Optional)
+          </p>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Search open shipments
+            </label>
+            <input
+              type="text"
+              value={shipmentSearch}
+              onChange={(event) => setShipmentSearch(event.target.value)}
+              placeholder="Search by ID, title, pickup or delivery"
+              className="input"
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Refresh list
+            </label>
+            <button
+              type="button"
+              onClick={async () => {
+                setShipmentSearch('');
+                setIsLoadingShipments(true);
+                try {
+                  const response = await shipmentService.getShipments(1, 50, 'open');
+                  if (response.success && response.data) {
+                    setShipments(response.data.shipments ?? []);
+                  }
+                } catch (error: unknown) {
+                  addNotification({
+                    type: 'error',
+                    message: getErrorMessage(error, 'Unable to refresh shipments list.'),
+                  });
+                } finally {
+                  setIsLoadingShipments(false);
+                }
+              }}
+              className="inline-flex w-full items-center justify-center rounded-lg border-2 border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-all hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isLoadingShipments}
+            >
+              {isLoadingShipments ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Select open shipment
+          </label>
+          <select
+            name="shipmentId"
+            className="input"
+            value={formData.shipmentId ?? ''}
+            onChange={handleChange}
+          >
+            <option value="">No shipment linkage</option>
+            {filteredShipments.map((shipment) => (
+              <option key={shipment._id} value={shipment.shipmentId}>
+                {shipment.shipmentId} · {shipment.title}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-2">
+            Need to link a shipment outside this list? Paste the reference ID below.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+            Manual Shipment ID Entry
+          </label>
+          <input
+            type="text"
+            name="shipmentId"
+            className="input"
+            value={formData.shipmentId}
+            onChange={handleChange}
+            placeholder="Paste shipment ID if not listed above"
+          />
+        </div>
+
+        {selectedShipment ? (
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">
+              Linked Shipment Overview
+            </p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+              <div>
+                <h4 className="text-base font-semibold text-gray-900">{selectedShipment.title}</h4>
+                {selectedShipment.description && (
+                  <p className="text-sm text-gray-600 mt-1">{selectedShipment.description}</p>
+                )}
+              </div>
+              <div className="text-sm text-gray-700 space-y-1">
+                <p>
+                  <span className="font-semibold text-gray-900">Pickup:</span>{' '}
+                  {selectedShipment.pickup.city}, {selectedShipment.pickup.state}
+                </p>
+                <p>
+                  <span className="font-semibold text-gray-900">Delivery:</span>{' '}
+                  {selectedShipment.delivery.city}, {selectedShipment.delivery.state}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Linking a shipment helps keep documents and billing aligned but is optional. You can update this later from the load details page.
+          </p>
+        )}
       </div>
 
       {/* Submit Button */}

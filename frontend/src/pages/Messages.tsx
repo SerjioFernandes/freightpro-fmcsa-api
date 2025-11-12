@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { messageService } from '../services/message.service';
 import { friendService } from '../services/friend.service';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Edit2, Trash2, Plus, X, Check } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { FriendConnection, FriendRequest } from '../types/friend.types';
 import type { ConversationPreview, ConversationMessage } from '../types/message.types';
@@ -18,7 +18,7 @@ type MessageDeletionEvent = {
 const Messages = () => {
   const { addNotification } = useUIStore();
   const { user } = useAuthStore();
-  const { subscribe, joinRoom, leaveRoom } = useWebSocket();
+  const { subscribe, joinRoom, leaveRoom, emitTypingStart, emitTypingStop } = useWebSocket();
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [selectedUser, setSelectedUser] = useState<ConversationPreview | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -39,6 +39,10 @@ const Messages = () => {
   const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
   const [isFriendsLoading, setIsFriendsLoading] = useState(false);
   const [isRequestsLoading, setIsRequestsLoading] = useState(false);
+  const [messageSearch, setMessageSearch] = useState('');
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+  const typingTimeoutRef = useRef<number | undefined>(undefined);
+  const [isTyping, setIsTyping] = useState(false);
 
   const loadConversations = useCallback(async () => {
     setIsConversationsLoading(true);
@@ -101,6 +105,16 @@ const Messages = () => {
     loadFriendRequests();
   }, [loadFriends, loadFriendRequests]);
 
+  useEffect(() => {
+    setTypingUsers({});
+    setMessageSearch('');
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = undefined;
+    }
+    setIsTyping(false);
+  }, [selectedUser]);
+
   const loadConversation = useCallback(async (userId: string) => {
     setIsMessagesLoading(true);
     setMessagesError(null);
@@ -118,19 +132,36 @@ const Messages = () => {
     }
   }, [addNotification]);
 
+  const filteredMessages = useMemo(() => {
+    if (!messageSearch.trim()) return messages;
+    const query = messageSearch.toLowerCase();
+    return messages.filter(
+      (msg) =>
+        msg.subject.toLowerCase().includes(query) ||
+        msg.message.toLowerCase().includes(query)
+    );
+  }, [messages, messageSearch]);
+
   useEffect(() => {
     if (selectedUser && user) {
       loadConversation(selectedUser.userId);
-      
-      // Join conversation room for real-time updates
+
       const conversationId = [user.id, selectedUser.userId].sort().join('_');
       joinRoom(`conversation_${conversationId}`);
-      
+
       return () => {
+        if (isTyping) {
+          emitTypingStop(conversationId);
+          setIsTyping(false);
+        }
+        if (typingTimeoutRef.current) {
+          window.clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = undefined;
+        }
         leaveRoom(`conversation_${conversationId}`);
       };
     }
-  }, [selectedUser, user, joinRoom, leaveRoom, loadConversation]);
+  }, [selectedUser, user, joinRoom, leaveRoom, loadConversation, emitTypingStop, isTyping]);
 
   // WebSocket real-time message updates
   useEffect(() => {
@@ -176,12 +207,62 @@ const Messages = () => {
       setMessages((prev) => prev.filter((msg) => msg._id !== data.messageId));
     });
 
+    const unsubscribeTyping = subscribe<{ userId: string; company: string }>('user_typing', (payload) => {
+      if (!selectedUser || payload.userId === user?.id) return;
+      setTypingUsers((prev) => ({
+        ...prev,
+        [payload.userId]: payload.company || 'Partner',
+      }));
+    });
+
+    const unsubscribeTypingStop = subscribe<{ userId: string }>('user_stopped_typing', (payload) => {
+      setTypingUsers((prev) => {
+        if (!prev[payload.userId]) return prev;
+        const next = { ...prev };
+        delete next[payload.userId];
+        return next;
+      });
+    });
+
+    const unsubscribeRead = subscribe<{ messageIds: string[]; readerId: string }>('messages_read', (event) => {
+      if (event.readerId === user?.id) return;
+      setMessages((prev) =>
+        prev.map((msg) =>
+          event.messageIds.includes(msg._id) ? { ...msg, isRead: true } : msg
+        )
+      );
+    });
+
     return () => {
       unsubscribeNewMessage();
       unsubscribeMessageUpdate();
       unsubscribeMessageDelete();
+      unsubscribeTyping();
+      unsubscribeTypingStop();
+      unsubscribeRead();
     };
   }, [subscribe, selectedUser, user, loadConversations]);
+
+  const handleMessageInputChange = (value: string) => {
+    setMessageInput(value);
+    if (!user || !selectedUser) return;
+    const conversationId = [user.id, selectedUser.userId].sort().join('_');
+
+    if (!isTyping) {
+      emitTypingStart(conversationId);
+      setIsTyping(true);
+    }
+
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = window.setTimeout(() => {
+      emitTypingStop(conversationId);
+      setIsTyping(false);
+      typingTimeoutRef.current = undefined;
+    }, 1500);
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,6 +271,7 @@ const Messages = () => {
       addNotification({ type: 'error', message: 'Please select a conversation first' });
       return;
     }
+    if (!user) return;
 
     if (!subject.trim() || !messageInput.trim()) {
       addNotification({ type: 'error', message: 'Subject and message are required' });
@@ -215,6 +297,13 @@ const Messages = () => {
       await loadConversation(selectedUser.userId);
       await loadConversations();
       addNotification({ type: 'success', message: 'Message sent!' });
+      const conversationId = [user.id, selectedUser.userId].sort().join('_');
+      emitTypingStop(conversationId);
+      setIsTyping(false);
+      if (typingTimeoutRef.current) {
+        window.clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = undefined;
+      }
     } catch (error: unknown) {
       addNotification({ type: 'error', message: getErrorMessage(error, 'Failed to send message') });
     } finally {
@@ -491,6 +580,16 @@ const Messages = () => {
                     <p className="text-sm text-gray-600 capitalize">{selectedUser.accountType}</p>
                   </div>
 
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      value={messageSearch}
+                      onChange={(e) => setMessageSearch(e.target.value)}
+                      className="input w-full"
+                      placeholder="Search subject or message..."
+                    />
+                  </div>
+
                   <div className="flex-1 overflow-y-auto space-y-4 mb-4 px-1 sm:px-0">
                     {isMessagesLoading ? (
                       <div className="py-12 flex justify-center"><LoadingSpinner /></div>
@@ -501,8 +600,10 @@ const Messages = () => {
                       </div>
                     ) : messages.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">No messages yet. Start a conversation!</p>
+                    ) : filteredMessages.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No messages match your search.</p>
                     ) : (
-                      messages.map((msg) => (
+                      filteredMessages.map((msg) => (
                         <div
                           key={msg._id}
                           className={`flex ${
@@ -525,6 +626,18 @@ const Messages = () => {
                                 {new Date(msg.createdAt).toLocaleString()}
                                 {msg.isEdited && (
                                   <span className="italic">(edited)</span>
+                                )}
+                                {isMyMessage(msg) && (
+                                  <span className="flex items-center gap-1">
+                                    <Check
+                                      className={`h-4 w-4 ${
+                                        msg.isRead ? 'text-emerald-200' : 'text-white/70'
+                                      }`}
+                                    />
+                                    <span className="text-xs">
+                                      {msg.isRead ? 'Read' : 'Sent'}
+                                    </span>
+                                  </span>
                                 )}
                               </p>
                             </div>
@@ -597,7 +710,7 @@ const Messages = () => {
                       <textarea
                         placeholder="Type your message..."
                         value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
+                        onChange={(e) => handleMessageInputChange(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -620,6 +733,12 @@ const Messages = () => {
                         )}
                       </button>
                     </div>
+                    {Object.keys(typingUsers).length > 0 && (
+                      <p className="text-xs text-emerald-600">
+                        {Object.values(typingUsers).join(', ')}{' '}
+                        {Object.keys(typingUsers).length > 1 ? 'are' : 'is'} typing…
+                      </p>
+                    )}
                   </form>
                 </>
               ) : (

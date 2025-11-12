@@ -9,6 +9,7 @@ import { Load } from '../models/Load.model.js';
 import { Shipment } from '../models/Shipment.model.js';
 import { Message } from '../models/Message.model.js';
 import { AuditLog } from '../models/AuditLog.model.js';
+import { Document } from '../models/Document.model.js';
 
 type PaginationResult<T> = {
   data: T[];
@@ -245,12 +246,150 @@ class AdminController {
     }
   }
 
+  async exportLoads(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const format = typeof req.query.format === 'string' ? req.query.format.toLowerCase() : 'json';
+      const loads = await Load.find({}).lean();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+      const exportRecords = loads.map((load) => ({
+        title: load.title,
+        status: load.status,
+        equipmentType: load.equipmentType,
+        weight: load.weight,
+        rate: load.rate,
+        rateType: load.rateType,
+        originCity: load.origin?.city,
+        originState: load.origin?.state,
+        originZip: load.origin?.zip,
+        destinationCity: load.destination?.city,
+        destinationState: load.destination?.state,
+        destinationZip: load.destination?.zip,
+        pickupDate: load.pickupDate ? new Date(load.pickupDate).toISOString() : '',
+        deliveryDate: load.deliveryDate ? new Date(load.deliveryDate).toISOString() : '',
+        bookedAt: load.bookedAt ? new Date(load.bookedAt).toISOString() : '',
+        billingStatus: load.billingStatus,
+        createdAt: load.createdAt ? new Date(load.createdAt).toISOString() : '',
+        updatedAt: load.updatedAt ? new Date(load.updatedAt).toISOString() : '',
+      }));
+
+      await this.logAction(req, 'EXPORT_LOADS', 'Exported loads report', {
+        targetCollection: 'loads',
+        format,
+        count: exportRecords.length,
+      });
+
+      if (format === 'csv') {
+        const fields = Object.keys(exportRecords[0] || {});
+        const csvRows = [fields.join(',')];
+        for (const record of exportRecords) {
+          const row = fields.map((field) => {
+            const value = (record as Record<string, unknown>)[field];
+            if (value === undefined || value === null) return '';
+            return String(value).replace(/"/g, '""');
+          });
+          csvRows.push(row.map((column) => (column.includes(',') ? `"${column}"` : column)).join(','));
+        }
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="loads-${timestamp}.csv"`);
+        res.status(200).send(csvRows.join('\n'));
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="loads-${timestamp}.json"`);
+      res.status(200).send(JSON.stringify({ exportDate: new Date().toISOString(), totalLoads: exportRecords.length, loads: exportRecords }));
+    } catch (error: any) {
+      logger.error('Admin exportLoads failed', { error: error.message });
+      res.status(500).json({ success: false, error: 'Failed to export loads' });
+    }
+  }
+
+  async exportShipments(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const format = typeof req.query.format === 'string' ? req.query.format.toLowerCase() : 'json';
+      const shipments = await Shipment.find({}).lean();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+      const exportRecords = shipments.map((shipment) => ({
+        shipmentId: shipment.shipmentId,
+        title: shipment.title,
+        status: shipment.status,
+        description: shipment.description || '',
+        pickupCity: shipment.pickup?.city,
+        pickupState: shipment.pickup?.state,
+        pickupZip: shipment.pickup?.zip,
+        deliveryCity: shipment.delivery?.city,
+        deliveryState: shipment.delivery?.state,
+        deliveryZip: shipment.delivery?.zip,
+        createdAt: shipment.createdAt ? new Date(shipment.createdAt).toISOString() : '',
+        updatedAt: shipment.updatedAt ? new Date(shipment.updatedAt).toISOString() : '',
+      }));
+
+      await this.logAction(req, 'EXPORT_SHIPMENTS', 'Exported shipments report', {
+        targetCollection: 'shipments',
+        format,
+        count: exportRecords.length,
+      });
+
+      if (format === 'csv') {
+        const fields = Object.keys(exportRecords[0] || {});
+        const csvRows = [fields.join(',')];
+        for (const record of exportRecords) {
+          const row = fields.map((field) => {
+            const value = (record as Record<string, unknown>)[field];
+            if (value === undefined || value === null) return '';
+            return String(value).replace(/"/g, '""');
+          });
+          csvRows.push(row.map((column) => (column.includes(',') ? `"${column}"` : column)).join(','));
+        }
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="shipments-${timestamp}.csv"`);
+        res.status(200).send(csvRows.join('\n'));
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="shipments-${timestamp}.json"`);
+      res.status(200).send(
+        JSON.stringify({
+          exportDate: new Date().toISOString(),
+          totalShipments: exportRecords.length,
+          shipments: exportRecords,
+        }),
+      );
+    } catch (error: any) {
+      logger.error('Admin exportShipments failed', { error: error.message });
+      res.status(500).json({ success: false, error: 'Failed to export shipments' });
+    }
+  }
+
   /**
    * GET /api/admin/system-stats
    */
   async getSystemStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const [totalUsers, activeUsers, adminUsers, carrierCount, brokerCount, shipperCount, totalLoads, openLoads, bookedLoads, totalShipments, openShipments, totalMessages] = await Promise.all([
+      const [
+        totalUsers,
+        activeUsers,
+        adminUsers,
+        carrierCount,
+        brokerCount,
+        shipperCount,
+        totalLoads,
+        openLoads,
+        bookedLoads,
+        inTransitLoads,
+        deliveredLoads,
+        readyForBillingLoads,
+        totalShipments,
+        openShipments,
+        totalMessages,
+        totalDocuments,
+        verifiedDocuments,
+        laneAggregation,
+        bookingSpeedAggregation,
+      ] = await Promise.all([
         User.countDocuments({}),
         User.countDocuments({ isActive: true }),
         User.countDocuments({ role: 'admin' }),
@@ -260,10 +399,63 @@ class AdminController {
         Load.countDocuments({}),
         Load.countDocuments({ status: 'available' }),
         Load.countDocuments({ status: 'booked' }),
+        Load.countDocuments({ status: 'in_transit' }),
+        Load.countDocuments({ status: 'delivered' }),
+        Load.countDocuments({ billingStatus: { $in: ['ready', 'invoiced'] } }),
         Shipment.countDocuments({}),
         Shipment.countDocuments({ status: 'open' }),
         Message.countDocuments({}),
+        Document.countDocuments({}),
+        Document.countDocuments({ isVerified: true }),
+        Load.aggregate([
+          {
+            $match: {
+              status: { $in: ['available', 'booked', 'in_transit'] },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                origin: '$origin.state',
+                destination: '$destination.state',
+              },
+            },
+          },
+          {
+            $count: 'count',
+          },
+        ]),
+        Load.aggregate([
+          {
+            $match: {
+              bookedAt: { $ne: null },
+              createdAt: { $ne: null },
+            },
+          },
+          {
+            $project: {
+              durationHours: {
+                $divide: [
+                  { $subtract: ['$bookedAt', '$createdAt'] },
+                  1000 * 60 * 60,
+                ],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              averageHours: { $avg: '$durationHours' },
+            },
+          },
+        ]),
       ]);
+
+      const activeLaneCount = laneAggregation[0]?.count ?? 0;
+      const averageHoursToBook = bookingSpeedAggregation[0]?.averageHours ?? 0;
+      const conversionRate = totalLoads > 0 ? Number(((bookedLoads / totalLoads) * 100).toFixed(1)) : 0;
+      const documentVerificationRate =
+        totalDocuments > 0 ? Number(((verifiedDocuments / totalDocuments) * 100).toFixed(1)) : 0;
 
       const stats = {
         users: {
@@ -278,6 +470,9 @@ class AdminController {
           total: totalLoads,
           open: openLoads,
           booked: bookedLoads,
+          inTransit: inTransitLoads,
+          delivered: deliveredLoads,
+          readyForBilling: readyForBillingLoads,
         },
         shipments: {
           total: totalShipments,
@@ -285,6 +480,18 @@ class AdminController {
         },
         messages: {
           total: totalMessages,
+        },
+        documents: {
+          total: totalDocuments,
+          verified: verifiedDocuments,
+          pending: Math.max(totalDocuments - verifiedDocuments, 0),
+          verificationRate: documentVerificationRate,
+        },
+        analytics: {
+          conversionRate,
+          activeLaneCount,
+          averageHoursToBook,
+          readyForBilling: readyForBillingLoads,
         },
         generatedAt: new Date().toISOString(),
       };
@@ -303,13 +510,55 @@ class AdminController {
    */
   async getAuditLogs(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { page = '1', limit = '50', action } = req.query;
+      const { page = '1', limit = '50', action, collection, adminId, startDate, endDate, search } = req.query;
       const pageNum = Math.max(parseInt(String(page), 10) || 1, 1);
       const limitNum = Math.min(Math.max(parseInt(String(limit), 10) || 50, 1), 200);
 
       const filter: Record<string, unknown> = {};
       if (action && typeof action === 'string') {
-        filter.action = action;
+        filter.action = new RegExp(action, 'i');
+      }
+
+      if (collection && typeof collection === 'string') {
+        filter.targetCollection = new RegExp(collection, 'i');
+      }
+
+      if (adminId && typeof adminId === 'string') {
+        if (!mongoose.Types.ObjectId.isValid(adminId)) {
+          res.status(400).json({ success: false, error: 'Invalid admin ID filter' });
+          return;
+        }
+        filter.admin = adminId;
+      }
+
+      if ((startDate && typeof startDate === 'string') || (endDate && typeof endDate === 'string')) {
+        filter.createdAt = {};
+        if (startDate && typeof startDate === 'string') {
+          const start = new Date(startDate);
+          if (Number.isNaN(start.getTime())) {
+            res.status(400).json({ success: false, error: 'Invalid startDate filter' });
+            return;
+          }
+          filter.createdAt.$gte = start;
+        }
+        if (endDate && typeof endDate === 'string') {
+          const endDt = new Date(endDate);
+          if (Number.isNaN(endDt.getTime())) {
+            res.status(400).json({ success: false, error: 'Invalid endDate filter' });
+            return;
+          }
+          filter.createdAt.$lte = endDt;
+        }
+      }
+
+      if (search && typeof search === 'string') {
+        const regex = new RegExp(search, 'i');
+        filter.$or = [
+          { description: regex },
+          { action: regex },
+          { targetCollection: regex },
+          { ipAddress: regex },
+        ];
       }
 
       const total = await AuditLog.countDocuments(filter);
@@ -320,7 +569,15 @@ class AdminController {
         .populate('admin', 'email company')
         .lean();
 
-      await this.logAction(req, 'VIEW_AUDIT_LOGS', 'Viewed audit logs', { targetCollection: 'auditLogs', actionFilter: action });
+      await this.logAction(req, 'VIEW_AUDIT_LOGS', 'Viewed audit logs', {
+        targetCollection: 'auditLogs',
+        actionFilter: action,
+        collectionFilter: collection,
+        adminFilter: adminId,
+        startDate,
+        endDate,
+        search,
+      });
 
       const response: PaginationResult<Record<string, unknown>> = {
         data: logs,
@@ -336,6 +593,33 @@ class AdminController {
     } catch (error: any) {
       logger.error('Admin getAuditLogs failed', { error: error.message });
       res.status(500).json({ success: false, error: 'Failed to fetch audit logs' });
+    }
+  }
+
+  async purgeAuditLogs(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { days } = req.params;
+      const retentionDays = parseInt(days ?? '', 10);
+      if (Number.isNaN(retentionDays) || retentionDays <= 0) {
+        res.status(400).json({ success: false, error: 'Retention days must be a positive integer' });
+        return;
+      }
+
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - retentionDays);
+
+      const result = await AuditLog.deleteMany({ createdAt: { $lt: cutoff } });
+
+      await this.logAction(req, 'PURGE_AUDIT_LOGS', 'Purged audit logs by retention policy', {
+        targetCollection: 'auditLogs',
+        retentionDays,
+        deletedCount: result.deletedCount ?? 0,
+      });
+
+      res.json({ success: true, deleted: result.deletedCount ?? 0 });
+    } catch (error: any) {
+      logger.error('Admin purgeAuditLogs failed', { error: error.message });
+      res.status(500).json({ success: false, error: 'Failed to purge audit logs' });
     }
   }
 

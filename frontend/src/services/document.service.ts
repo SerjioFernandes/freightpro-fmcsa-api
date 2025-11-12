@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../types/api.types';
-import type { DocumentRecord, DocumentType } from '../types/document.types';
+import type { DocumentRecord, DocumentType, BulkDocumentActionPayload } from '../types/document.types';
 import api from './api';
 
 export interface DocumentData {
@@ -13,6 +13,7 @@ export interface DocumentListParams {
   type?: DocumentType;
   loadId?: string;
   shipmentId?: string;
+  tag?: string;
 }
 
 export const documentService = {
@@ -54,6 +55,19 @@ export const documentService = {
 
   async linkToShipment(documentId: string, shipmentId: string): Promise<ApiResponse<DocumentRecord>> {
     const response = await api.put<ApiResponse<DocumentRecord>>(`/documents/${documentId}/link-shipment`, { shipmentId });
+    return response.data;
+  },
+
+  async updateDocument(
+    id: string,
+    payload: Partial<Pick<DocumentRecord, 'type' | 'expiresAt' | 'loadId' | 'shipmentId' | 'tags' | 'isVerified'>>
+  ): Promise<ApiResponse<DocumentRecord>> {
+    const response = await api.patch<ApiResponse<DocumentRecord>>(`/documents/${id}`, payload);
+    return response.data;
+  },
+
+  async bulkUpdateDocuments(payload: BulkDocumentActionPayload): Promise<ApiResponse<{ affected: number }>> {
+    const response = await api.post<ApiResponse<{ affected: number }>>('/documents/bulk', payload);
     return response.data;
   }
 };

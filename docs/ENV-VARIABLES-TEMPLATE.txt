@@ -20,6 +20,15 @@ FRONTEND_URL=https://www.yourdomain.com
 EMAIL_USER=info@yourdomain.com
 RESEND_API_KEY=your-resend-api-key
 
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=super-strong-password
+# Comma separated CIDR ranges (e.g. 192.168.1.0/24,10.0.0.0/8) or leave empty to disable IP allowlisting
+ADMIN_ALLOWED_IPS=
+ADMIN_2FA_SECRET=base32-secret-from-authenticator
+
+# Link expiry in ms (default: 24h)
+EMAIL_VERIFICATION_TTL_MS=86400000
+
 # (Optional) Legacy SMTP fallback values
 # EMAIL_PASS=your-smtp-password
 # EMAIL_HOST=smtp.yourdomain.com

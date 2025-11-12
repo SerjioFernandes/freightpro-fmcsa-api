@@ -9,9 +9,11 @@ const router = Router();
 router.use(authenticateToken);
 
 router.post('/upload', uploadDocument.single('file'), documentController.uploadDocument);
+router.post('/bulk', documentController.bulkUpdateDocuments);
 router.get('/', documentController.listDocuments);
 router.get('/:id', documentController.getDocument);
 router.get('/:id/download', documentController.downloadDocument);
+router.patch('/:id', documentController.updateDocumentMetadata);
 router.delete('/:id', documentController.deleteDocument);
 router.put('/:id/link-load', documentController.linkToLoad);
 router.put('/:id/link-shipment', documentController.linkToShipment);

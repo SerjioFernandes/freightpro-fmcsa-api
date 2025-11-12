@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLoadStore } from '../store/loadStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
-import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Weight, Truck, Package, ArrowRight, Navigation, Lock, ChevronLeft, ChevronRight, CheckCircle, MessageCircle, FileText, DollarSign, Loader2 } from 'lucide-react';
 import { canViewLoadBoard } from '../utils/permissions';
 import BoardSearchBar from '../components/board/BoardSearchBar';
 import type { BoardSearchFilters } from '../types/board.types';
+import type { Load } from '../types/load.types';
 import { getStateCodeFromInput, getStateCentroid, haversineMiles } from '../utils/geo';
 import { getErrorMessage } from '../utils/errors';
+import { ROUTES } from '../utils/constants';
+import { billingService } from '../services/billing.service';
+import { exportInvoiceToPDF } from '../utils/exportData';
 
 const createDefaultFilters = (): BoardSearchFilters => ({
   origin: '',
@@ -68,16 +72,41 @@ const buildFiltersFromSearchParams = (params: URLSearchParams): BoardSearchFilte
   };
 };
 
+const calculateLinehaulTotal = (load: Load, overrideRate?: number): number | null => {
+  const effectiveRate = typeof overrideRate === 'number' && overrideRate > 0 ? overrideRate : load.rate;
+  if (load.rateType === 'per_mile' && typeof load.distance === 'number' && load.distance > 0) {
+    return effectiveRate * load.distance;
+  }
+  if (load.rateType !== 'per_mile') {
+    return effectiveRate;
+  }
+  return null;
+};
+
+const formatCurrency = (value: number): string =>
+  value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const LoadBoard = () => {
   const { loads, pagination, isLoading, fetchLoads, bookLoad } = useLoadStore();
   const { user } = useAuthStore();
   const { addNotification } = useUIStore();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const lastPrefillKeyRef = useRef<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(20);
   const [isBooking, setIsBooking] = useState<string | null>(null);
+  const [bookingDialog, setBookingDialog] = useState<{
+    load: Load;
+    agreedRate: number;
+    bookingNotes: string;
+  } | null>(null);
+  const [bookingSummary, setBookingSummary] = useState<{ load: Load } | null>(null);
   const [filters, setFilters] = useState<BoardSearchFilters>(() => createDefaultFilters());
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const liveLinehaulTotal = bookingDialog
+    ? calculateLinehaulTotal(bookingDialog.load, bookingDialog.agreedRate)
+    : null;
 
   useEffect(() => {
     const serialized = searchParams.toString();
@@ -236,18 +265,56 @@ const LoadBoard = () => {
     );
   }
 
-  const handleBookLoad = async (loadId: string) => {
-    setIsBooking(loadId);
+  const updateBookingDialog = (updates: Partial<{ agreedRate: number; bookingNotes: string }>) => {
+    setBookingDialog((prev) => (prev ? { ...prev, ...updates } : prev));
+  };
+
+  const openBookingDialog = (load: Load) => {
+    setBookingDialog({
+      load,
+      agreedRate: load.agreedRate ?? load.rate,
+      bookingNotes: '',
+    });
+  };
+
+  const submitBooking = async () => {
+    if (!bookingDialog) return;
+    setIsBooking(bookingDialog.load._id);
     try {
-      await bookLoad(loadId);
-      addNotification({ type: 'success', message: 'Load booked successfully!' });
-      // Refresh current page after booking
+      const updatedLoad = await bookLoad(bookingDialog.load._id, {
+        agreedRate: bookingDialog.agreedRate,
+        bookingNotes: bookingDialog.bookingNotes.trim() || undefined,
+      });
+      setBookingSummary({ load: { ...bookingDialog.load, ...updatedLoad } });
+      setBookingDialog(null);
       await fetchLoads(currentPage, limit);
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, 'Failed to book load. Please try again.');
       addNotification({ type: 'error', message: errorMessage });
     } finally {
       setIsBooking(null);
+    }
+  };
+
+  const handleInvoicePreview = async (loadId: string) => {
+    setIsGeneratingInvoice(true);
+    try {
+      const response = await billingService.previewInvoice(loadId);
+      if (response.success && response.data) {
+        exportInvoiceToPDF(response.data);
+      } else {
+        addNotification({
+          type: 'error',
+          message: response.error || 'Unable to generate invoice preview',
+        });
+      }
+    } catch (error: unknown) {
+      addNotification({
+        type: 'error',
+        message: getErrorMessage(error, 'Unable to generate invoice preview'),
+      });
+    } finally {
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -399,23 +466,31 @@ const LoadBoard = () => {
                     <p className="text-sm text-white/90">
                       {load.rateType === 'per_mile' ? 'per mile' : 'flat rate'}
                     </p>
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                      Billing: {(load.billingStatus ?? 'not_ready').replace(/_/g, ' ')}
+                    </div>
+                    {load.rateType === 'per_mile' && typeof load.distance === 'number' && load.distance > 0 && (
+                      <p className="mt-3 text-xs text-white/80">
+                        Est line-haul ${formatCurrency(load.rate * load.distance)} ({load.distance.toLocaleString()} miles)
+                      </p>
+                    )}
                   </div>
 
                   {canBookLoads && load.status === 'available' && (
                     <button
-                      onClick={() => handleBookLoad(load._id)}
+                      onClick={() => openBookingDialog(load)}
                       disabled={isBooking === load._id || isLoading}
-                      className="btn btn-accent w-full group"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isBooking === load._id ? (
                         <span className="flex items-center justify-center gap-2">
                           <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                          Booking...
+                          Processing...
                         </span>
                       ) : (
                         <>
                           Book Load
-                          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                          <ArrowRight className="h-5 w-5" />
                         </>
                       )}
                     </button>
@@ -505,11 +580,298 @@ const LoadBoard = () => {
             Showing {filteredLoads.length} filtered loads out of {pagination?.total ?? loads.length}
           </div>
         ) : (
-        pagination && (
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} loads
+          pagination && (
+            <div className="mt-4 text-center text-sm text-gray-600">
+              Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} loads
+            </div>
+          )
+        )}
+
+        {bookingDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-4">
+            <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="bg-gradient-to-r from-emerald-500 to-blue-600 px-6 py-5 text-white">
+                <h3 className="text-xl font-semibold">Confirm booking</h3>
+                <p className="text-sm text-emerald-100">
+                  Review the lane details and confirm the final rate before booking.
+                </p>
+              </div>
+              <div className="space-y-6 p-6 md:p-8">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
+                    {bookingDialog.load.title}
+                  </p>
+                  <h4 className="text-2xl font-bold text-slate-900">
+                    {bookingDialog.load.origin.city}, {bookingDialog.load.origin.state}{' '}
+                    <ArrowRight className="mx-2 inline h-5 w-5 text-blue-500 align-middle" />
+                    {bookingDialog.load.destination.city}, {bookingDialog.load.destination.state}
+                  </h4>
+                  <p className="text-sm text-slate-600">
+                    Pickup {new Date(bookingDialog.load.pickupDate).toLocaleDateString()} • Delivery{' '}
+                    {new Date(bookingDialog.load.deliveryDate).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Agreed rate (USD)
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="number"
+                        min={1}
+                        step="0.01"
+                        className="input pl-9"
+                        value={bookingDialog.agreedRate}
+                        onChange={(event) => {
+                          const next = Number(event.target.value);
+                          updateBookingDialog({
+                            agreedRate: Number.isFinite(next) && next > 0 ? next : bookingDialog.load.rate,
+                          });
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Defaults to the posted rate (${bookingDialog.load.rate.toLocaleString()}).
+                      Adjust if you negotiated different terms.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Add booking notes (optional)
+                    </label>
+                    <textarea
+                      className="input h-28 resize-none"
+                      value={bookingDialog.bookingNotes}
+                      onChange={(event) => updateBookingDialog({ bookingNotes: event.target.value })}
+                      placeholder="Add accessorials, special instructions, or reference numbers for the broker."
+                    />
+                  </div>
+                </div>
+
+                {liveLinehaulTotal !== null && (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-900">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                      Estimated line-haul total
+                    </p>
+                    <p className="mt-1 text-lg font-semibold">
+                      ${formatCurrency(liveLinehaulTotal)}{' '}
+                      {bookingDialog.load.rateType === 'per_mile' &&
+                        typeof bookingDialog.load.distance === 'number' &&
+                        bookingDialog.load.distance > 0 && (
+                          <span className="text-xs font-medium text-emerald-600">
+                            ({bookingDialog.load.distance.toLocaleString()} miles @ $
+                            {bookingDialog.agreedRate.toFixed(2)}/mi)
+                          </span>
+                        )}
+                    </p>
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="font-semibold text-slate-900">Recommended next steps</p>
+                  <ul className="mt-2 list-disc list-inside text-sm text-slate-600 space-y-1.5">
+                    <li>Upload insurance & carrier packet documents after confirming.</li>
+                    <li>Message the broker to coordinate pickup window and driver contact.</li>
+                    <li>Capture accessorial agreements here so billing is accurate.</li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col gap-3 md:flex-row md:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setBookingDialog(null)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 md:w-auto"
+                    disabled={isBooking !== null}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitBooking}
+                    disabled={isBooking === bookingDialog.load._id}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+                  >
+                    {isBooking === bookingDialog.load._id ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                        Booking…
+                      </span>
+                    ) : (
+                      <>
+                        Confirm Booking
+                        <CheckCircle className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        ))}
+        )}
+
+        {bookingSummary && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-4">
+            <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="bg-gradient-to-r from-emerald-500 to-blue-600 px-6 py-5 text-white">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-7 w-7" />
+                  <div>
+                    <h3 className="text-xl font-semibold">Load booked successfully</h3>
+                    <p className="text-sm text-emerald-100">
+                      We captured the agreed rate and prepped billing for this lane.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-6 p-6 md:p-8">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
+                    {bookingSummary.load.title}
+                  </p>
+                  <h4 className="text-2xl font-bold text-slate-900">
+                    {bookingSummary.load.origin.city}, {bookingSummary.load.origin.state}{' '}
+                    <ArrowRight className="mx-2 inline h-5 w-5 text-blue-500 align-middle" />
+                    {bookingSummary.load.destination.city}, {bookingSummary.load.destination.state}
+                  </h4>
+                  <p className="text-sm text-slate-600">
+                    Pickup {new Date(bookingSummary.load.pickupDate).toLocaleDateString()} • Delivery{' '}
+                    {new Date(bookingSummary.load.deliveryDate).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Billing Overview
+                    </p>
+                    <p>
+                      Posted rate:{' '}
+                      <span className="font-semibold text-slate-900">
+                        ${bookingSummary.load.rate.toLocaleString()}
+                      </span>
+                    </p>
+                    <p>
+                      Agreed rate:{' '}
+                      <span className="font-semibold text-emerald-700">
+                        $
+                        {formatCurrency(
+                          Number(bookingSummary.load.agreedRate ?? bookingSummary.load.rate)
+                        )}
+                      </span>
+                    </p>
+                  {bookingSummary.load.rateType === 'per_mile' &&
+                    typeof bookingSummary.load.distance === 'number' &&
+                    bookingSummary.load.distance > 0 && (
+                      <p>
+                        Est line-haul total:{' '}
+                        <span className="font-semibold text-slate-900">
+                          $
+                          {formatCurrency(
+                            calculateLinehaulTotal(
+                              bookingSummary.load,
+                              bookingSummary.load.agreedRate ?? bookingSummary.load.rate
+                            ) ?? bookingSummary.load.rate
+                          )}
+                        </span>
+                      </p>
+                    )}
+                    <p>
+                      Billing status:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {(bookingSummary.load.billingStatus ?? 'ready').replace(/_/g, ' ')}
+                      </span>
+                    </p>
+                    {bookingSummary.load.bookedAt && (
+                      <p>
+                        Booked:{' '}
+                        <span className="font-semibold text-slate-900">
+                          {new Date(bookingSummary.load.bookedAt).toLocaleString()}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Broker Contact
+                    </p>
+                    <p className="font-semibold text-slate-900">{bookingSummary.load.postedBy?.company}</p>
+                    <p>{bookingSummary.load.postedBy?.email}</p>
+                    {bookingSummary.load.postedBy?.phone && <p>{bookingSummary.load.postedBy.phone}</p>}
+                    <p className="text-xs text-slate-500">
+                      Reach out to lock in pickup check-in details and required paperwork.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-blue-600/10 p-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="space-y-1 text-sm text-slate-700">
+                      <p className="font-semibold text-slate-900">Checklist</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Upload insurance, carrier packet, and BOL/POD to the Documents hub.</li>
+                        <li>Confirm driver contact and pickup instructions with the broker.</li>
+                        <li>Track mileage and accessorials – billing is now marked as ready.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 md:flex-row md:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingSummary(null);
+                      navigate(`${ROUTES.DOCUMENTS}?prefill=${bookingSummary.load._id}`);
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-200 px-4 py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 md:w-auto"
+                  >
+                    Manage documents
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInvoicePreview(bookingSummary.load._id)}
+                    disabled={isGeneratingInvoice}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:opacity-60 md:w-auto"
+                  >
+                    {isGeneratingInvoice ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Building invoice…
+                      </span>
+                    ) : (
+                      'Invoice PDF'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingSummary(null);
+                      navigate(ROUTES.MESSAGES);
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 md:w-auto"
+                  >
+                    Message broker
+                    <MessageCircle className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingSummary(null)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-emerald-700 md:w-auto"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
