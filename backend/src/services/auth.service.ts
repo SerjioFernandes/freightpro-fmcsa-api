@@ -7,6 +7,7 @@ import { emailService } from './email.service.js';
 import { normalizePhone, normalizeEIN, normalizeMCNumber } from '../utils/validators.js';
 import { logger } from '../utils/logger.js';
 import { AccountType, JWTPayload } from '../types/index.js';
+import { normalizeEmailAddress } from '../utils/email.js';
 
 interface RegisterData {
   email: string;
@@ -45,7 +46,7 @@ export class AuthService {
   }
 
   async register(data: RegisterData) {
-    const normalizedEmail = data.email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmailAddress(data.email);
 
     // Check if user exists
     const existingUser = await User.findOne({ email: normalizedEmail });
@@ -131,7 +132,8 @@ export class AuthService {
   }
 
   async login(email: string, password: string, userAgent: string, ip: string) {
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    const normalizedEmail = normalizeEmailAddress(email);
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       throw new Error('Invalid credentials');
     }
@@ -212,9 +214,10 @@ export class AuthService {
   }
 
   async verifyEmail(email: string, code: string) {
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    const normalizedEmail = normalizeEmailAddress(email);
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      logger.warn('Email verification failed - user not found', { email });
+      logger.warn('Email verification failed - user not found', { email: normalizedEmail });
       throw new Error('Invalid email or code');
     }
 
@@ -254,7 +257,8 @@ export class AuthService {
   }
 
   async resendVerificationCode(email: string) {
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    const normalizedEmail = normalizeEmailAddress(email);
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       throw new Error('User not found');
     }
@@ -296,7 +300,8 @@ export class AuthService {
         return;
       }
 
-      const existing = await User.findOne({ email: config.ADMIN_EMAIL.toLowerCase() });
+      const adminEmail = normalizeEmailAddress(config.ADMIN_EMAIL);
+      const existing = await User.findOne({ email: adminEmail });
       if (existing) {
         return;
       }
@@ -304,7 +309,7 @@ export class AuthService {
       const hashedPassword = await bcryptjs.hash(config.ADMIN_PASSWORD, 12);
 
       const adminUser = new User({
-        email: config.ADMIN_EMAIL.toLowerCase(),
+        email: adminEmail,
         password: hashedPassword,
         company: 'CargoLume',
         phone: '+1-000-000-0000',
