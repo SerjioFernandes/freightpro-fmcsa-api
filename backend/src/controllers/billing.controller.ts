@@ -16,7 +16,13 @@ const computeLineHaulTotal = (
   return agreedRate ?? baseRate;
 };
 
-const sanitizeParty = (party: any) => ({
+type PartyLike = {
+  company?: string;
+  email?: string;
+  phone?: string;
+} | null | undefined;
+
+const sanitizeParty = (party: PartyLike) => ({
   company: party?.company ?? '',
   email: party?.email ?? '',
   phone: party?.phone ?? '',
@@ -34,9 +40,11 @@ export const previewInvoiceForLoad = async (req: AuthRequest, res: Response): Pr
       return;
     }
 
+    const userId = req.user?.userId;
+    const accountType = req.user?.accountType;
     const isAdmin = req.user?.role === 'admin';
-    const isBroker = load.postedBy?.toString?.() === req.user?.userId;
-    const isCarrier = load.bookedBy?.toString?.() === req.user?.userId;
+    const isBroker = accountType === 'broker' && load.postedBy?.toString?.() === userId;
+    const isCarrier = accountType === 'carrier' && load.bookedBy?.toString?.() === userId;
 
     if (!isAdmin && !isBroker && !isCarrier) {
       res.status(403).json({ error: 'Access denied' });
@@ -56,8 +64,8 @@ export const previewInvoiceForLoad = async (req: AuthRequest, res: Response): Pr
       distance: typeof load.distance === 'number' ? load.distance : null,
       totalDue: computeLineHaulTotal(load.rateType, load.rate, load.agreedRate ?? undefined, load.distance),
       billingStatus: load.billingStatus,
-      broker: sanitizeParty(load.postedBy),
-      carrier: load.bookedBy ? sanitizeParty(load.bookedBy) : undefined,
+      broker: sanitizeParty(load.postedBy as PartyLike),
+      carrier: load.bookedBy ? sanitizeParty(load.bookedBy as PartyLike) : undefined,
       documents: documents.map((doc) => ({
         id: doc._id.toString(),
         originalName: doc.originalName,
@@ -84,7 +92,7 @@ export const listReadyInvoices = async (req: AuthRequest, res: Response): Promis
       billingStatus: { $in: ['ready', 'invoiced', 'paid'] },
     };
 
-    if (req.user?.role === 'broker') {
+    if (req.user?.role !== 'admin' && req.user?.accountType === 'broker') {
       query.postedBy = req.user.userId;
     } else if (req.user?.role !== 'admin' && req.user?.accountType === 'carrier') {
       query.bookedBy = req.user.userId;
@@ -103,8 +111,8 @@ export const listReadyInvoices = async (req: AuthRequest, res: Response): Promis
       deliveryDate: load.deliveryDate,
       totalDue: computeLineHaulTotal(load.rateType, load.rate, load.agreedRate ?? undefined, load.distance),
       billingStatus: load.billingStatus,
-      broker: load.postedBy?.company ?? '',
-      carrier: load.bookedBy?.company ?? '',
+      broker: (load.postedBy as PartyLike)?.company ?? '',
+      carrier: (load.bookedBy as PartyLike)?.company ?? '',
     }));
 
     res.json({

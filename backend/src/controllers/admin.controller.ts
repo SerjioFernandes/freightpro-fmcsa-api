@@ -61,7 +61,7 @@ class AdminController {
       const pageNum = Math.max(parseInt(String(page), 10) || 1, 1);
       const limitNum = Math.min(Math.max(parseInt(String(limit), 10) || 25, 1), 200);
 
-      const filter: Record<string, unknown> = {};
+      const filter: Record<string, unknown> & { createdAt?: Record<string, Date> } = {};
 
       if (search && typeof search === 'string') {
         const regex = new RegExp(search, 'i');
@@ -532,14 +532,14 @@ class AdminController {
       }
 
       if ((startDate && typeof startDate === 'string') || (endDate && typeof endDate === 'string')) {
-        filter.createdAt = {};
+        const createdAtFilter: Record<string, Date> = {};
         if (startDate && typeof startDate === 'string') {
           const start = new Date(startDate);
           if (Number.isNaN(start.getTime())) {
             res.status(400).json({ success: false, error: 'Invalid startDate filter' });
             return;
           }
-          filter.createdAt.$gte = start;
+          createdAtFilter.$gte = start;
         }
         if (endDate && typeof endDate === 'string') {
           const endDt = new Date(endDate);
@@ -547,7 +547,10 @@ class AdminController {
             res.status(400).json({ success: false, error: 'Invalid endDate filter' });
             return;
           }
-          filter.createdAt.$lte = endDt;
+          createdAtFilter.$lte = endDt;
+        }
+        if (Object.keys(createdAtFilter).length > 0) {
+          filter.createdAt = createdAtFilter;
         }
       }
 
