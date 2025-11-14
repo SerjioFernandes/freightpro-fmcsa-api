@@ -77,7 +77,7 @@ const SupportChatWidget = () => {
     try {
       const response = await supportService.sendMessage(userMessage.text);
       
-      if (response.success) {
+      if (response.success && response.data) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           sender: 'ai',

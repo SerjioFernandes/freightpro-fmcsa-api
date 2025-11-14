@@ -3,6 +3,7 @@ import { IUser } from '../types/index.js';
 
 const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true, lowercase: true },
+  gaxtnabar: {type: String, default: null},
   password: { type: String, required: true },
   uniqueUserId: { type: String, unique: true, sparse: true },
   company: { type: String, required: true },

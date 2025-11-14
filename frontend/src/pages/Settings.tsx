@@ -251,7 +251,8 @@ const SettingsPage = () => {
       });
 
       if (response.success && response.data) {
-        setSupportTickets((prev) => [response.data, ...prev]);
+        const newTicket = response.data;
+        setSupportTickets((prev) => [newTicket, ...prev]);
       }
 
       addNotification({
@@ -734,7 +735,11 @@ const SettingsPage = () => {
                 </label>
                 <select
                   value={notificationPrefs.frequency}
-                  onChange={(e) => handleNotificationChange('frequency', e.target.value)}
+                  onChange={(e) =>
+                    handleNotificationChange(
+                      'frequency',
+                      e.target.value as NotificationPreferencesState['frequency']
+                    )}
                   className="input"
                 >
                   <option value="instant">Instant</option>

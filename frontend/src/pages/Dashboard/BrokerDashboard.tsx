@@ -8,7 +8,6 @@ import { ROUTES } from '../../utils/constants';
 import { Plus, Package, Users, DollarSign, MapPin } from 'lucide-react';
 import EmptyState from '../../components/common/EmptyState';
 import BarChart from '../../components/Analytics/BarChart';
-import type { Load } from '../../types/load.types';
 
 const BrokerDashboard = () => {
   const { user } = useAuthStore();

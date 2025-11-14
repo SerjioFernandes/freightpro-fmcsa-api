@@ -14,6 +14,8 @@ export interface SessionSecurityInfo {
   totalSessions: number;
   suspiciousIPs: string[];
   hasSuspiciousActivity: boolean;
+  activeSessions?: number;
+  lastLogin?: string;
 }
 
 export const sessionService = {

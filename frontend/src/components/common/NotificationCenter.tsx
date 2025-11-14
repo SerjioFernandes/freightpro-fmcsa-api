@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, Check, CheckCheck, Star, StarOff, Trash2, AlertCircle } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
-import { notificationService, type Notification } from '../../services/notification.service';
+import { notificationService, type NotificationRecord } from '../../services/notification.service';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationCenterProps {
-  onNotificationClick?: (notification: Notification) => void;
+  onNotificationClick?: (notification: NotificationRecord) => void;
 }
 
 const NotificationCenter = ({ onNotificationClick }: NotificationCenterProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'important'>('all');

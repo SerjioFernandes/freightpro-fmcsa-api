@@ -10,7 +10,7 @@ const ActiveSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [securityInfo, setSecurityInfo] = useState<{ 
     totalSessions: number; 
-    activeSessions: number; 
+    activeSessions?: number; 
     lastLogin?: string;
     hasSuspiciousActivity?: boolean;
     suspiciousIPs?: string[];

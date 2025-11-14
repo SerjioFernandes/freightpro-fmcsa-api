@@ -1,21 +1,50 @@
 import api from './api';
 import type { Load, LoadFormData } from '../types/load.types';
-import type { PaginatedResponse } from '../types/api.types';
+import type { PaginatedResponse, PaginationParams } from '../types/api.types';
+
+type LoadListResponse = PaginatedResponse<Load> & {
+  loads?: Load[];
+};
 
 export const loadService = {
-  async getLoads(page = 1, limit = 20, status = 'available'): Promise<PaginatedResponse<Load>> {
+  async getLoads(page = 1, limit = 20, status = 'available'): Promise<LoadListResponse> {
     const response = await api.get('/loads', {
       params: { page, limit, status },
     });
-    // Handle both response formats: { success, data: { loads, pagination } } or { loads, pagination }
-    if (response.data.success && response.data.data) {
+    const payload = response.data as Partial<LoadListResponse> & {
+      data?: Load[] | { loads?: Load[]; pagination?: PaginationParams };
+    };
+
+    if (payload.success && payload.data && !Array.isArray(payload.data)) {
+      const dataPayload = payload.data as { loads?: Load[]; pagination?: PaginationParams };
+      const loads = dataPayload.loads ?? [];
+      const pagination = dataPayload.pagination ?? { page, limit, total: loads.length, pages: 1 };
       return {
-        loads: response.data.data.loads || [],
-        pagination: response.data.data.pagination || { page, limit, total: 0, pages: 0 },
-        success: true
+        success: true,
+        data: loads,
+        loads,
+        pagination,
       };
     }
-    return response.data;
+
+    const loads = Array.isArray(payload.data)
+      ? payload.data
+      : (payload.loads ?? []);
+
+    const pagination =
+      payload.pagination ??
+      (Array.isArray(payload.data)
+        ? { page, limit, total: loads.length, pages: loads.length ? Math.max(1, Math.ceil(loads.length / limit)) : 0 }
+        : { page, limit, total: loads.length, pages: loads.length ? Math.max(1, Math.ceil(loads.length / limit)) : 0 });
+
+    return {
+      success: Boolean(payload.success),
+      data: loads,
+      loads,
+      pagination,
+      error: payload.error,
+      message: payload.message,
+    };
   },
 
   async postLoad(data: LoadFormData): Promise<{ success: boolean; load: Load; message: string }> {

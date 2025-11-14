@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { documentService } from '../services/document.service';
+import { documentService, type DocumentListParams } from '../services/document.service';
 import { useUIStore } from '../store/uiStore';
 import {
   FileText,
@@ -91,12 +91,14 @@ const Documents = () => {
   const loadDocuments = async () => {
     setIsLoading(true);
     try {
-      const params = selectedType !== 'ALL' ? { type: selectedType } : {};
+      const params: DocumentListParams | undefined =
+        selectedType !== 'ALL' ? { type: selectedType as DocumentType } : undefined;
       const response = await documentService.listDocuments(params);
-      if (response.success && response.data) {
-        setDocuments(response.data);
+      if (response.success && Array.isArray(response.data)) {
+        const docs = response.data;
+        setDocuments(docs);
         setSelectedDocuments((prev) => {
-          const allowed = new Set(response.data.map((doc) => doc._id));
+          const allowed = new Set(docs.map((doc) => doc._id));
           return prev.filter((id) => allowed.has(id));
         });
       }

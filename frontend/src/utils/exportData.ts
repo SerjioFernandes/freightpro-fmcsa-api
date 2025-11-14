@@ -5,6 +5,23 @@ import type { InvoicePreview } from '../types/billing.types';
 
 type CsvRow = Record<string, unknown>;
 
+const getParticipantValue = (
+  participant: ConversationMessage['sender'],
+  field: 'company' | 'email'
+): string => {
+  if (!participant) return '';
+  if (typeof participant === 'string') {
+    return field === 'email' ? participant : '';
+  }
+  return participant[field] ?? '';
+};
+
+const getParticipantDisplay = (participant: ConversationMessage['sender']): string => {
+  if (!participant) return '';
+  if (typeof participant === 'string') return participant;
+  return participant.company || participant.email || '';
+};
+
 export const arrayToCSV = (data: CsvRow[], headers?: string[]): string => {
   if (!data || data.length === 0) return '';
 
@@ -94,8 +111,8 @@ export const exportMessagesToCSV = (messages: ConversationMessage[]): void => {
   
   const csvData = messages.map((msg) => ({
     date: new Date(msg.createdAt).toLocaleString(),
-    from: msg.sender?.company || msg.sender?.email || '',
-    to: msg.receiver?.company || msg.receiver?.email || '',
+    from: getParticipantValue(msg.sender, 'company') || getParticipantValue(msg.sender, 'email'),
+    to: getParticipantValue(msg.receiver, 'company') || getParticipantValue(msg.receiver, 'email'),
     subject: msg.subject,
     message: msg.message,
     read: msg.isRead ? 'Yes' : 'No'
@@ -211,7 +228,7 @@ export const formatReportData = (
         const rowColor = idx % 2 === 0 ? '#f9fafb' : 'white';
         html += `<tr style="background:${rowColor};">`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${new Date(msg.createdAt).toLocaleString()}</td>`;
-        html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${msg.sender?.company || msg.sender?.email}</td>`;
+        html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${getParticipantDisplay(msg.sender)}</td>`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${msg.subject}</td>`;
         html += `<td style="padding:10px; border-bottom:1px solid #e5e7eb;">${msg.isRead ? 'Yes' : 'No'}</td>`;
         html += '</tr>';

@@ -28,9 +28,10 @@ export const useLoadStore = create<LoadState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await loadService.getLoads(page, limit, status);
+      const loadsData = response.loads ?? response.data ?? [];
       set({
-        loads: response.loads || [],
-        pagination: response.pagination || null,
+        loads: loadsData,
+        pagination: response.pagination ?? null,
         isLoading: false,
       });
     } catch (error: unknown) {

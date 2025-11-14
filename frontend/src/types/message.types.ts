@@ -31,8 +31,8 @@ export interface ConversationPreview {
 
 export interface ConversationMessage {
   _id: string;
-  sender: MessageParticipant;
-  receiver: MessageParticipant;
+  sender: MessageParticipant | string;
+  receiver: MessageParticipant | string;
   subject: string;
   message: string;
   isRead: boolean;

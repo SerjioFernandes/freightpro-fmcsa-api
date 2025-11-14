@@ -50,6 +50,7 @@ export interface ISession {
 export interface IUser {
   _id: Types.ObjectId;
   email: string;
+  gaxtnabar: string,
   password: string;
   uniqueUserId: string;
   company: string;
