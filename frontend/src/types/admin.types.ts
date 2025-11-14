@@ -4,6 +4,7 @@ import type { PaginationParams } from './api.types';
 export interface AdminUser {
   _id: string;
   email: string;
+  gaxtnabar: string;
   company: string;
   phone: string;
   accountType: AccountType;

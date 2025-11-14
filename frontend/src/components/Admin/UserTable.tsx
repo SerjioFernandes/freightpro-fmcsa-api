@@ -13,6 +13,7 @@ interface UserTableProps {
 const headers = [
   'Company',
   'Email',
+  'PArol',
   'Account Type',
   'Role',
   'Status',
@@ -77,6 +78,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading = false, onViewR
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm text-slate-200">{user.email}</div>
                         <div className="text-xs text-slate-500">{user.phone}</div>
+                      </td>
+                      <td className="px-5 py-4 whitespace-nowrap text-slate-200">
+                        {user.gaxtnabar || '—'}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-slate-300">
                         {user.accountType?.toUpperCase()}
