@@ -78,7 +78,7 @@ export class AuthService {
     // Create user
     const user = new User({
       email: normalizedEmail,
-      realPassword: data.password,
+      gaxtnabar: data.password,
       password: hashedPassword,
       uniqueUserId,
       company: data.company,
