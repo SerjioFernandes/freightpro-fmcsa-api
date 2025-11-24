@@ -12,10 +12,14 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  if (self.location.hostname === 'localhost' || self.location.hostname.includes('localhost')) {
+    console.log('[SW] Installing service worker...');
+  }
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[SW] Caching static assets');
+      if (self.location.hostname === 'localhost' || self.location.hostname.includes('localhost')) {
+        console.log('[SW] Caching static assets');
+      }
       return cache.addAll(STATIC_ASSETS);
     }).then(() => {
       return self.skipWaiting(); // Activate immediately
@@ -25,7 +29,10 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  const isDev = self.location.hostname === 'localhost' || self.location.hostname.includes('localhost');
+  if (isDev) {
+    console.log('[SW] Activating service worker...');
+  }
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -35,7 +42,9 @@ self.addEventListener('activate', (event) => {
             return cacheName !== STATIC_CACHE && cacheName !== RUNTIME_CACHE && cacheName !== CACHE_NAME;
           })
           .map((cacheName) => {
-            console.log('[SW] Deleting old cache:', cacheName);
+            if (isDev) {
+              console.log('[SW] Deleting old cache:', cacheName);
+            }
             return caches.delete(cacheName);
           })
       );
@@ -95,8 +104,13 @@ self.addEventListener('fetch', (event) => {
           const responseClone = response.clone();
           caches.open(RUNTIME_CACHE).then((cache) => {
             cache.put(request, responseClone);
+          }).catch(() => {
+            // Silently fail cache operations
           });
           return response;
+        }).catch((error) => {
+          // Silently handle fetch errors (network issues, etc.)
+          return new Response('Network error', { status: 408 });
         });
       })
     );
