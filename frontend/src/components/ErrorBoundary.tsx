@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import type { ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { errorHandler } from '../utils/errorHandler';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -28,17 +29,13 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
     // Report to error handler
     if (typeof window !== 'undefined') {
       try {
-        // Dynamic import to avoid build issues
-        import('../utils/errorHandler').then((module) => {
-          module.errorHandler.reportError(error, {
-            componentStack: errorInfo.componentStack,
-            context: 'error_boundary',
-          });
-        }).catch(() => {
-          // Ignore if error handler not available
+        errorHandler.reportError(error, {
+          componentStack: errorInfo.componentStack,
+          context: 'error_boundary',
         });
       } catch (e) {
         // Ignore if error handler not available
+        console.error('[ErrorBoundary] Failed to report error:', e);
       }
     }
   }
