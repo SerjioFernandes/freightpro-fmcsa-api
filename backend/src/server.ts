@@ -11,6 +11,8 @@ import { alertCronService } from './services/alertCron.service.js';
 import { logger } from './utils/logger.js';
 import { apiLimiter } from './middleware/rateLimit.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
+import { AuthRequest } from './types/index.js';
+import { setupGracefulShutdown } from './utils/gracefulShutdown.js';
 import routes from './routes/index.js';
 
 // Validate environment
@@ -117,7 +119,7 @@ app.use((req, res, next) => {
   const start = Date.now();
   const requestId = req.headers['x-request-id'] as string || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   res.setHeader('X-Request-Id', requestId);
-  (req as any).requestId = requestId;
+  (req as AuthRequest).requestId = requestId;
 
   const { method, originalUrl } = req;
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -180,27 +182,19 @@ async function startServer() {
       logger.info(`  - Loads: http://localhost:${PORT}/api/loads`);
       logger.info('WebSocket: Real-time updates enabled');
       logger.info('Alert Cron: Running every hour');
+      
+      // Setup graceful shutdown handlers
+      setupGracefulShutdown({
+        server,
+        signals: ['SIGTERM', 'SIGINT'],
+        timeout: 30000, // 30 seconds
+      });
     });
   } catch (error: any) {
     logger.error('Failed to start server', { error: error.message });
     process.exit(1);
   }
 }
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down gracefully...');
-  alertCronService.stop();
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received, shutting down gracefully...');
-  alertCronService.stop();
-  await disconnectDatabase();
-  process.exit(0);
-});
 
 // Start the server
 startServer();

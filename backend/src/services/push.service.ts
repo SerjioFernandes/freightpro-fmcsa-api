@@ -2,10 +2,8 @@ import webpush from 'web-push';
 import { config } from '../config/environment.js';
 import { logger } from '../utils/logger.js';
 
-// Generate VAPID keys (run once and store in environment variables)
-// const vapidKeys = webpush.generateVAPIDKeys();
-// console.log('VAPID Public Key:', vapidKeys.publicKey);
-// console.log('VAPID Private Key:', vapidKeys.privateKey);
+// VAPID keys should be generated once using: webpush.generateVAPIDKeys()
+// and stored in environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
 const VAPID_PUBLIC_KEY = config.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = config.VAPID_PRIVATE_KEY;

@@ -32,12 +32,12 @@ router.get('/database', async (_req, res) => {
     const stateNames = ['disconnected', 'connected', 'connecting', 'disconnecting'];
     
     let collections: string[] = [];
-    let indexInfo: any = {};
+    const indexInfo: Record<string, unknown> = {};
     
     if (isConnected && mongoose.connection.db) {
       // List all collections
       collections = await mongoose.connection.db.listCollections().toArray().then(cols => 
-        cols.map((col: any) => col.name)
+        cols.map((col: { name: string }) => col.name)
       );
       
       // Get index information for key collections

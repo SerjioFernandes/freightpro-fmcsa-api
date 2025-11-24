@@ -88,13 +88,13 @@ export const previewInvoiceForLoad = async (req: AuthRequest, res: Response): Pr
 
 export const listReadyInvoices = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const query: Record<string, any> = {
+    const query: Record<string, unknown> = {
       billingStatus: { $in: ['ready', 'invoiced', 'paid'] },
     };
 
-    if (req.user?.role !== 'admin' && req.user?.accountType === 'broker') {
+    if (req.user && req.user.role !== 'admin' && req.user.accountType === 'broker') {
       query.postedBy = req.user.userId;
-    } else if (req.user?.role !== 'admin' && req.user?.accountType === 'carrier') {
+    } else if (req.user && req.user.role !== 'admin' && req.user.accountType === 'carrier') {
       query.bookedBy = req.user.userId;
     }
 
@@ -104,16 +104,25 @@ export const listReadyInvoices = async (req: AuthRequest, res: Response): Promis
       .populate('postedBy', 'company')
       .populate('bookedBy', 'company');
 
-    const invoices = loads.map((load) => ({
-      loadId: load._id.toString(),
-      title: load.title,
-      pickupDate: load.pickupDate,
-      deliveryDate: load.deliveryDate,
-      totalDue: computeLineHaulTotal(load.rateType, load.rate, load.agreedRate ?? undefined, load.distance),
-      billingStatus: load.billingStatus,
-      broker: (load.postedBy as PartyLike)?.company ?? '',
-      carrier: (load.bookedBy as PartyLike)?.company ?? '',
-    }));
+    const invoices = loads.map((load) => {
+      // Runtime validation: ensure populated fields exist and have expected structure
+      const postedBy: PartyLike = load.postedBy && typeof load.postedBy === 'object' && 'company' in load.postedBy
+        ? load.postedBy as PartyLike
+        : null;
+      const bookedBy: PartyLike = load.bookedBy && typeof load.bookedBy === 'object' && 'company' in load.bookedBy
+        ? load.bookedBy as PartyLike
+        : null;
+      return {
+        loadId: load._id.toString(),
+        title: load.title,
+        pickupDate: load.pickupDate,
+        deliveryDate: load.deliveryDate,
+        totalDue: computeLineHaulTotal(load.rateType, load.rate, load.agreedRate ?? undefined, load.distance),
+        billingStatus: load.billingStatus,
+        broker: postedBy?.company ?? '',
+        carrier: bookedBy?.company ?? '',
+      };
+    });
 
     res.json({
       success: true,

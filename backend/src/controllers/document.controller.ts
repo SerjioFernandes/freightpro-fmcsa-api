@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { Document } from '../models/Document.model.js';
 import { AuthRequest } from '../types/index.js';
+import { DocumentFilter } from '../types/query.types.js';
 import { getFileUrl, deleteFile } from '../middleware/upload.middleware.js';
 import path from 'path';
 import { logger } from '../utils/logger.js';
@@ -92,11 +93,11 @@ export const listDocuments = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user?.userId;
     const { type, loadId, shipmentId, tag } = req.query;
 
-    const filter: any = { userId };
-    if (type) filter.type = type;
-    if (loadId) filter.loadId = loadId;
-    if (shipmentId) filter.shipmentId = shipmentId;
-    if (tag) filter.tags = tag;
+    const filter: DocumentFilter = { userId: userId || '' };
+    if (type && typeof type === 'string') filter.type = type;
+    if (loadId && typeof loadId === 'string') filter.loadId = loadId;
+    if (shipmentId && typeof shipmentId === 'string') filter.shipmentId = shipmentId;
+    if (tag && typeof tag === 'string') filter.tags = tag;
 
     const documents = await Document.find(filter)
       .sort({ uploadedAt: -1 });
@@ -270,7 +271,7 @@ export const updateDocumentMetadata = async (req: AuthRequest, res: Response): P
     if (typeof isVerified === 'boolean') {
       document.isVerified = isVerified;
       if (isVerified) {
-        document.verifiedBy = req.user?.userId ? (req.user.userId as any) : document.verifiedBy;
+        document.verifiedBy = req.user?.userId ? req.user.userId : document.verifiedBy;
         document.verifiedAt = new Date();
       } else {
         document.verifiedBy = undefined;

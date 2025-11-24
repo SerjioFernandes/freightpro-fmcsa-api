@@ -121,10 +121,10 @@ class GeocodingService {
    */
   async findNearbyLoads(
     location: GeoPoint,
-    loads: Array<{ origin: Address; destination: Address; [key: string]: any }>,
+    loads: Array<{ origin: Address; destination: Address; [key: string]: unknown }>,
     radiusMiles: number
-  ): Promise<Array<{ load: any; distance: number }>> {
-    const nearby: Array<{ load: any; distance: number }> = [];
+  ): Promise<Array<{ load: { origin: Address; destination: Address; [key: string]: unknown }; distance: number }>> {
+    const nearby: Array<{ load: { origin: Address; destination: Address; [key: string]: unknown }; distance: number }> = [];
 
     for (const load of loads) {
       // Calculate distance from user location to load origin

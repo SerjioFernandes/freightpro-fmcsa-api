@@ -115,7 +115,8 @@ async function syncForms() {
   // Get pending forms from IndexedDB
   // Send them to server when online
   console.log('[SW] Syncing offline forms...');
-  // TODO: Implement IndexedDB sync logic
+  // Note: IndexedDB sync logic will be implemented in a future update
+  // This feature allows forms submitted offline to be synced when connection is restored
 }
 
 // Push notification handling

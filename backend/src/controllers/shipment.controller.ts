@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { Shipment, ShipmentRequest } from '../models/Shipment.model.js';
 import { AuthRequest } from '../types/index.js';
+import { ShipmentQueryFilter } from '../types/query.types.js';
 import { PAGINATION } from '../utils/constants.js';
 import { validateState, validatePostalCode } from '../utils/validators.js';
 import { logger } from '../utils/logger.js';
@@ -11,10 +12,10 @@ export class ShipmentController {
       const { page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT, status } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
 
-      let query: any = {};
+      const query: ShipmentQueryFilter = {};
       
       // Filter by status if provided
-      if (status) {
+      if (status && typeof status === 'string') {
         query.status = status;
       }
 
@@ -239,7 +240,7 @@ export class ShipmentController {
     try {
       const { status } = req.query;
 
-      let query: any = {};
+      const query: ShipmentQueryFilter = {};
 
       if (req.user?.accountType === 'broker') {
         query.brokerId = req.user.userId;
@@ -250,7 +251,7 @@ export class ShipmentController {
         return;
       }
 
-      if (status) {
+      if (status && typeof status === 'string') {
         query.status = status;
       }
 

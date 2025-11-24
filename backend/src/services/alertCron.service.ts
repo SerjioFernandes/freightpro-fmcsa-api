@@ -1,8 +1,10 @@
 import { CronJob } from 'cron';
 import { SavedSearch } from '../models/SavedSearch.model.js';
 import { Load } from '../models/Load.model.js';
+import { LoadQueryFilter } from '../types/query.types.js';
 import { emailService } from './email.service.js';
 import { logger } from '../utils/logger.js';
+import { Types } from 'mongoose';
 
 class AlertCronService {
   private cronJob: CronJob | null = null;
@@ -89,8 +91,8 @@ class AlertCronService {
   /**
    * Find loads matching saved search criteria
    */
-  private async findMatchingLoads(search: any): Promise<any[]> {
-    const query: any = { status: 'available' };
+  private async findMatchingLoads(search: { filters: { equipment?: string[]; priceMin?: number; priceMax?: number; originState?: string; destinationState?: string; dateRange?: { from: Date; to: Date } } }): Promise<Array<Record<string, unknown>>> {
+    const query: LoadQueryFilter & Record<string, unknown> = { status: 'available' };
 
     // Equipment type filter
     if (search.filters.equipment && search.filters.equipment.length > 0) {
@@ -131,10 +133,14 @@ class AlertCronService {
   /**
    * Send alert email to user
    */
-  private async sendAlert(search: any, matchingLoads: any[]): Promise<void> {
+  private async sendAlert(
+    search: { userId: { email?: string; company?: string } | Types.ObjectId; _id: Types.ObjectId },
+    matchingLoads: Array<Record<string, unknown>>
+  ): Promise<void> {
     try {
-      const userEmail = (search.userId as any).email;
-      const userName = (search.userId as any).company || 'Valued User';
+      const userId = search.userId as { email?: string; company?: string };
+      const userEmail = userId?.email;
+      const userName = userId?.company || 'Valued User';
 
       if (!userEmail) {
         logger.warn('No email found for saved search', { searchId: search._id });

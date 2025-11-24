@@ -1,4 +1,5 @@
 import { Notification, INotification } from '../models/Notification.model.js';
+import { NotificationFilter } from '../types/query.types.js';
 import { Types } from 'mongoose';
 import { logger } from '../utils/logger.js';
 
@@ -19,7 +20,16 @@ class NotificationService {
    */
   async createNotification(data: CreateNotificationData): Promise<INotification> {
     try {
-      const notificationData: any = {
+      const notificationData: {
+        userId: Types.ObjectId;
+        type: INotification['type'];
+        title: string;
+        message: string;
+        data?: Record<string, unknown>;
+        isImportant: boolean;
+        actionUrl?: string;
+        expiresAt?: Date;
+      } = {
         userId: new Types.ObjectId(data.userId),
         type: data.type,
         title: data.title,
@@ -58,7 +68,7 @@ class NotificationService {
   ): Promise<{ notifications: INotification[]; total: number; unreadCount: number }> {
     try {
       const skip = (page - 1) * limit;
-      const query: any = { userId: new Types.ObjectId(userId) };
+      const query: NotificationFilter = { userId: new Types.ObjectId(userId) };
 
       // Apply filters
       if (filters?.isRead !== undefined) {
@@ -161,9 +171,9 @@ class NotificationService {
    */
   async deleteAllNotifications(userId: string, filters?: { isRead?: boolean; type?: string }): Promise<number> {
     try {
-      const query: any = { userId: new Types.ObjectId(userId) };
+      const query: NotificationFilter = { userId: new Types.ObjectId(userId) };
       if (filters?.isRead !== undefined) query.isRead = filters.isRead;
-      if (filters?.type) query.type = filters.type;
+      if (filters?.type && typeof filters.type === 'string') query.type = filters.type;
 
       const result = await Notification.deleteMany(query);
       logger.info('Deleted notifications', { userId, count: result.deletedCount });

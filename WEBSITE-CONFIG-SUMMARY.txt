@@ -1,0 +1,25 @@
+FreightPro Load Board - Technical Stack & Server Info
+
+SERVER IP/URL:
+- Backend API: https://freightpro-fmcsa-api-production.up.railway.app/api
+- Public IP: 79.127.160.200
+
+ARCHITECTURE:
+- Frontend: React 19 + Vite + TypeScript + TailwindCSS, deployed on Hostinger (static files)
+- Backend: Node.js + Express + TypeScript, deployed on Railway (port 4000)
+- Database: MongoDB Atlas
+- Real-time: Socket.io for messaging/notifications
+
+STACK:
+- Frontend: React, Zustand (state), React Router, Axios, Socket.io-client
+- Backend: Express, Mongoose, JWT auth, Resend (emails), Web Push
+- Build: Vite (frontend), TypeScript compiler (backend)
+- Deployment: Hostinger (frontend static), Railway (backend Node.js)
+
+API ENDPOINTS:
+- Production: https://freightpro-fmcsa-api-production.up.railway.app/api
+- Local Dev: http://localhost:4000/api
+
+ENV VARS NEEDED (Backend):
+MONGODB_URI, JWT_SECRET, PORT=4000, FRONTEND_URL, RESEND_API_KEY, ADMIN_EMAIL, ADMIN_PASSWORD
+

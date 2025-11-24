@@ -24,6 +24,23 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Always log errors in ErrorBoundary as they're critical
     console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+    
+    // Report to error handler
+    if (typeof window !== 'undefined') {
+      try {
+        // Dynamic import to avoid build issues
+        import('../utils/errorHandler').then((module) => {
+          module.errorHandler.reportError(error, {
+            componentStack: errorInfo.componentStack,
+            context: 'error_boundary',
+          });
+        }).catch(() => {
+          // Ignore if error handler not available
+        });
+      } catch (e) {
+        // Ignore if error handler not available
+      }
+    }
   }
 
   render() {

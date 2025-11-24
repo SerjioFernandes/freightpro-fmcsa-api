@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PushSubscription } from '../models/PushSubscription.model.js';
+import { AuthRequest } from '../types/index.js';
 import { pushService } from '../services/push.service.js';
 import { logger } from '../utils/logger.js';
 
@@ -22,7 +23,7 @@ export const pushController = {
    */
   async subscribe(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthRequest).user?.userId;
       if (!userId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -69,7 +70,7 @@ export const pushController = {
    */
   async unsubscribe(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthRequest).user?.userId;
       if (!userId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -97,7 +98,7 @@ export const pushController = {
    */
   async sendTestNotification(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthRequest).user?.userId;
       if (!userId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;

@@ -3,6 +3,7 @@ import { Load } from '../models/Load.model.js';
 import { User } from '../models/User.model.js';
 import { Shipment } from '../models/Shipment.model.js';
 import { AuthRequest } from '../types/index.js';
+import { LoadQueryFilter } from '../types/query.types.js';
 import { PAGINATION } from '../utils/constants.js';
 import { validateState, validatePostalCode } from '../utils/validators.js';
 import { logger } from '../utils/logger.js';
@@ -52,7 +53,7 @@ export class LoadController {
       const { page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT, status = 'available' } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
 
-      let query: any = { status };
+      const query: LoadQueryFilter = { status: String(status) };
 
       // Authority-based filtering for carriers
       if (req.user?.accountType === 'carrier') {
@@ -227,7 +228,7 @@ export class LoadController {
         typeof agreedRate === 'number' && agreedRate > 0 ? agreedRate : loadToBook.rate;
 
       // Atomic update
-      const updatePayload: Record<string, any> = {
+      const updatePayload: Record<string, unknown> = {
         status: 'booked',
         bookedBy: req.user.userId,
         updatedAt: new Date(),

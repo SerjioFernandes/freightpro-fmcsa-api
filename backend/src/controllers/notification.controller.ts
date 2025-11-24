@@ -18,7 +18,7 @@ export class NotificationController {
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
-      const filters: any = {};
+      const filters: NotificationFilter = {};
 
       if (req.query.isRead !== undefined) {
         filters.isRead = req.query.isRead === 'true';
@@ -167,9 +167,9 @@ export class NotificationController {
         return;
       }
 
-      const filters: any = {};
+      const filters: NotificationFilter = {};
       if (req.query.isRead !== undefined) {
-        filters.isRead = req.query.isRead === 'true';
+        filters.read = req.query.isRead === 'true';
       }
       if (req.query.type) {
         filters.type = req.query.type;
