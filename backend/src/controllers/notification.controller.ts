@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { notificationService } from '../services/notification.service.js';
 import { AuthRequest } from '../types/index.js';
+import { NotificationFilter } from '../types/query.types.js';
 import { logger } from '../utils/logger.js';
 
 export class NotificationController {
@@ -24,7 +25,7 @@ export class NotificationController {
         filters.isRead = req.query.isRead === 'true';
       }
       if (req.query.type) {
-        filters.type = req.query.type;
+        filters.type = typeof req.query.type === 'string' ? req.query.type : String(req.query.type);
       }
       if (req.query.isImportant !== undefined) {
         filters.isImportant = req.query.isImportant === 'true';
@@ -169,10 +170,10 @@ export class NotificationController {
 
       const filters: NotificationFilter = {};
       if (req.query.isRead !== undefined) {
-        filters.read = req.query.isRead === 'true';
+        filters.isRead = req.query.isRead === 'true';
       }
       if (req.query.type) {
-        filters.type = req.query.type;
+        filters.type = typeof req.query.type === 'string' ? req.query.type : String(req.query.type);
       }
 
       const count = await notificationService.deleteAllNotifications(userId, filters);

@@ -5,6 +5,7 @@ import { DocumentFilter } from '../types/query.types.js';
 import { getFileUrl, deleteFile } from '../middleware/upload.middleware.js';
 import path from 'path';
 import { logger } from '../utils/logger.js';
+import { Types } from 'mongoose';
 
 const allowedDocumentTypes = ['BOL', 'POD', 'INSURANCE', 'LICENSE', 'CARRIER_AUTHORITY', 'W9', 'OTHER'];
 
@@ -271,7 +272,7 @@ export const updateDocumentMetadata = async (req: AuthRequest, res: Response): P
     if (typeof isVerified === 'boolean') {
       document.isVerified = isVerified;
       if (isVerified) {
-        document.verifiedBy = req.user?.userId ? req.user.userId : document.verifiedBy;
+        document.verifiedBy = req.user?.userId ? (req.user.userId as unknown as Types.ObjectId) : document.verifiedBy;
         document.verifiedAt = new Date();
       } else {
         document.verifiedBy = undefined;

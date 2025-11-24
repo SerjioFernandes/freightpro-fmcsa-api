@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import { validateEnvironment, config } from './config/environment.js';
-import { connectToDatabase, disconnectDatabase } from './config/database.js';
+import { connectToDatabase } from './config/database.js';
 import { authService } from './services/auth.service.js';
 import { websocketService } from './services/websocket.service.js';
 import { alertCronService } from './services/alertCron.service.js';

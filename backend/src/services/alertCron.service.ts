@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
-import { SavedSearch } from '../models/SavedSearch.model.js';
+import { SavedSearch, ISavedSearch } from '../models/SavedSearch.model.js';
 import { Load } from '../models/Load.model.js';
+import { ILoad } from '../types/index.js';
 import { LoadQueryFilter } from '../types/query.types.js';
 import { emailService } from './email.service.js';
 import { logger } from '../utils/logger.js';
@@ -91,7 +92,7 @@ class AlertCronService {
   /**
    * Find loads matching saved search criteria
    */
-  private async findMatchingLoads(search: { filters: { equipment?: string[]; priceMin?: number; priceMax?: number; originState?: string; destinationState?: string; dateRange?: { from: Date; to: Date } } }): Promise<Array<Record<string, unknown>>> {
+  private async findMatchingLoads(search: { filters: { equipment?: string[]; priceMin?: number; priceMax?: number; originState?: string; destinationState?: string; dateRange?: { from: Date; to: Date } } }): Promise<Array<ILoad & { _id: Types.ObjectId }>> {
     const query: LoadQueryFilter & Record<string, unknown> = { status: 'available' };
 
     // Equipment type filter
@@ -127,15 +128,15 @@ class AlertCronService {
       .populate('postedBy', 'company email')
       .limit(50); // Max 50 loads per alert
 
-    return loads.map(load => load.toObject());
+    return loads.map(load => load.toObject() as unknown as ILoad & { _id: Types.ObjectId });
   }
 
   /**
    * Send alert email to user
    */
   private async sendAlert(
-    search: { userId: { email?: string; company?: string } | Types.ObjectId; _id: Types.ObjectId },
-    matchingLoads: Array<Record<string, unknown>>
+    search: ISavedSearch & { userId: { email?: string; company?: string } | Types.ObjectId; _id: Types.ObjectId; name: string },
+    matchingLoads: Array<ILoad & { _id: Types.ObjectId }>
   ): Promise<void> {
     try {
       const userId = search.userId as { email?: string; company?: string };
@@ -179,9 +180,13 @@ class AlertCronService {
         html: htmlContent
       });
 
+      const userIdForLog = search.userId instanceof Types.ObjectId 
+        ? search.userId.toString() 
+        : (search.userId as { _id?: Types.ObjectId })?._id?.toString() || 'unknown';
+
       logger.info('Alert sent', { 
         searchId: search._id, 
-        userId: search.userId._id,
+        userId: userIdForLog,
         loadCount: matchingLoads.length 
       });
     } catch (error: any) {
